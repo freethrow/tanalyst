@@ -1,0 +1,11 @@
+django-mongodb-backend
+pandas
+pydantic
+pydantic-ai
+scrapy
+pytz
+celery
+redis
+resend
+ruff
+python-dotenv
