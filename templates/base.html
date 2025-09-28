@@ -1,13 +1,127 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
-    {% block content %}
-        <!-- Page content goes here -->
-    {% endblock %}
-</body>
+<html lang="en" data-theme="retro">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}TA{% endblock %}</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- DaisyUI (works with Tailwind CDN) -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/daisyui@4.12.14/dist/full.min.css"
+      type="text/css"
+    />
+    <!-- HTMX -->
+    <script src="https://unpkg.com/htmx.org@2.0.2"></script>
+    
+  </head>
+  <body class="min-h-screen flex flex-col">
+    <!-- Header / Navbar -->
+    <header class="border-b bg-base-100">
+      <div class="w-full">
+        <div class="container mx-auto">
+          <div class="navbar w-full px-4">
+            <div class="navbar-start">
+              <div class="dropdown">
+                <div tabindex="0" role="button" class="btn btn-ghost lg:hidden" aria-label="Open Menu">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
+                </div>
+                <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
+                  <li><a href="/">Home</a></li>
+                  <li><a href="{% url 'articles:sectors' %}">Settori</a></li>
+                  <li><a href="{% url 'articles:send_email' %}">Invia Email</a></li>
+                  <li><a href="/vector-search/">Vector Search</a></li>
+                  <li><a href="/about/">About</a></li>
+                </ul>
+              </div>
+              <a href="/" class="btn btn-ghost text-xl">TA</a>
+            </div>
+            <div class="navbar-end hidden lg:flex">
+              <ul class="menu menu-horizontal px-1">
+                <li><a href="/">Home</a></li>
+                <li><a href="{% url 'articles:sectors' %}">Settori</a></li>
+                <li><a href="{% url 'articles:send_email' %}">Invia Email</a></li>
+                <li><a href="/vector-search/">Vector Search</a></li>
+                <li><a href="/about/">About</a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+
+    <main class="container mx-auto flex-1 p-5">
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer bg-base-200 text-base-content p-10">
+      <nav>
+        <h6 class="footer-title">Navigation</h6>
+        <a class="link link-hover" href="/">Home</a>
+        <a class="link link-hover" href="/vector-search/">Vector Search</a>
+        <a class="link link-hover" href="/about/">About</a>
+      </nav>
+      <nav>
+        <h6 class="footer-title">Company</h6>
+        <a class="link link-hover" href="/about/">About us</a>
+        <a class="link link-hover" href="mailto:info@example.com">Contact</a>
+      </nav>
+      <aside class="mt-6 lg:mt-0">
+        <p class="text-sm">© <span id="year"></span> TA. All rights reserved.</p>
+      </aside>
+    </footer>
+
+    <!-- Helpers -->
+    <script>
+      // Update footer year
+      document.addEventListener('DOMContentLoaded', function () {
+        const y = document.getElementById('year');
+        if (y) y.textContent = new Date().getFullYear();
+      });
+
+
+      // HTMX CSRF for Django
+      document.body.addEventListener('htmx:configRequest', (event) => {
+        const name = 'csrftoken';
+        const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+        if (match) {
+          event.detail.headers['X-CSRFToken'] = match[2];
+        }
+      });
+    </script>
+
+    <!-- Toasts container -->
+    <div id="toasts" class="toast toast-top toast-end"></div>
+
+    <script>
+      // HTMX custom toast event handler
+      document.body.addEventListener('toast', function (event) {
+        const detail = event.detail || {};
+        const message = detail.message || 'Done';
+        const type = detail.type || 'info';
+        const toasts = document.getElementById('toasts');
+        if (!toasts) return;
+
+        const wrapper = document.createElement('div');
+        const typeClass = type === 'success' ? 'alert-success' : type === 'error' ? 'alert-error' : type === 'warning' ? 'alert-warning' : 'bg-base-100 border border-base-300 text-base-content';
+        wrapper.className = `alert ${typeClass}`;
+        wrapper.innerHTML = `
+          <span>${message}</span>
+          <button class="btn btn-ghost btn-xs ml-2" aria-label="Close">✕</button>
+        `;
+        toasts.appendChild(wrapper);
+
+        const remove = () => wrapper.remove();
+        wrapper.querySelector('button')?.addEventListener('click', remove);
+        setTimeout(remove, 3000);
+      });
+    </script>
+
+    {% block extra_scripts %}{% endblock %}
+  </body>
 </html>

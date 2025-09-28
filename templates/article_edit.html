@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page_title }} · TA{% endblock %}
+
+{% block content %}
+<div class="container mx-auto max-w-4xl">
+  <header class="mb-6">
+    <div class="flex items-center justify-between">
+      <h1 class="text-3xl font-bold">Edit Article</h1>
+      <div class="flex gap-2">
+        <a href="{% url 'articles:article_detail' article.pk %}" class="btn btn-ghost">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+          </svg>
+          View Article
+        </a>
+        <a href="/" class="btn btn-outline">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          Back to List
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Display messages -->
+  {% if messages %}
+    <div class="mb-6">
+      {% for message in messages %}
+        <div class="alert {% if message.tags == 'error' %}alert-error{% elif message.tags == 'success' %}alert-success{% else %}alert-info{% endif %} mb-2">
+          <span>{{ message }}</span>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <form method="post" class="space-y-6">
+    {% csrf_token %}
+    
+    <!-- Article Translation Editor -->
+    <div class="card bg-base-100 shadow-md">
+      <div class="card-body">
+        <h2 class="card-title text-lg mb-4">Translation Editor</h2>
+        
+        <!-- Titles Side by Side -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+          <!-- Original Title -->
+          {% if source_language %}
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text font-medium">{{ source_language }} Title</span>
+              </label>
+              <div class="input input-bordered bg-base-200 text-base-content/70 cursor-not-allowed">
+                {{ source_title|default:"No title available" }}
+              </div>
+            </div>
+          {% endif %}
+          
+          <!-- Italian Title -->
+          <div class="form-control">
+            <label class="label" for="{{ form.title_it.id_for_label }}">
+              <span class="label-text font-medium">Italian Title</span>
+            </label>
+            {{ form.title_it }}
+            {% if form.title_it.errors %}
+              <label class="label">
+                <span class="label-text-alt text-error">{{ form.title_it.errors.0 }}</span>
+              </label>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Content Side by Side -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <!-- Original Content -->
+          {% if source_language %}
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text font-medium">{{ source_language }} Content</span>
+              </label>
+              <div class="textarea textarea-bordered bg-base-200 text-base-content/70 cursor-not-allowed min-h-[400px] overflow-y-auto whitespace-pre-wrap">{{ source_content|default:"No content available" }}</div>
+            </div>
+          {% endif %}
+          
+          <!-- Italian Content -->
+          <div class="form-control">
+            <label class="label" for="{{ form.content_it.id_for_label }}">
+              <span class="label-text font-medium">Italian Content</span>
+            </label>
+            {{ form.content_it }}
+            {% if form.content_it.errors %}
+              <label class="label">
+                <span class="label-text-alt text-error">{{ form.content_it.errors.0 }}</span>
+              </label>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Status Flags -->
+    <div class="card bg-base-100 shadow-md">
+      <div class="card-body">
+        <h2 class="card-title text-lg mb-4">Article Status</h2>
+        <div class="flex flex-wrap gap-6">
+          <div class="form-control">
+            <label class="label cursor-pointer">
+              {{ form.validated }}
+              <span class="label-text ml-2">Validated</span>
+            </label>
+            {% if form.validated.errors %}
+              <label class="label">
+                <span class="label-text-alt text-error">{{ form.validated.errors.0 }}</span>
+              </label>
+            {% endif %}
+          </div>
+          <div class="form-control">
+            <label class="label cursor-pointer">
+              {{ form.used }}
+              <span class="label-text ml-2">Used</span>
+            </label>
+            {% if form.used.errors %}
+              <label class="label">
+                <span class="label-text-alt text-error">{{ form.used.errors.0 }}</span>
+              </label>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form Actions -->
+    <div class="flex justify-end gap-4 pt-6">
+      <a href="{% url 'articles:article_detail' article.pk %}" class="btn btn-ghost">Cancel</a>
+      <button type="submit" class="btn btn-primary">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+        </svg>
+        Save Changes
+      </button>
+    </div>
+  </form>
+</div>
+
+<style>
+/* Custom styles for form fields */
+.form-control input[type="text"],
+.form-control input[type="url"],
+.form-control input[type="datetime-local"],
+.form-control textarea,
+.form-control select {
+  @apply input input-bordered w-full;
+}
+
+.form-control textarea {
+  @apply textarea textarea-bordered min-h-[120px];
+}
+
+.form-control input[type="checkbox"] {
+  @apply checkbox checkbox-primary;
+}
+</style>
+{% endblock %}

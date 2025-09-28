@@ -27,6 +27,14 @@ class Article(models.Model):
         help_text="Article title in Italian",
     )
 
+    title_rs = models.CharField(
+        max_length=500,
+        blank=True,
+        null=True,
+        db_column="title_rs",  # Explicitly set column name
+        help_text="Article title in Serbian",
+    )
+
     # Date when the article was scraped
     scraped_date = models.DateTimeField(
         null=True,
@@ -36,11 +44,12 @@ class Article(models.Model):
     )
 
     # LLM model used for translation
-    llm_model = models.TextField(
+    llm_model = models.CharField(
         null=True,
         blank=True,
         db_column="llm_model",
         help_text="LLM model used for translation",
+        max_length=100,
     )
 
     # Content in English and Italian
@@ -53,6 +62,13 @@ class Article(models.Model):
         blank=True,
         db_column="content_it",
         help_text="Full article content in Italian",
+    )
+
+    content_rs = models.TextField(
+        null=True,
+        blank=True,
+        db_column="content_rs",
+        help_text="Full article content in Serbian",
     )
 
     sector = models.CharField(

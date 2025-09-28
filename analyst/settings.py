@@ -25,6 +25,8 @@ MONGODB_URI = os.getenv("MONGODB_URI")
 DB_NAME = os.getenv("DB_NAME")
 
 
+
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -45,6 +47,7 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     "articles.apps.ArticlesConfig",
+    "analyst.agents",
     "analyst.apps.MongoAdminConfig",
     "analyst.apps.MongoAuthConfig",
     "analyst.apps.MongoContentTypesConfig",
@@ -75,6 +78,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "django.template.context_processors.media",
             ],
         },
     },
@@ -149,3 +153,44 @@ MIGRATION_MODULES = {
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djangoagent.settings")
 
 TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
+
+CELERY_BROKER_URL = "redis://localhost:6379/0"
+CELERY_RESULT_BACKEND = "redis://localhost:6379/0"
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_ENABLE_UTC = True
+
+# Caching (Redis via django-redis)
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        # Use a different Redis DB index than Celery (Celery uses 0)
+        "LOCATION": "redis://127.0.0.1:6379/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        },
+        "KEY_PREFIX": "analyst",
+        "TIMEOUT": 60 * 15,  # default: 15 minutes
+    }
+}
+
+# CELERY_BEAT_SCHEDULE = {
+#     "create_all_embeddings": {
+#         "task": "create_all_embeddings",
+#         "schedule": 90.0,  # Every 30 seconds
+#     },
+    # "scrape_ekapija_scheduled": {
+    #     "task": "scrape_ekapija",
+    #     "schedule": 1 * 60,  # Every minute
+    # },
+    # "send_latest_articles_scheduled": {
+    #     "task": "send_latest_articles_email",
+    #     "schedule": 90,  # Every 90 se
+    #     "kwargs": {
+    #         "recipient_email": "aleksendric@gmail.com",
+    #         "num_articles": 15
+    #     },
+    # },
+#}

@@ -1,0 +1,52 @@
+{# templates/partials/card.html #}
+{# Usage: {% include "partials/card.html" with article=article %} #}
+<div class="card bg-base-100 shadow-md border transition-transform duration-200 ease-out hover:scale-[1.02] hover:-translate-y-0.5 hover:shadow-lg transform-gpu">
+  <div class="card-body">
+    <h2 class="card-title text-balance">
+      {% if article.id %}
+        <a href="{% url 'articles:article_detail' article.id %}" class="no-underline hover:color-primary">
+          {{ article.title_it|default:"Titolo non disponibile" }}
+        </a>
+      {% else %}
+        {{ article.title_it|default:"Titolo non disponibile" }}
+      {% endif %}
+    </h2>
+
+    <p class="text-sm text-base-content/80 mb-3">
+      {{ article.content_it|slice:":300" }}{% if article.content_it and article.content_it|length > 300 %}…{% endif %}
+    </p>
+
+    <div class="text-xs text-base-content/60 space-y-1">
+      {% if article.article_date %}
+        <div>
+          <span class="font-medium">Pubblicato:</span> {{ article.article_date|date:"d/m/Y" }}
+        </div>
+      {% endif %}
+      {% if article.sector %}
+        <div>
+          <span class="font-medium">Settore:</span> {{ article.sector }}
+        </div>
+      {% endif %}
+      {% if article.source %}
+        <div>
+   
+          <span class="badge badge-outline badge-xs p-2">{{ article.source }}</span>
+        </div>
+      {% endif %}
+      {% if article.url %}
+        <div>
+          <span class="font-medium">Originale:</span> 
+          <a href="{{ article.url }}" target="_blank" rel="noopener noreferrer" class="link link-primary text-xs">
+            {{ article.url|slice:":50" }}{% if article.url|length > 50 %}…{% endif %}
+          </a>
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="card-actions justify-end mt-4">
+      {% if article.id %}
+        <a href="{% url 'articles:article_detail' article.id %}" class="btn btn-primary btn-sm">Leggi tutto</a>
+      {% endif %}
+    </div>
+  </div>
+</div>

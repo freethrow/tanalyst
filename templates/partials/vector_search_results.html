@@ -1,0 +1,9 @@
+{# templates/partials/vector_search_results.html #}
+{# Expects: results (iterable of article-like objects) with an 'id' field #}
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+  {% for result in results %}
+    {% include "partials/card.html" with article=result %}
+  {% empty %}
+    <div class="col-span-full alert">No results found.</div>
+  {% endfor %}
+</div>

@@ -6,6 +6,8 @@ scrapy
 pytz
 celery
 redis
+django-redis
 resend
 ruff
 python-dotenv
+voyageai

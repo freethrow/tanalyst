@@ -1,6 +1,11 @@
 {% extends "base.html" %}
 
+{% block title %}About · TA{% endblock %}
+
 {% block content %}
-    <h1>About</h1>
-    <p>This is the about page.</p>
-{% endblock %}  
+<div class="container mx-auto max-w-6xl h-screen flex items-center justify-center">
+  <div class="w-full h-full bg-cover bg-center bg-no-repeat rounded-lg shadow-xl" 
+       style="background-image: url('{{ MEDIA_URL }}logo.png');">
+  </div>
+</div>
+{% endblock %}
