@@ -17,15 +17,15 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-VOYAGEAI_API_KEY = os.getenv("VOYAGEAI_API_KEY")
-OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+NOMIC_API_KEY = os.getenv("NOMIC_API_KEY")
 RESEND_API_KEY = os.getenv("RESEND_API_KEY")
-MONGODB_URI = os.getenv("MONGODB_URI")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+DB_HOST = os.getenv("DB_HOST")
+DB_PORT = os.getenv("DB_PORT")
 DB_NAME = os.getenv("DB_NAME")
 
 
-print(VOYAGEAI_API_KEY)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent

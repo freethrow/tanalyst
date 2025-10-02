@@ -5,7 +5,8 @@ from django.conf import settings
 
 import os
 
-import voyageai
+from nomic import embed
+import numpy as np
 from datetime import datetime
 
 from analyst.emails.notifications import send_latest_articles_email
@@ -18,7 +19,8 @@ EMBEDDING_BATCH_SIZE = 10
 
 logger = get_task_logger(__name__)
 
-voyage_client = voyageai.Client(api_key=settings.VOYAGEAI_API_KEY)
+# Initialize Nomic client
+os.environ['NOMIC_API_KEY'] = settings.NOMIC_API_KEY
 
 
 def get_mongodb_connection():
@@ -65,7 +67,7 @@ def create_all_embeddings(
     Create embeddings for all articles that don't have them.
 
     Args:
-        batch_size: Number of articles to process per Voyage API call
+        batch_size: Number of articles to process per Nomic API call
         limit: Maximum total number of articles to process
 
     Returns:
@@ -76,34 +78,15 @@ def create_all_embeddings(
     try:
         client, collection = get_mongodb_connection()
 
-        # Count articles needing embeddings
+        # Query for articles that need embeddings
+        # Only embed articles that have Italian title and content (since that's what we use)
         query = {
             "$and": [
-                # Articles without embeddings
-                {
-                    "$or": [
-                        {"embedding": {"$exists": False}},
-                        {"embedding": None},
-                        {"embedding": []},
-                    ]
-                },
-                # Articles with English OR Serbian content
-                {
-                    "$or": [
-                        {
-                            "$and": [
-                                {"title_en": {"$exists": True, "$ne": None, "$ne": ""}},
-                                {"content_en": {"$exists": True, "$ne": None, "$ne": ""}}
-                            ]
-                        },
-                        {
-                            "$and": [
-                                {"title_rs": {"$exists": True, "$ne": None, "$ne": ""}},
-                                {"content_rs": {"$exists": True, "$ne": None, "$ne": ""}}
-                            ]
-                        }
-                    ]
-                }
+                # No existing embedding
+                {"embedding": {"$exists": False}},
+                # Must have Italian title and content (required for embedding)
+                {"title_it": {"$exists": True, "$ne": None, "$ne": ""}},
+                {"content_it": {"$exists": True, "$ne": None, "$ne": ""}}
             ]
         }
 
@@ -156,21 +139,24 @@ def create_all_embeddings(
                 article_ids.append(article["_id"])
 
             try:
-                # Rate limiting: 3 requests per minute = 1 request every 20 seconds
-                # Add extra buffer to be safe
-                rate_limit_sleep = 21  # 21 seconds between requests (safer than 20)
+                # Nomic has more generous rate limits, but we'll still be conservative
+                rate_limit_sleep = 2  # 2 seconds between requests (much more generous than VoyageAI)
                 
                 logger.info(f"Creating embeddings for batch of {len(texts)} articles")
-                logger.info(f"Waiting {rate_limit_sleep} seconds to respect rate limit (3 requests/minute)")
+                logger.info(f"Waiting {rate_limit_sleep} seconds between requests")
                 sleep(rate_limit_sleep)
 
-                result = voyage_client.embed(
-                    texts, model="voyage-3.5-lite", input_type="document"
+                # Use Nomic embed API
+                result = embed.text(
+                    texts=texts, 
+                    model='nomic-embed-text-v1.5', 
+                    task_type='search_document',
+                    dimensionality=768  # Full dimensionality for best performance
                 )
 
                 # Update each article with its embedding
                 for idx, (article_id, embedding) in enumerate(
-                    zip(article_ids, result.embeddings)
+                    zip(article_ids, result['embeddings'])
                 ):
                     try:
                         collection.update_one(
@@ -178,7 +164,7 @@ def create_all_embeddings(
                             {
                                 "$set": {
                                     "embedding": embedding,
-                                    "embedding_model": "voyage-3.5-lite",
+                                    "embedding_model": "nomic-embed-text-v1.5",
                                     "embedding_created_at": datetime.utcnow(),
                                     "embedding_dimensions": len(embedding),
                                 }
@@ -205,13 +191,16 @@ def create_all_embeddings(
                     # Retry the batch once
                     try:
                         logger.info(f"Retrying batch of {len(texts)} articles after rate limit")
-                        result = voyage_client.embed(
-                            texts, model="voyage-3.5-lite", input_type="document"
+                        result = embed.text(
+                            texts=texts, 
+                            model='nomic-embed-text-v1.5', 
+                            task_type='search_document',
+                            dimensionality=768
                         )
                         
                         # Update each article with its embedding
                         for idx, (article_id, embedding) in enumerate(
-                            zip(article_ids, result.embeddings)
+                            zip(article_ids, result['embeddings'])
                         ):
                             try:
                                 collection.update_one(
@@ -219,7 +208,7 @@ def create_all_embeddings(
                                     {
                                         "$set": {
                                             "embedding": embedding,
-                                            "embedding_model": "voyage-3.5-lite",
+                                            "embedding_model": "nomic-embed-text-v1.5",
                                             "embedding_created_at": datetime.utcnow(),
                                             "embedding_dimensions": len(embedding),
                                         }
@@ -240,16 +229,16 @@ def create_all_embeddings(
                     failed += len(texts)
 
                 # Mark all in batch as failed
-                """ for article_id in article_ids:
-                    collection.update_one(
-                        {"_id": article_id},
-                        {
-                            "$set": {
-                                "embedding_error": str(e),
-                                "embedding_failed_at": datetime.utcnow(),
-                            }
-                        },
-                    ) """
+                # for article_id in article_ids:
+                #     collection.update_one(
+                #         {"_id": article_id},
+                #         {
+                #             "$set": {
+                #                 "embedding_error": str(e),
+                #                 "embedding_failed_at": datetime.utcnow(),
+                #             }
+                #         },
+                #     )
 
         return {
             "status": "success",

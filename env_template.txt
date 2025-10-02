@@ -1,0 +1,18 @@
+# Copy this to .env and fill in your actual API keys
+
+# Nomic API Key (get from https://atlas.nomic.ai/)
+NOMIC_API_KEY=your_nomic_api_key_here
+
+# Other API Keys
+RESEND_API_KEY=your_resend_api_key
+OPENAI_API_KEY=your_openai_api_key
+
+# Database Configuration
+MONGO_URI=mongodb://localhost:8818/?directConnection=true
+MONGO_DB=analyst
+DB_HOST=localhost
+DB_PORT=8818
+DB_NAME=analyst
+
+# Redis Configuration
+REDIS_URL=redis://localhost:6379/0

@@ -11,4 +11,4 @@ django-redis
 resend
 ruff
 python-dotenv
-voyageai
+nomic

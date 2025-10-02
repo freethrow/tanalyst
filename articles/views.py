@@ -17,7 +17,7 @@ from .forms import EmailArticlesForm
 from django.conf import settings
 from .tasks import scrape_ekapija, scrape_biznisrs, create_all_embeddings
 
-VOYAGEAI_API_KEY = settings.VOYAGEAI_API_KEY
+NOMIC_API_KEY = settings.NOMIC_API_KEY
 
 # Hardcoded sectors list
 SECTORS = [
@@ -350,6 +350,103 @@ def test_tasks(request):
     create_all_embeddings.delay()
     return HttpResponse("Task has been triggered.")
 
+def remove_all_embeddings(request):
+    """Remove all embeddings from articles to prepare for regeneration."""
+    from pymongo import MongoClient
+    import os
+    
+    try:
+        # Get MongoDB connection
+        mongo_uri = getattr(
+            settings,
+            "MONGODB_URI",
+            os.getenv("MONGO_URI", "mongodb://localhost:8818/?directConnection=true"),
+        )
+        mongo_db = getattr(settings, "MONGO_DB", os.getenv("MONGO_DB", "analyst"))
+        
+        client = MongoClient(mongo_uri)
+        db = client[mongo_db]
+        collection = db["articles"]
+        
+        # Remove embedding-related fields from all articles
+        result = collection.update_many(
+            {},  # Match all documents
+            {
+                "$unset": {
+                    "embedding": "",
+                    "embedding_model": "",
+                    "embedding_created_at": "",
+                    "embedding_dimensions": "",
+                    "embedding_error": "",
+                    "embedding_failed_at": ""
+                }
+            }
+        )
+        
+        client.close()
+        
+        message = f"✅ Successfully removed embeddings from {result.modified_count} articles"
+        return HttpResponse(message)
+        
+    except Exception as e:
+        error_message = f"❌ Error removing embeddings: {str(e)}"
+        return HttpResponse(error_message, status=500)
+
+def embedding_management(request):
+    """View for managing embeddings - show stats and provide management options."""
+    from pymongo import MongoClient
+    import os
+    
+    try:
+        # Get MongoDB connection
+        mongo_uri = getattr(
+            settings,
+            "MONGODB_URI",
+            os.getenv("MONGO_URI", "mongodb://localhost:8818/?directConnection=true"),
+        )
+        mongo_db = getattr(settings, "MONGO_DB", os.getenv("MONGO_DB", "analyst"))
+        
+        client = MongoClient(mongo_uri)
+        db = client[mongo_db]
+        collection = db["articles"]
+        
+        # Get embedding statistics
+        total_articles = collection.count_documents({})
+        
+        # Articles with embeddings
+        with_embeddings = collection.count_documents({"embedding": {"$exists": True}})
+        
+        # Articles without embeddings
+        without_embeddings = total_articles - with_embeddings
+        
+        # Get embedding models used
+        models_pipeline = [
+            {"$match": {"embedding_model": {"$exists": True}}},
+            {"$group": {"_id": "$embedding_model", "count": {"$sum": 1}}},
+            {"$sort": {"count": -1}}
+        ]
+        models_stats = list(collection.aggregate(models_pipeline))
+        
+        # Articles with errors
+        with_errors = collection.count_documents({"embedding_error": {"$exists": True}})
+        
+        client.close()
+        
+        context = {
+            'total_articles': total_articles,
+            'with_embeddings': with_embeddings,
+            'without_embeddings': without_embeddings,
+            'models_stats': models_stats,
+            'with_errors': with_errors,
+            'embedding_percentage': round((with_embeddings / total_articles * 100), 1) if total_articles > 0 else 0
+        }
+        
+        return render(request, 'embedding_management.html', context)
+        
+    except Exception as e:
+        error_message = f"❌ Error getting embedding statistics: {str(e)}"
+        return HttpResponse(error_message, status=500)
+
 
 def vector_search(request):
     if request.method == "POST":
@@ -368,15 +465,21 @@ def vector_search(request):
                 request, "vector_search.html", {"results": [], "query": query}
             )
         if query:
-            import voyageai
-
-            # Initialize Voyage client
-            voyage_client = voyageai.Client(api_key=VOYAGEAI_API_KEY)
+            from nomic import embed
+            import os
+            
+            # Set Nomic API key
+            os.environ['NOMIC_API_KEY'] = NOMIC_API_KEY
 
             try:
-                query_embedding = voyage_client.embed(
-                    [query], model="voyage-3.5-lite", input_type="query"
-                ).embeddings[0]
+                # Generate query embedding using Nomic
+                result = embed.text(
+                    texts=[query], 
+                    model='nomic-embed-text-v1.5', 
+                    task_type='search_query',  # Use search_query for queries
+                    dimensionality=768
+                )
+                query_embedding = result['embeddings'][0]
             except Exception as e:
                 print(f"Error generating query embedding: {e}")
                 if is_htmx:

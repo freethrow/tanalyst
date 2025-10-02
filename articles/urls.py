@@ -31,4 +31,6 @@ urlpatterns = [
     path("restore-article/<str:article_id>/", views.restore_article, name="restore_article"),
     path("reset-pending/", views.reset_all_articles_to_pending, name="reset_all_articles_to_pending"),
     path("set-language/", views.set_language, name="set_language"),
+    path("remove-embeddings/", views.remove_all_embeddings, name="remove_all_embeddings"),
+    path("embedding-management/", views.embedding_management, name="embedding_management"),
 ]

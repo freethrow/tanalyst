@@ -1,6 +1,6 @@
 {% load custom_i18n %}
 <!DOCTYPE html>
-<html lang="{{ LANGUAGE_CODE }}" data-theme="cupcake">
+<html lang="{{ LANGUAGE_CODE }}" data-theme="retro">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -33,9 +33,10 @@
                   <li><a href="/">{{ "Home"|translate:current_language }}</a></li>
                   <li><a href="{% url 'articles:approved' %}">{{ "Approved"|translate:current_language }}</a></li>
                   <li><a href="{% url 'articles:discarded' %}">{{ "Discarded"|translate:current_language }}</a></li>
-                  <li><a href="{% url 'articles:sectors' %}">{{ "Sectors"|translate:current_language }}</a></li>
+                
                   <li><a href="{% url 'articles:send_email' %}">{{ "Send Email"|translate:current_language }}</a></li>
                   <li><a href="/vector-search/">{{ "Vector Search"|translate:current_language }}</a></li>
+                 
                   <li><a href="/about/">{{ "About"|translate:current_language }}</a></li>
                 </ul>
               </div>
@@ -46,9 +47,10 @@
                 <li><a href="/">{{ "Home"|translate:current_language }}</a></li>
                 <li><a href="{% url 'articles:approved' %}">{{ "Approved"|translate:current_language }}</a></li>
                 <li><a href="{% url 'articles:discarded' %}">{{ "Discarded"|translate:current_language }}</a></li>
-                <li><a href="{% url 'articles:sectors' %}">{{ "Sectors"|translate:current_language }}</a></li>
+               
                 <li><a href="{% url 'articles:send_email' %}">{{ "Send Email"|translate:current_language }}</a></li>
                 <li><a href="/vector-search/">{{ "Vector Search"|translate:current_language }}</a></li>
+               
                 <li><a href="/about/">{{ "About"|translate:current_language }}</a></li>
               </ul>
               

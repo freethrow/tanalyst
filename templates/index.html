@@ -10,7 +10,8 @@
     {% for article in articles %}
       {% include "partials/card.html" with article=article %}
     {% empty %}
-      <div class="col-span-full alert alert-info">No articles found.</div>
+      <div class="col-span-full border border-base-200 p-4 text-center text-base-content/70">
+        No articles found.</div>
     {% endfor %}
   </div>
 {% endblock %}

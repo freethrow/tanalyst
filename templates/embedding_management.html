@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+{% load custom_i18n %}
+
+{% block title %}Embedding Management - TA{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold mb-8">🔧 Embedding Management</h1>
+        
+        <!-- Statistics Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- Total Articles -->
+            <div class="stat bg-base-100 shadow rounded-lg">
+                <div class="stat-figure text-primary">
+                    <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <div class="stat-title">Total Articles</div>
+                <div class="stat-value text-primary">{{ total_articles }}</div>
+            </div>
+            
+            <!-- With Embeddings -->
+            <div class="stat bg-base-100 shadow rounded-lg">
+                <div class="stat-figure text-success">
+                    <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
+                    </svg>
+                </div>
+                <div class="stat-title">With Embeddings</div>
+                <div class="stat-value text-success">{{ with_embeddings }}</div>
+                <div class="stat-desc">{{ embedding_percentage }}% complete</div>
+            </div>
+            
+            <!-- Without Embeddings -->
+            <div class="stat bg-base-100 shadow rounded-lg">
+                <div class="stat-figure text-warning">
+                    <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"/>
+                    </svg>
+                </div>
+                <div class="stat-title">Missing Embeddings</div>
+                <div class="stat-value text-warning">{{ without_embeddings }}</div>
+            </div>
+            
+            <!-- With Errors -->
+            <div class="stat bg-base-100 shadow rounded-lg">
+                <div class="stat-figure text-error">
+                    <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"/>
+                    </svg>
+                </div>
+                <div class="stat-title">With Errors</div>
+                <div class="stat-value text-error">{{ with_errors }}</div>
+            </div>
+        </div>
+        
+        <!-- Models Used -->
+        {% if models_stats %}
+        <div class="card bg-base-100 shadow-xl mb-8">
+            <div class="card-body">
+                <h2 class="card-title">📊 Embedding Models Used</h2>
+                <div class="overflow-x-auto">
+                    <table class="table table-zebra">
+                        <thead>
+                            <tr>
+                                <th>Model</th>
+                                <th>Articles Count</th>
+                                <th>Percentage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for model in models_stats %}
+                            <tr>
+                                <td>
+                                    <div class="font-mono text-sm">{{ model.id }}</div>
+                                </td>
+                                <td>{{ model.count }}</td>
+                                <td>
+                                    <div class="flex items-center gap-2">
+                                        <progress class="progress progress-primary w-20" value="{{ model.count }}" max="{{ total_articles }}"></progress>
+                                        <span class="text-sm">{{ model.count|floatformat:1 }}%</span>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Management Actions -->
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <h2 class="card-title">⚡ Management Actions</h2>
+                <p class="text-base-content/70 mb-6">
+                    Use these actions to manage your embeddings. Be careful as some actions cannot be undone.
+                </p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Remove All Embeddings -->
+                    <div class="card bg-error/10 border border-error/20">
+                        <div class="card-body">
+                            <h3 class="card-title text-error">🗑️ Remove All Embeddings</h3>
+                            <p class="text-sm text-base-content/70 mb-4">
+                                This will remove all embedding data from articles. Use this before switching embedding models.
+                            </p>
+                            <div class="card-actions">
+                                <button class="btn btn-error btn-sm" onclick="confirmRemoveEmbeddings()">
+                                    Remove All Embeddings
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Generate New Embeddings -->
+                    <div class="card bg-success/10 border border-success/20">
+                        <div class="card-body">
+                            <h3 class="card-title text-success">🚀 Generate New Embeddings</h3>
+                            <p class="text-sm text-base-content/70 mb-4">
+                                Start generating embeddings for articles that don't have them using Nomic API.
+                            </p>
+                            <div class="card-actions">
+                                <a href="{% url 'articles:test_tasks' %}" class="btn btn-success btn-sm">
+                                    Start Embedding Generation
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Progress Info -->
+                <div class="alert alert-info mt-6">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"/>
+                    </svg>
+                    <div>
+                        <h3 class="font-bold">Migration to Nomic Embeddings</h3>
+                        <div class="text-xs">
+                            Your system is now configured to use Nomic embeddings (nomic-embed-text-v1.5) instead of VoyageAI. 
+                            Remove old embeddings first, then generate new ones for better performance.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirmation Modal -->
+<dialog id="remove_embeddings_modal" class="modal">
+    <div class="modal-box">
+        <h3 class="font-bold text-lg text-error">⚠️ Confirm Removal</h3>
+        <p class="py-4">
+            Are you sure you want to remove ALL embeddings from {{ total_articles }} articles? 
+            This action cannot be undone.
+        </p>
+        <div class="modal-action">
+            <form method="dialog">
+                <button class="btn">Cancel</button>
+            </form>
+            <a href="{% url 'articles:remove_all_embeddings' %}" class="btn btn-error">
+                Yes, Remove All
+            </a>
+        </div>
+    </div>
+</dialog>
+
+<script>
+function confirmRemoveEmbeddings() {
+    document.getElementById('remove_embeddings_modal').showModal();
+}
+</script>
+
+{% endblock %}
