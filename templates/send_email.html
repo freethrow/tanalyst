@@ -19,16 +19,7 @@
     </div>
   </header>
 
-  <!-- Messages -->
-  {% if messages %}
-    <div class="mb-6">
-      {% for message in messages %}
-        <div class="alert {% if message.tags == 'error' %}alert-error{% elif message.tags == 'success' %}alert-success{% else %}alert-info{% endif %} mb-2">
-          <span>{{ message }}</span>
-        </div>
-      {% endfor %}
-    </div>
-  {% endif %}
+
 
   <!-- Email Form -->
   <div class="card bg-base-100 shadow-xl">
@@ -107,8 +98,9 @@
           <div>
             <h3 class="font-bold">Informazioni sull'invio</h3>
             <div class="text-xs">
+              • Verranno inviati solo articoli con status APPROVATO<br>
               • Gli articoli saranno ordinati per data di traduzione (più recenti per primi)<br>
-              • Verranno inclusi solo articoli con contenuto italiano<br>
+              • Dopo l'invio, lo status degli articoli diventerà INVIATO<br>
               • L'email verrà inviata in background e potrebbe richiedere alcuni minuti
             </div>
           </div>
@@ -132,9 +124,9 @@
   <div class="mt-8 text-center">
     <div class="stats shadow">
       <div class="stat">
-        <div class="stat-title">Articoli Disponibili</div>
-        <div class="stat-value text-primary">{{ total_articles|default:"..." }}</div>
-        <div class="stat-desc">Tradotti in italiano</div>
+        <div class="stat-title">Articoli Approvati</div>
+        <div class="stat-value text-primary">{{ approved_articles|default:"0" }}</div>
+        <div class="stat-desc">Pronti per l'invio</div>
       </div>
     </div>
   </div>

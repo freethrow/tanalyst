@@ -25,7 +25,7 @@ MONGODB_URI = os.getenv("MONGODB_URI")
 DB_NAME = os.getenv("DB_NAME")
 
 
-
+print(VOYAGEAI_API_KEY)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -54,11 +54,13 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django_htmx",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.locale.LocaleMiddleware",  # Add locale middleware
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -79,6 +81,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "django.template.context_processors.media",
+                "articles.context_processors.language_context",
             ],
         },
     },
@@ -116,28 +119,37 @@ AUTH_PASSWORD_VALIDATORS = [
         "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
     },
     {
-        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
 
 
 # Internationalization
-# https://docs.djangoproject.com/en/5.2/topics/i18n/
+# https://docs.djangoproject.com/en/4.2/topics/i18n/
 
-LANGUAGE_CODE = "en-us"
+LANGUAGE_CODE = "it"  # Default to Italian
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "Europe/Belgrade"
 
-USE_I18N = True
-
+USE_I18N = False
+USE_L10N = True
 USE_TZ = True
+
+# Available languages
+LANGUAGES = [
+    ('it', 'Italiano'),
+    ('en', 'English'),
+]
+
+# Locale paths - commented out temporarily to avoid gettext issues
+# LOCALE_PATHS = [
+#     BASE_DIR / 'locale',
+# ]
 
 
 STATIC_URL = "static/"
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
-
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
@@ -176,21 +188,29 @@ CACHES = {
     }
 }
 
-# CELERY_BEAT_SCHEDULE = {
-#     "create_all_embeddings": {
-#         "task": "create_all_embeddings",
-#         "schedule": 90.0,  # Every 30 seconds
-#     },
+CELERY_BEAT_SCHEDULE = {
+    "create_all_embeddings": {
+        "task": "create_all_embeddings",
+        "schedule": 20,  
+    },
+    "translate_untranslated_articles": {
+        "task": "translate_untranslated_articles",
+        "schedule": 20,  # Every 2.5 hours
+    },
     # "scrape_ekapija_scheduled": {
     #     "task": "scrape_ekapija",
-    #     "schedule": 1 * 60,  # Every minute
+    #     "schedule": 60 * 2,  # Every 2 minutes
+    # },
+    # "scrape_biznisrs_scheduled": {
+    #     "task": "scrape_biznisrs",
+    #     "schedule": 60 * 3,  # Every 3 minutes
     # },
     # "send_latest_articles_scheduled": {
     #     "task": "send_latest_articles_email",
-    #     "schedule": 90,  # Every 90 se
+    #     "schedule": 90,  # Every 90 seconds
     #     "kwargs": {
     #         "recipient_email": "aleksendric@gmail.com",
     #         "num_articles": 15
     #     },
     # },
-#}
+}   

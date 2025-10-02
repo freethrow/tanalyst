@@ -1,104 +1,128 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TradeAInalyst</title>
-</head>
-<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
-    
-    <!-- Main Container -->
-    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f4f4f4;">
-        <tr>
-            <td style="padding: 20px 0;">
-                
-                <!-- Email Content Container -->
-                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" style="margin: 0 auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+<!-- Email Template: TradeAInalyst Business News -->
+<!-- Main Container -->
+    <table style="background-color: #f4f4f4;" border="0" width="100%" cellspacing="0" cellpadding="0">
+        <tbody>
+            <tr>
+                <td style="padding: 20px 0;">
                     
-                    <!-- Header Image -->
-                    <tr>
-                        <td style="padding: 0;">
-                            <!-- You can either hardcode the URL here or pass it from the Django view/task -->
-                            <img src="https://drive.google.com/uc?export=view&id=1N19o-CdrIti46AggSeBREmAojpsPJNEt" alt="TradeAInalyst Header" style="width: 100%; max-width: 600px; height: auto; display: block; border-radius: 8px 8px 0 0;">
-                            <!-- Replace YOUR_FILE_ID with your actual Google Drive file ID -->
-                        </td>
-                    </tr>
-                    
-                    <!-- Header Text -->
+                    <!-- Email Content Container -->
+                    <table style="margin: 0 auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" border="0" width="600" cellspacing="0" cellpadding="0">
+                        <tbody>
+                            
+                            <!-- Header Image -->
+                            <tr>
+                                <td style="padding: 0;">
+                                    <img style="width: 100%; max-width: 600px; height: auto; display: block; border-radius: 8px 8px 0 0;" 
+                                         src="https://drive.google.com/uc?export=view&id=1N19o-CdrIti46AggSeBREmAojpsPJNEt" 
+                                         alt="TradeAInalyst Header" />
+                                </td>
+                            </tr>
 
-                    
-                    <!-- Articles Section -->
-                    {% for article in articles %}
-                    <tr>
-                        <td style="padding: 30px;">
-                            <!-- Sector Badge -->
-                            {% if article.sector %}
-                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin-bottom: 15px;">
-                                <tr>
-                                    <td style="background-color: #058348; padding: 5px 12px; border-radius: 15px;">
-                                        <span style="color: #ffffff; font-size: 12px; font-weight: bold; text-transform: uppercase;">{{ article.sector }}</span>
-                                    </td>
-                                </tr>
-                            </table>
+                            <!-- Header Text -->
+                            <tr>
+                                <td style="padding: 30px 30px 20px 30px; text-align: center;">
+                                    <h1 style="margin: 0; color: #2c3e50; font-size: 28px; font-weight: bold;">
+                                        Le tue {{ article_count }} notizie di business
+                                    </h1>
+                                    <p style="margin: 10px 0 0 0; color: #7f8c8d; font-size: 16px;">
+                                        {{ current_date|date:"d F Y" }}
+                                    </p>
+                                </td>
+                            </tr>
+
+                            <!-- Articles Section -->
+                            {% for article in articles %}
+                            <tr>
+                                <td style="padding: 20px 30px;">
+                                    
+                                    <!-- Sector Badge -->
+                                    {% if article.sector %}
+                                    <table style="margin-bottom: 15px;" border="0" cellspacing="0" cellpadding="0">
+                                        <tbody>
+                                            <tr>
+                                                <td style="background-color: #058348; padding: 4px 12px; border-radius: 12px;">
+                                                    <span style="color: #ffffff; font-size: 11px; font-weight: bold; text-transform: uppercase;">
+                                                        {{ article.sector }}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    {% endif %}
+                                    
+                                    <!-- Article Title -->
+                                    <h2 style="margin: 0 0 15px 0; color: #2c3e50; font-size: 22px; font-weight: bold; line-height: 1.3;">
+                                        {{ article.title_it }}
+                                    </h2>
+                                    
+                                    <!-- Article Content -->
+                                    <p style="margin: 0 0 20px 0; color: #555555; font-size: 16px; line-height: 1.6;">
+                                        {{ article.content_it|truncatechars:400 }}
+                                    </p>
+                                    
+                                    <!-- Read More Link -->
+                                    {% if article.url %}
+                                    <table border="0" cellspacing="0" cellpadding="0">
+                                        <tbody>
+                                            <tr>
+                                                <td style="background-color: #058348; padding: 8px 16px; border-radius: 5px;">
+                                                    <a style="color: #ffffff; text-decoration: none; font-size: 14px; font-weight: bold;" 
+                                                       href="{{ article.url }}">
+                                                        Leggi l'articolo completo &rarr;
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    {% endif %}
+                                    
+                                </td>
+                            </tr>
+                            
+                            <!-- Divider between articles (except for last article) -->
+                            {% if not forloop.last %}
+                            <tr>
+                                <td style="padding: 0 30px;">
+                                    <hr style="border: none; border-top: 1px solid #ecf0f1; margin: 0;" />
+                                </td>
+                            </tr>
                             {% endif %}
+                            {% endfor %}
+
+                            <!-- Call to Action -->
+                            <tr>
+                                <td style="padding: 30px 30px 20px 30px; text-align: center;">
+                                    <table style="margin: 0 auto;" border="0" cellspacing="0" cellpadding="0">
+                                        <tbody>
+                                            <tr>
+                                                <td style="background-color: #058348; padding: 15px 30px; border-radius: 25px;">
+                                                    <a style="color: #ffffff; text-decoration: none; font-size: 16px; font-weight: bold;" 
+                                                       href="https://www.itabeograd.rs">
+                                                        Visita il sito ITA Beograd
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </td>
+                            </tr>
+
+                            <!-- Footer -->
+                            <tr>
+                                <td style="padding: 20px 30px; background-color: #ecf0f1; border-radius: 0 0 8px 8px; text-align: center;">
+                                    <p style="margin: 0; color: #7f8c8d; font-size: 14px;">
+                                        &copy; {{ year }} TradeAInalyst. Tutti i diritti riservati.
+                                    </p>
+                                    <p style="margin: 5px 0 0 0; color: #95a5a6; font-size: 12px;">
+                                        Hai ricevuto questa email perché sei iscritto alle nostre notizie di business.
+                                    </p>
+                                </td>
+                            </tr>
                             
-                            <!-- Article Title -->
-                            <h2 style="margin: 0 0 15px 0; color: #2c3e50; font-size: 24px; font-weight: bold;">{{ article.title }}</h2>
-                            
-                            <!-- Article Content -->
-                            <p style="margin: 0 0 20px 0; color: #555555; font-size: 16px; line-height: 1.6;">
-                                {{ article.content|truncatechars:500 }}
-                            </p>
-                            
-                            <!-- Read More Link -->
-                            {% if article.url %}
-                            <table role="presentation" cellspacing="0" cellpadding="0" border="0">
-                                <tr>
-                                    <td style="background-color: #058348; padding: 10px 20px; border-radius: 5px;">
-                                        <a href="{{ article.url }}" style="color: #ffffff; text-decoration: none; font-size: 14px; font-weight: bold;">Read Full Original Article →</a>
-                                    </td>
-                                </tr>
-                            </table>
-                            {% endif %}
-                        </td>
-                    </tr>
+                        </tbody>
+                    </table>
                     
-                    <!-- Divider between articles (except for last article) -->
-                    {% if not forloop.last %}
-                    <tr>
-                        <td style="padding: 0 30px;">
-                            <hr style="border: none; border-top: 1px solid #ecf0f1; margin: 0;">
-                        </td>
-                    </tr>
-                    {% endif %}
-                    {% endfor %}
-                    
-                    <!-- Call to Action -->
-                    <tr>
-                        <td style="padding: 20px 30px 30px 30px; text-align: center;">
-                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 0 auto;">
-                                <tr>
-                                    <td style="background-color: #058348; padding: 12px 25px; border-radius: 25px;">
-                                        <a href="https://www.itabeograd.rs" style="color: #ffffff; text-decoration: none; font-size: 16px; font-weight: bold;">sito ITA Beograd</a>
-                                    </td>
-                                </tr>
-                            </table>
-                        </td>
-                    </tr>
-                    
-                    <!-- Footer -->
-                    <tr>
-                        <td style="padding: 20px 30px; background-color: #ecf0f1; border-radius: 0 0 8px 8px; text-align: center;">
-                            <p style="margin: 0; color: #7f8c8d; font-size: 14px;">
-                                © 2025  TradeAInalyst freethrow. All rights reserved.<br>                           
-                            </p>
-                        </td>
-                    </tr>
-                    
-                </table>
-                
-            </td>
-        </tr>
-    </table>    
-</body>
-</html>
+                </td>
+            </tr>
+        </tbody>
+    </table>

@@ -11,6 +11,8 @@ from datetime import datetime
 from analyst.emails.notifications import send_latest_articles_email
 from pymongo import MongoClient
 
+from analyst.scrapers import ekapija, biznisrs
+
 EMBEDDING_BATCH_SIZE = 10
 
 
@@ -47,11 +49,13 @@ def test_task():
 
 @shared_task(max_retries=3, name="scrape_ekapija")
 def scrape_ekapija():
-    send_latest_articles_email.delay(
-        recipient_email="aleksendric@gmail.com", num_articles=12
-    )
+    ekapija.main()
     return "Scraping Ekapija started"
 
+@shared_task(max_retries=3, name="scrape_biznisrs")
+def scrape_biznisrs():
+    biznisrs.main()
+    return "Scraping Biznisrs started"
 
 @shared_task(bind=True, max_retries=3, name="create_all_embeddings")
 def create_all_embeddings(
@@ -120,7 +124,7 @@ def create_all_embeddings(
         failed = 0
 
         logger.info(f"Starting to create embeddings for {articles_to_process} articles")
-        sleep(30)  # Brief pause before starting
+        #sleep(30)  # Brief pause before starting
 
         while processed + failed < articles_to_process:
             # Get batch of articles
@@ -152,9 +156,13 @@ def create_all_embeddings(
                 article_ids.append(article["_id"])
 
             try:
-                # Generate embeddings for batch
-                sleep(30)
+                # Rate limiting: 3 requests per minute = 1 request every 20 seconds
+                # Add extra buffer to be safe
+                rate_limit_sleep = 21  # 21 seconds between requests (safer than 20)
+                
                 logger.info(f"Creating embeddings for batch of {len(texts)} articles")
+                logger.info(f"Waiting {rate_limit_sleep} seconds to respect rate limit (3 requests/minute)")
+                sleep(rate_limit_sleep)
 
                 result = voyage_client.embed(
                     texts, model="voyage-3.5-lite", input_type="document"
@@ -186,8 +194,50 @@ def create_all_embeddings(
                 )
 
             except Exception as e:
-                logger.error(f"Batch embedding failed: {str(e)}")
-                failed += len(texts)
+                error_message = str(e).lower()
+                
+                # Check if it's a rate limit error
+                if "rate limit" in error_message or "429" in error_message or "too many requests" in error_message:
+                    logger.warning(f"Rate limit hit: {str(e)}")
+                    logger.info("Waiting 70 seconds before retrying (rate limit recovery)")
+                    sleep(70)  # Wait longer for rate limit to reset
+                    
+                    # Retry the batch once
+                    try:
+                        logger.info(f"Retrying batch of {len(texts)} articles after rate limit")
+                        result = voyage_client.embed(
+                            texts, model="voyage-3.5-lite", input_type="document"
+                        )
+                        
+                        # Update each article with its embedding
+                        for idx, (article_id, embedding) in enumerate(
+                            zip(article_ids, result.embeddings)
+                        ):
+                            try:
+                                collection.update_one(
+                                    {"_id": article_id},
+                                    {
+                                        "$set": {
+                                            "embedding": embedding,
+                                            "embedding_model": "voyage-3.5-lite",
+                                            "embedding_created_at": datetime.utcnow(),
+                                            "embedding_dimensions": len(embedding),
+                                        }
+                                    },
+                                )
+                                processed += 1
+                            except Exception as update_e:
+                                logger.error(f"Failed to update article {article_id}: {str(update_e)}")
+                                failed += 1
+                        
+                        logger.info(f"✅ Retry successful: {len(texts)} articles processed")
+                        
+                    except Exception as retry_e:
+                        logger.error(f"Retry also failed: {str(retry_e)}")
+                        failed += len(texts)
+                else:
+                    logger.error(f"Batch embedding failed: {str(e)}")
+                    failed += len(texts)
 
                 # Mark all in batch as failed
                 """ for article_id in article_ids:

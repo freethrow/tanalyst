@@ -1,0 +1,139 @@
+# Italian translations for TA project.
+# Copyright (C) 2024 TA
+# This file is distributed under the same license as the TA package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: TA 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-10-01 18:50+0200\n"
+"PO-Revision-Date: 2024-10-01 18:50+0200\n"
+"Last-Translator: TA Team\n"
+"Language-Team: Italian\n"
+"Language: it\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+# Navigation
+msgid "Home"
+msgstr "Home"
+
+msgid "Approved"
+msgstr "Approvati"
+
+msgid "Discarded"
+msgstr "Scartati"
+
+msgid "Sectors"
+msgstr "Settori"
+
+msgid "Send Email"
+msgstr "Invia Email"
+
+msgid "Vector Search"
+msgstr "Ricerca Vettoriale"
+
+msgid "About"
+msgstr "Chi Siamo"
+
+msgid "Navigation"
+msgstr "Navigazione"
+
+msgid "Company"
+msgstr "Azienda"
+
+msgid "About us"
+msgstr "Chi Siamo"
+
+msgid "Contact"
+msgstr "Contatti"
+
+# Article Status
+msgid "Pending"
+msgstr "In Attesa"
+
+msgid "Sent"
+msgstr "Inviato"
+
+# Article Actions
+msgid "Approve"
+msgstr "Approva"
+
+msgid "Discard"
+msgstr "Scarta"
+
+msgid "Restore"
+msgstr "Ripristina"
+
+msgid "Edit"
+msgstr "Modifica"
+
+msgid "Edit article"
+msgstr "Modifica articolo"
+
+msgid "Read more"
+msgstr "Leggi tutto"
+
+# Article Metadata
+msgid "Published"
+msgstr "Pubblicato"
+
+msgid "Source"
+msgstr "Fonte"
+
+msgid "Original Link"
+msgstr "Link Originale"
+
+# Forms
+msgid "Email Address"
+msgstr "Indirizzo Email"
+
+msgid "Number of Articles"
+msgstr "Numero di Articoli"
+
+msgid "Subject"
+msgstr "Oggetto"
+
+msgid "Send"
+msgstr "Invia"
+
+msgid "Cancel"
+msgstr "Annulla"
+
+msgid "Save"
+msgstr "Salva"
+
+# Messages
+msgid "Article approved successfully"
+msgstr "Articolo approvato con successo"
+
+msgid "Article discarded successfully"
+msgstr "Articolo scartato con successo"
+
+msgid "Article restored successfully"
+msgstr "Articolo ripristinato con successo"
+
+msgid "Email sent successfully"
+msgstr "Email inviata con successo"
+
+msgid "Error sending email"
+msgstr "Errore nell'invio dell'email"
+
+# Page Titles
+msgid "Send Articles via Email"
+msgstr "Invia Articoli via Email"
+
+msgid "Article Details"
+msgstr "Dettagli Articolo"
+
+msgid "Edit Article"
+msgstr "Modifica Articolo"
+
+# Status Labels
+msgid "Status"
+msgstr "Stato"
+
+msgid "Article Status"
+msgstr "Stato Articolo"

@@ -2,17 +2,20 @@ from .models import Article
 from django.views.generic import ListView, DetailView, UpdateView, FormView
 from django.db import models
 from django import forms
-import json
 from django.http import HttpResponse
-from django.shortcuts import render, get_object_or_404, redirect
+from django.shortcuts import render
 from django.core.cache import cache
 from django.contrib import messages
 from django.urls import reverse_lazy
+
+from django.views.decorators.http import require_POST
+
+
 from analyst.emails.notifications import send_latest_articles_email
 from analyst.agents.translator import translate_untranslated_articles
 from .forms import EmailArticlesForm
 from django.conf import settings
-import time
+from .tasks import scrape_ekapija, scrape_biznisrs, create_all_embeddings
 
 VOYAGEAI_API_KEY = settings.VOYAGEAI_API_KEY
 
@@ -105,6 +108,7 @@ SECTORS = [
     "Economia in generale",
 ]
 
+
 class ArticleListView(ListView):
     model = Article
     template_name = "index.html"
@@ -112,23 +116,123 @@ class ArticleListView(ListView):
 
     def get_queryset(self):
         """
-        Get the queryset for the view, filtering out articles that have no Italian title.
+        Get the queryset for pending articles (not yet approved/discarded).
         """
-        queryset = Article.objects.exclude(content_it__isnull=True).exclude(content_it__exact="")
-        return queryset.order_by("-time_translated")
+        queryset = Article.objects.filter(
+            title_it__isnull=False,
+            content_it__isnull=False,
+            status=Article.PENDING,
+        ).exclude(
+            title_it__exact="",
+            content_it__exact="",
+        )
+        return queryset.order_by("-article_date")
 
-class ValidatedUnusedArticleListView(ListView):
+
+class ApprovedArticleListView(ListView):
     model = Article
     template_name = "index.html"
     context_object_name = "articles"
 
     def get_queryset(self):
         """
-        Get the queryset for the view, filtering out articles that have no Italian title.
+        Get the queryset for approved articles that haven't been sent yet.
         """
-        queryset = Article.objects.filter(validated=True, used=False).exclude(title_it__isnull=True)
+        queryset = Article.objects.filter(
+            title_it__isnull=False,
+            content_it__isnull=False,
+            status=Article.APPROVED,
+        ).exclude(
+            title_it__exact="",
+            content_it__exact="",
+        )
         return queryset.order_by("-time_translated")
 
+
+class DiscardedArticleListView(ListView):
+    model = Article
+    template_name = "index.html"
+    context_object_name = "articles"
+
+    def get_queryset(self):
+        """
+        Get the queryset for discarded articles.
+        """
+        queryset = Article.objects.filter(
+            title_it__isnull=False,
+            content_it__isnull=False,
+            status=Article.DISCARDED,
+        ).exclude(
+            title_it__exact="",
+            content_it__exact="",
+        )
+        return queryset.order_by("-time_translated")
+
+
+@require_POST
+def validate_article(request, article_id):
+    # Check if request is from HTMX
+    if not request.headers.get('HX-Request'):
+        return HttpResponse(status=400)  # Bad request if not HTMX
+    
+    try:
+        article = Article.objects.get(id=article_id)
+        article.mark_as_approved()
+        # Return empty response - HTMX will remove the card due to hx-swap="outerHTML"
+        return HttpResponse()
+    except Article.DoesNotExist:
+        return HttpResponse(status=404)
+
+@require_POST
+def discard_article(request, article_id):
+    # Check if request is from HTMX
+    if not request.headers.get('HX-Request'):
+        return HttpResponse(status=400)  # Bad request if not HTMX
+    
+    try:
+        article = Article.objects.get(id=article_id)
+        article.mark_as_discarded()
+        # Return empty response - HTMX will remove the card due to hx-swap="outerHTML"
+        return HttpResponse()
+    except Article.DoesNotExist:
+        return HttpResponse(status=404)
+
+@require_POST
+def restore_article(request, article_id):
+    # Check if request is from HTMX
+    if not request.headers.get('HX-Request'):
+        return HttpResponse(status=400)  # Bad request if not HTMX
+    
+    try:
+        article = Article.objects.get(id=article_id)
+        article.mark_as_pending()
+        # Return empty response - HTMX will remove the card due to hx-swap="outerHTML"
+        return HttpResponse()
+    except Article.DoesNotExist:
+        return HttpResponse(status=404)
+
+def reset_all_articles_to_pending(request):
+    """Reset all articles to PENDING status for testing purposes."""
+    Article.objects.update(status=Article.PENDING)
+    return HttpResponse("All articles reset to PENDING status")
+
+def set_language(request):
+    """Simple language switcher using session storage."""
+    from django.http import HttpResponseRedirect
+    from django.urls import reverse
+    
+    if request.method == 'POST':
+        language = request.POST.get('language', 'it')
+        next_url = request.POST.get('next', '/')
+        
+        # Store language preference in session
+        request.session['language'] = language
+        
+        # Redirect back to the page they came from
+        return HttpResponseRedirect(next_url)
+    
+    # If not POST, redirect to home
+    return HttpResponseRedirect('/')
 
 class ArticleDetailView(DetailView):
     model = Article
@@ -142,23 +246,36 @@ class ArticleDetailView(DetailView):
         try:
             # Use existing embedding only; if missing, skip
             query_vector = getattr(article, "embedding", None)
-            print(f"DEBUG: Article {article.id} has embedding: {query_vector is not None}")
-            print(f"DEBUG: Article fields: {[field.name for field in article._meta.get_fields()]}")
-            
+            print(
+                f"DEBUG: Article {article.id} has embedding: {query_vector is not None}"
+            )
+            print(
+                f"DEBUG: Article fields: {[field.name for field in article._meta.get_fields()]}"
+            )
+
             # If no embedding field, try to get some related articles by other means
             if query_vector is None:
-                print("DEBUG: No embedding found, getting related by same sector/source")
+                print(
+                    "DEBUG: No embedding found, getting related by same sector/source"
+                )
                 # Get articles from same sector or source as fallback
-                fallback_related = Article.objects.filter(
-                    models.Q(sector=article.sector) | models.Q(source=article.source)
-                ).exclude(id=article.id).exclude(title_it__isnull=True)[:6]
-                
+                fallback_related = (
+                    Article.objects.filter(
+                        models.Q(sector=article.sector)
+                        | models.Q(source=article.source)
+                    )
+                    .exclude(id=article.id)
+                    .exclude(title_it__isnull=True)[:6]
+                )
+
                 related = []
                 for art in fallback_related:
-                    related.append({
-                        "id": str(art.id),
-                        "title_it": art.title_it or art.title_en,
-                    })
+                    related.append(
+                        {
+                            "id": str(art.id),
+                            "title_it": art.title_it or art.title_en,
+                        }
+                    )
                 print(f"DEBUG: Found {len(related)} fallback related articles")
             elif query_vector is not None:
                 cache_key = f"related:{article.id}"
@@ -195,17 +312,22 @@ class ArticleDetailView(DetailView):
                     if isinstance(r, dict):
                         rid = str(r.get("_id", ""))
                         if rid and rid != current_id_str:
-                            processed.append({
-                                "id": rid,
-                                "title_it": r.get("title_it") or r.get("title_en"),
-                            })
+                            processed.append(
+                                {
+                                    "id": rid,
+                                    "title_it": r.get("title_it") or r.get("title_en"),
+                                }
+                            )
                     else:
                         rid = str(getattr(r, "id", getattr(r, "_id", "")))
                         if rid and rid != current_id_str:
-                            processed.append({
-                                "id": rid,
-                                "title_it": getattr(r, "title_it", None) or getattr(r, "title_en", None),
-                            })
+                            processed.append(
+                                {
+                                    "id": rid,
+                                    "title_it": getattr(r, "title_it", None)
+                                    or getattr(r, "title_en", None),
+                                }
+                            )
 
                 related = processed[:6]
                 print(f"DEBUG: Found {len(related)} related articles")
@@ -224,8 +346,8 @@ class ArticleDetailView(DetailView):
 
 def test_tasks(request):
     # translate_untranslated_articles.delay()
-    send_latest_articles_email.delay(recipient_email="aleksendric@gmail.com", num_articles=12)
-    translate_untranslated_articles.delay()
+    
+    create_all_embeddings.delay()
     return HttpResponse("Task has been triggered.")
 
 
@@ -233,11 +355,18 @@ def vector_search(request):
     if request.method == "POST":
         query = request.POST.get("query", "").strip()
         # If query is empty, return empty results quickly
-        is_htmx = request.headers.get("HX-Request") == "true" or request.headers.get("Hx-Request") == "true"
+        is_htmx = (
+            request.headers.get("HX-Request") == "true"
+            or request.headers.get("Hx-Request") == "true"
+        )
         if not query:
             if is_htmx:
-                return render(request, "partials/vector_search_results.html", {"results": []})
-            return render(request, "vector_search.html", {"results": [], "query": query})
+                return render(
+                    request, "partials/vector_search_results.html", {"results": []}
+                )
+            return render(
+                request, "vector_search.html", {"results": [], "query": query}
+            )
         if query:
             import voyageai
 
@@ -252,7 +381,9 @@ def vector_search(request):
                 print(f"Error generating query embedding: {e}")
                 if is_htmx:
                     # Return an empty results grid; page will still show the error if needed in full render
-                    return render(request, "partials/vector_search_results.html", {"results": []})
+                    return render(
+                        request, "partials/vector_search_results.html", {"results": []}
+                    )
                 return render(
                     request,
                     "vector_search.html",
@@ -266,8 +397,8 @@ def vector_search(request):
                         "index": "article_vector_index",  # Make sure this index exists
                         "path": "embedding",
                         "queryVector": query_embedding,
-                        "numCandidates": 30,
-                        "limit": 10,
+                        "numCandidates": 50,
+                        "limit": 18,
                     }
                 },
                 {
@@ -282,8 +413,7 @@ def vector_search(request):
                         "source": 1,
                         "date": 1,
                         "url": 1,
-                        "validated": 1,
-                        "used": 1,
+                        "status": 1,
                         "score": {"$meta": "vectorSearchScore"},
                     }
                 },
@@ -354,83 +484,92 @@ class ArticleEditView(UpdateView):
     Allows editing of all article fields including titles, content, metadata, and status flags.
     Dynamically includes Serbian fields when English fields are not available.
     """
+
     model = Article
     template_name = "article_edit.html"
-    context_object_name = 'article'
-    
+    context_object_name = "article"
+
     def get_form_class(self):
         """Create form class with only Italian fields editable, original fields as read-only."""
         article = self.get_object()
-        
-        # Italian fields and status flags are editable
-        fields = ['title_it', 'content_it', 'validated', 'used']
-        
+
+        # Italian fields and status field are editable
+        fields = ["title_it", "content_it", "status"]
+
         # Create form widgets
         form_widgets = {
-            'content_it': forms.Textarea(attrs={'rows': 20, 'class': 'min-h-[400px]'}),
+            "content_it": forms.Textarea(attrs={"rows": 20, "class": "min-h-[400px]"}),
         }
-        
+
         # Create Meta class dynamically
-        Meta = type('Meta', (), {
-            'model': Article,
-            'fields': fields,
-            'widgets': form_widgets
-        })
-        
+        Meta = type(
+            "Meta", (), {"model": Article, "fields": fields, "widgets": form_widgets}
+        )
+
         # Create form class dynamically
-        DynamicArticleForm = type('DynamicArticleForm', (forms.ModelForm,), {
-            'Meta': Meta
-        })
-        
+        DynamicArticleForm = type(
+            "DynamicArticleForm", (forms.ModelForm,), {"Meta": Meta}
+        )
+
         return DynamicArticleForm
-    
+
     def get_success_url(self):
         """Redirect to the article detail page after successful edit."""
-        return reverse_lazy('articles:article_detail', kwargs={'pk': self.object.pk})
-    
+        return reverse_lazy("articles:article_detail", kwargs={"pk": self.object.pk})
+
     def form_valid(self, form):
         """Handle successful form submission."""
-        title = (self.object.title_it or 
-                getattr(self.object, 'title_en', None) or 
-                getattr(self.object, 'title_rs', None) or 
-                "Untitled")
-        messages.success(self.request, f'Article "{title}" has been updated successfully.')
+        title = (
+            self.object.title_it
+            or getattr(self.object, "title_en", None)
+            or getattr(self.object, "title_rs", None)
+            or "Untitled"
+        )
+        messages.success(
+            self.request, f'Article "{title}" has been updated successfully.'
+        )
         return super().form_valid(form)
-    
+
     def form_invalid(self, form):
         """Handle form validation errors."""
-        messages.error(self.request, 'Please correct the errors below.')
+        messages.error(self.request, "Please correct the errors below.")
         return super().form_invalid(form)
-    
+
     def get_context_data(self, **kwargs):
         """Add extra context for the template."""
         context = super().get_context_data(**kwargs)
         article = self.object
-        
+
         # Determine source language and content
-        has_english = bool(getattr(article, 'title_en', None) or getattr(article, 'content_en', None))
-        has_serbian = bool(getattr(article, 'title_rs', None) or getattr(article, 'content_rs', None))
-        
+        has_english = bool(
+            getattr(article, "title_en", None) or getattr(article, "content_en", None)
+        )
+        has_serbian = bool(
+            getattr(article, "title_rs", None) or getattr(article, "content_rs", None)
+        )
+
         if has_english:
-            context['source_language'] = 'English'
-            context['source_title'] = getattr(article, 'title_en', '')
-            context['source_content'] = getattr(article, 'content_en', '')
+            context["source_language"] = "English"
+            context["source_title"] = getattr(article, "title_en", "")
+            context["source_content"] = getattr(article, "content_en", "")
         elif has_serbian:
-            context['source_language'] = 'Serbian'
-            context['source_title'] = getattr(article, 'title_rs', '')
-            context['source_content'] = getattr(article, 'content_rs', '')
+            context["source_language"] = "Serbian"
+            context["source_title"] = getattr(article, "title_rs", "")
+            context["source_content"] = getattr(article, "content_rs", "")
         else:
-            context['source_language'] = None
-            context['source_title'] = ''
-            context['source_content'] = ''
-        
+            context["source_language"] = None
+            context["source_title"] = ""
+            context["source_content"] = ""
+
         # Page title
-        title = (article.title_it or 
-                getattr(article, 'title_en', None) or 
-                getattr(article, 'title_rs', None) or 
-                "Untitled")
-        context['page_title'] = f'Edit: {title}'
-        
+        title = (
+            article.title_it
+            or getattr(article, "title_en", None)
+            or getattr(article, "title_rs", None)
+            or "Untitled"
+        )
+        context["page_title"] = f"Edit: {title}"
+
         return context
 
 
@@ -438,21 +577,20 @@ class SectorListView(ListView):
     """
     View to display all available sectors.
     """
+
     template_name = "sectors.html"
     context_object_name = "sectors"
-    
+
     def get_queryset(self):
         """Return the list of sectors with article counts."""
         sectors_with_counts = []
         for sector in SECTORS:
-            count = Article.objects.filter(
-                sector=sector,
-                content_it__isnull=False
-            ).exclude(content_it__exact="").count()
-            sectors_with_counts.append({
-                'name': sector,
-                'count': count
-            })
+            count = (
+                Article.objects.filter(sector=sector, content_it__isnull=False)
+                .exclude(content_it__exact="")
+                .count()
+            )
+            sectors_with_counts.append({"name": sector, "count": count})
         return sectors_with_counts
 
 
@@ -460,24 +598,26 @@ class SectorDetailView(ListView):
     """
     View to display articles for a specific sector.
     """
+
     model = Article
     template_name = "sector_detail.html"
     context_object_name = "articles"
     paginate_by = 20
-    
+
     def get_queryset(self):
         """Get articles for the specified sector."""
-        sector = self.kwargs['sector']
-        return Article.objects.filter(
-            sector=sector,
-            content_it__isnull=False
-        ).exclude(content_it__exact="").order_by("-time_translated")
-    
+        sector = self.kwargs["sector"]
+        return (
+            Article.objects.filter(sector=sector, content_it__isnull=False)
+            .exclude(content_it__exact="")
+            .order_by("-time_translated")
+        )
+
     def get_context_data(self, **kwargs):
         """Add sector name to context."""
         context = super().get_context_data(**kwargs)
-        context['sector'] = self.kwargs['sector']
-        context['sector_exists'] = self.kwargs['sector'] in SECTORS
+        context["sector"] = self.kwargs["sector"]
+        context["sector_exists"] = self.kwargs["sector"] in SECTORS
         return context
 
 
@@ -485,50 +625,50 @@ class SendArticlesEmailView(FormView):
     """
     View for sending latest articles via email.
     """
+
     template_name = "send_email.html"
     form_class = EmailArticlesForm
-    success_url = reverse_lazy('articles:home')
-    
+    success_url = reverse_lazy("articles:home")
+
     def form_valid(self, form):
         """Process the form and start the email task."""
-        email = form.cleaned_data['email']
-        num_articles = form.cleaned_data['num_articles']
-        subject = form.cleaned_data.get('subject') or None
-        
+        email = form.cleaned_data["email"]
+        num_articles = form.cleaned_data["num_articles"]
+        subject = form.cleaned_data.get("subject") or None
+
         # Start the email task asynchronously
         try:
             send_latest_articles_email.delay(
-                recipient_email=email,
-                subject=subject,
-                num_articles=num_articles
+                recipient_email=email, subject=subject, num_articles=num_articles
             )
-            
+
             # Success message
             messages.success(
                 self.request,
-                f"Email will be sent to {email} with {num_articles} articles"
+                f"Email will be sent to {email} with {num_articles} articles",
             )
-            
+
         except Exception as e:
             # Error message
-            messages.error(
-                self.request,
-                f"Error scheduling email: {str(e)}"
-            )
-        
+            messages.error(self.request, f"Error scheduling email: {str(e)}")
+
         return super().form_valid(form)
-    
+
     def get_context_data(self, **kwargs):
         """Add extra context for the template."""
         context = super().get_context_data(**kwargs)
-        context['page_title'] = 'Invia Articoli via Email'
+        context["page_title"] = "Invia Articoli via Email"
+
+        # Count approved articles ready to be sent
+        approved_articles = Article.objects.filter(
+            status=Article.APPROVED,
+            title_it__isnull=False,
+            content_it__isnull=False
+        ).exclude(
+            title_it__exact="",
+            content_it__exact=""
+        ).count()
         
-        # Count total available articles
-        total_articles = Article.objects.exclude(
-            content_it__isnull=True
-        ).exclude(content_it__exact="").count()
-        context['total_articles'] = total_articles
-        
+        context["approved_articles"] = approved_articles
+
         return context
-
-

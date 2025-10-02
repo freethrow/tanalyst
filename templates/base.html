@@ -1,8 +1,9 @@
+{% load custom_i18n %}
 <!DOCTYPE html>
-<html lang="en" data-theme="retro">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<html lang="{{ LANGUAGE_CODE }}" data-theme="cupcake">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}TA{% endblock %}</title>
 
     <!-- Tailwind CSS CDN -->
@@ -29,23 +30,51 @@
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
                 </div>
                 <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
-                  <li><a href="/">Home</a></li>
-                  <li><a href="{% url 'articles:sectors' %}">Settori</a></li>
-                  <li><a href="{% url 'articles:send_email' %}">Invia Email</a></li>
-                  <li><a href="/vector-search/">Vector Search</a></li>
-                  <li><a href="/about/">About</a></li>
+                  <li><a href="/">{{ "Home"|translate:current_language }}</a></li>
+                  <li><a href="{% url 'articles:approved' %}">{{ "Approved"|translate:current_language }}</a></li>
+                  <li><a href="{% url 'articles:discarded' %}">{{ "Discarded"|translate:current_language }}</a></li>
+                  <li><a href="{% url 'articles:sectors' %}">{{ "Sectors"|translate:current_language }}</a></li>
+                  <li><a href="{% url 'articles:send_email' %}">{{ "Send Email"|translate:current_language }}</a></li>
+                  <li><a href="/vector-search/">{{ "Vector Search"|translate:current_language }}</a></li>
+                  <li><a href="/about/">{{ "About"|translate:current_language }}</a></li>
                 </ul>
               </div>
               <a href="/" class="btn btn-ghost text-xl">TA</a>
             </div>
-            <div class="navbar-end hidden lg:flex">
-              <ul class="menu menu-horizontal px-1">
-                <li><a href="/">Home</a></li>
-                <li><a href="{% url 'articles:sectors' %}">Settori</a></li>
-                <li><a href="{% url 'articles:send_email' %}">Invia Email</a></li>
-                <li><a href="/vector-search/">Vector Search</a></li>
-                <li><a href="/about/">About</a></li>
+            <div class="navbar-end">
+              <ul class="menu menu-horizontal px-1 hidden lg:flex">
+                <li><a href="/">{{ "Home"|translate:current_language }}</a></li>
+                <li><a href="{% url 'articles:approved' %}">{{ "Approved"|translate:current_language }}</a></li>
+                <li><a href="{% url 'articles:discarded' %}">{{ "Discarded"|translate:current_language }}</a></li>
+                <li><a href="{% url 'articles:sectors' %}">{{ "Sectors"|translate:current_language }}</a></li>
+                <li><a href="{% url 'articles:send_email' %}">{{ "Send Email"|translate:current_language }}</a></li>
+                <li><a href="/vector-search/">{{ "Vector Search"|translate:current_language }}</a></li>
+                <li><a href="/about/">{{ "About"|translate:current_language }}</a></li>
               </ul>
+              
+              <!-- Language Switcher -->
+              <div class="dropdown dropdown-end">
+                <div tabindex="0" role="button" class="btn btn-ghost btn-sm">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"/>
+                  </svg>
+                  {{ current_language|upper }}
+                </div>
+                <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-32">
+                  {% for lang_code, lang_name in available_languages %}
+                    <li>
+                      <form action="{% url 'articles:set_language' %}" method="post" class="w-full">
+                        {% csrf_token %}
+                        <input name="next" type="hidden" value="{{ request.get_full_path }}" />
+                        <input name="language" type="hidden" value="{{ lang_code }}" />
+                        <button type="submit" class="w-full text-left {% if lang_code == current_language %}font-bold{% endif %}">
+                          {{ lang_name }}
+                        </button>
+                      </form>
+                    </li>
+                  {% endfor %}
+                </ul>
+              </div>
             </div>
           </div>
         </div>
@@ -54,6 +83,16 @@
 
 
     <main class="container mx-auto flex-1 p-5">
+        <!-- Messages -->
+      {% if messages %}
+        <div class="mb-6">
+          {% for message in messages %}
+            <div class="alert {% if message.tags == 'error' %}alert-error{% elif message.tags == 'success' %}alert-success{% else %}alert-info{% endif %} mb-2">
+              <span>{{ message }}</span>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
         {% block content %}
         {% endblock %}
     </main>
@@ -61,15 +100,17 @@
     <!-- Footer -->
     <footer class="footer bg-base-200 text-base-content p-10">
       <nav>
-        <h6 class="footer-title">Navigation</h6>
-        <a class="link link-hover" href="/">Home</a>
-        <a class="link link-hover" href="/vector-search/">Vector Search</a>
-        <a class="link link-hover" href="/about/">About</a>
+        <h6 class="footer-title">{{ "Navigation"|translate:current_language }}</h6>
+        <a class="link link-hover" href="/">{{ "Home"|translate:current_language }}</a>
+        <a class="link link-hover" href="{% url 'articles:approved' %}">{{ "Approved"|translate:current_language }}</a>
+        <a class="link link-hover" href="{% url 'articles:discarded' %}">{{ "Discarded"|translate:current_language }}</a>
+        <a class="link link-hover" href="/vector-search/">{{ "Vector Search"|translate:current_language }}</a>
+        <a class="link link-hover" href="/about/">{{ "About"|translate:current_language }}</a>
       </nav>
       <nav>
-        <h6 class="footer-title">Company</h6>
-        <a class="link link-hover" href="/about/">About us</a>
-        <a class="link link-hover" href="mailto:info@example.com">Contact</a>
+        <h6 class="footer-title">{{ "Company"|translate:current_language }}</h6>
+        <a class="link link-hover" href="/about/">{{ "About us"|translate:current_language }}</a>
+        <a class="link link-hover" href="mailto:info@example.com">{{ "Contact"|translate:current_language }}</a>
       </nav>
       <aside class="mt-6 lg:mt-0">
         <p class="text-sm">© <span id="year"></span> TA. All rights reserved.</p>

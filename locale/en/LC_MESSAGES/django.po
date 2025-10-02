@@ -1,0 +1,139 @@
+# English translations for TA project.
+# Copyright (C) 2024 TA
+# This file is distributed under the same license as the TA package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: TA 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-10-01 18:50+0200\n"
+"PO-Revision-Date: 2024-10-01 18:50+0200\n"
+"Last-Translator: TA Team\n"
+"Language-Team: English\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+# Navigation
+msgid "Home"
+msgstr "Home"
+
+msgid "Approved"
+msgstr "Approved"
+
+msgid "Discarded"
+msgstr "Discarded"
+
+msgid "Sectors"
+msgstr "Sectors"
+
+msgid "Send Email"
+msgstr "Send Email"
+
+msgid "Vector Search"
+msgstr "Vector Search"
+
+msgid "About"
+msgstr "About"
+
+msgid "Navigation"
+msgstr "Navigation"
+
+msgid "Company"
+msgstr "Company"
+
+msgid "About us"
+msgstr "About us"
+
+msgid "Contact"
+msgstr "Contact"
+
+# Article Status
+msgid "Pending"
+msgstr "Pending"
+
+msgid "Sent"
+msgstr "Sent"
+
+# Article Actions
+msgid "Approve"
+msgstr "Approve"
+
+msgid "Discard"
+msgstr "Discard"
+
+msgid "Restore"
+msgstr "Restore"
+
+msgid "Edit"
+msgstr "Edit"
+
+msgid "Edit article"
+msgstr "Edit article"
+
+msgid "Read more"
+msgstr "Read more"
+
+# Article Metadata
+msgid "Published"
+msgstr "Published"
+
+msgid "Source"
+msgstr "Source"
+
+msgid "Original Link"
+msgstr "Original Link"
+
+# Forms
+msgid "Email Address"
+msgstr "Email Address"
+
+msgid "Number of Articles"
+msgstr "Number of Articles"
+
+msgid "Subject"
+msgstr "Subject"
+
+msgid "Send"
+msgstr "Send"
+
+msgid "Cancel"
+msgstr "Cancel"
+
+msgid "Save"
+msgstr "Save"
+
+# Messages
+msgid "Article approved successfully"
+msgstr "Article approved successfully"
+
+msgid "Article discarded successfully"
+msgstr "Article discarded successfully"
+
+msgid "Article restored successfully"
+msgstr "Article restored successfully"
+
+msgid "Email sent successfully"
+msgstr "Email sent successfully"
+
+msgid "Error sending email"
+msgstr "Error sending email"
+
+# Page Titles
+msgid "Send Articles via Email"
+msgstr "Send Articles via Email"
+
+msgid "Article Details"
+msgstr "Article Details"
+
+msgid "Edit Article"
+msgstr "Edit Article"
+
+# Status Labels
+msgid "Status"
+msgstr "Status"
+
+msgid "Article Status"
+msgstr "Article Status"

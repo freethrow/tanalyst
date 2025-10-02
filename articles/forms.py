@@ -14,7 +14,8 @@ class EmailArticlesForm(forms.Form):
             'placeholder': 'esempio@email.com',
             'required': True
         }),
-        help_text="Inserisci l'indirizzo email dove inviare gli articoli"
+        help_text="Inserisci l'indirizzo email dove inviare gli articoli",
+        initial="aleksendric@gmail.com"
     )
     
     num_articles = forms.IntegerField(

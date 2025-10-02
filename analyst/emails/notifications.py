@@ -5,9 +5,9 @@ from typing import Optional, Dict, Any
 from celery import shared_task
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
-from pymongo import MongoClient
 from django.conf import settings
 import resend
+from articles.models import Article
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -19,10 +19,7 @@ if RESEND_API_KEY:
 else:
     logger.error("RESEND_API_KEY not set in environment variables")
 
-# MongoDB configuration
-MONGODB_URI = settings.MONGODB_URI
-DB_NAME = settings.DB_NAME
-COLLECTION_NAME = "articles"
+# Email configuration
 
 
 @shared_task(bind=True, max_retries=3, name="send_latest_articles_email")
@@ -48,69 +45,117 @@ def send_latest_articles_email(
     Returns:
         Dict with status and details of the email sending operation
     """
-    client = None
-
     try:
         # Validate Resend API key
         if not RESEND_API_KEY:
             raise ValueError("RESEND_API_KEY is not configured")
 
-        # Connect to MongoDB
-        logger.info(f"Connecting to MongoDB to fetch {num_articles} latest articles")
-        client = MongoClient(MONGODB_URI)
-        db = client[DB_NAME]
-        collection = db[COLLECTION_NAME]
-
-        # Fetch articles that have Italian translations
-        query = {
-            "title_it": {"$exists": True, "$ne": None, "$ne": ""},
-            "content_it": {"$exists": True, "$ne": None, "$ne": ""},
-        }
-        sort_field = "time_translated"
-
-        # Fetch the latest articles
-        articles = list(
-            collection.find(query)
-            .sort(sort_field, -1)  # Sort by most recent
-            .limit(num_articles)
-        )
-
+        # Fetch articles using Django ORM
+        logger.info(f"Fetching {num_articles} latest validated unused articles")
+        
+        # Debug: Check total articles
+        total_articles = Article.objects.count()
+        logger.info(f"Total articles in database: {total_articles}")
+        
+        # Debug: Check articles with Italian content
+        italian_articles = Article.objects.filter(
+            title_it__isnull=False,
+            content_it__isnull=False
+        ).exclude(
+            title_it__exact="",
+            content_it__exact=""
+        ).count()
+        logger.info(f"Articles with Italian content: {italian_articles}")
+        
+        
+        # Debug: Check status field values
+        pending_count = Article.objects.filter(status=Article.PENDING).count()
+        approved_count = Article.objects.filter(status=Article.APPROVED).count()
+        discarded_count = Article.objects.filter(status=Article.DISCARDED).count()
+        sent_count = Article.objects.filter(status=Article.SENT).count()
+        
+        logger.info(f"Articles by status - Pending: {pending_count}, Approved: {approved_count}, Discarded: {discarded_count}, Sent: {sent_count}")
+        
+        # Debug: Check how many approved articles have Italian content
+        matching_count = Article.objects.filter(
+            status=Article.APPROVED,
+            title_it__isnull=False,
+            content_it__isnull=False
+        ).exclude(
+            title_it__exact="",
+            content_it__exact=""
+        ).count()
+        logger.info(f"Approved articles with Italian content: {matching_count}")
+        
+        # Get approved articles that haven't been sent yet
+        articles_queryset = Article.objects.filter(
+            status=Article.APPROVED,
+            title_it__isnull=False,
+            content_it__isnull=False
+        ).exclude(
+            title_it__exact="",
+            content_it__exact=""
+        ).order_by("-time_translated")[:num_articles]
+        
+        articles = list(articles_queryset)
         logger.info(f"Found {len(articles)} articles to include in email")
+        
+        # Debug: Show article details
+        if articles:
+            for i, article in enumerate(articles[:3]):  # Show first 3 articles
+                logger.info(f"Article {i+1}: ID={article.id}, status={article.status}, title={article.title_it[:50] if article.title_it else 'None'}...")
+        
+        # Mark the selected articles as sent
+        if articles:
+            article_ids = [article.id for article in articles]
+            logger.info(f"About to update {len(article_ids)} articles: {article_ids}")
+            
+            # Check current state before update
+            before_update = Article.objects.filter(id__in=article_ids).values_list('id', 'status')
+            logger.info(f"Before update - articles and their status: {list(before_update)}")
+            
+            updated_count = Article.objects.filter(id__in=article_ids).update(status=Article.SENT)
+            logger.info(f"Updated {updated_count} articles to SENT status")
+            
+            # Check state after update
+            after_update = Article.objects.filter(id__in=article_ids).values_list('id', 'status')
+            logger.info(f"After update - articles and their status: {list(after_update)}")
+        else:
+            logger.warning("No articles found matching criteria - email will be empty")
 
-        # Process articles for the template
-        processed_articles = []
-        for article in articles:
-            processed_article = {
-                "title": article.get("title_it", ""),
-                "content": article.get("content_it", ""),
-                "sector": article.get("sector", ""),
-                "url": article.get("url", ""),
-                "published_date": article.get("published_date"),
-                "time_translated": article.get("time_translated"),
+        # Check if we have articles to send
+        if not articles:
+            logger.warning("No articles found - not sending email")
+            return {
+                "status": "skipped",
+                "recipient": recipient_email,
+                "reason": "No approved articles found",
+                "articles_sent": 0,
+                "timestamp": datetime.utcnow().isoformat(),
             }
 
-            # Create a content preview (first 300 characters)
-            if processed_article["content"]:
-                processed_article["preview"] = (
-                    processed_article["content"][:300] + "..."
-                )
-            else:
-                processed_article["preview"] = ""
-
-            processed_articles.append(processed_article)
+        # Articles are already Django model instances, no processing needed
+        # The template can access fields directly like {{ article.title_it }}
 
         # Prepare template context
         context = {
-            "articles": processed_articles,
-            "article_count": len(processed_articles),
+            "articles": articles,
+            "article_count": len(articles),
             "recipient_email": recipient_email,
             "current_date": datetime.now(),
             "year": datetime.now().year,
         }
+        
+        logger.info(f"Template context prepared with {len(articles)} articles")
 
         # Render the HTML template
         logger.info("Rendering email template")
-        html_content = render_to_string("email.html", context)
+        try:
+            html_content = render_to_string("email.html", context)
+            logger.info(f"Template rendered successfully, content length: {len(html_content)}")
+        except Exception as template_error:
+            logger.error(f"Template rendering failed: {template_error}")
+            raise
 
         # Create plain text version
         text_content = strip_tags(html_content)
@@ -121,7 +166,7 @@ def send_latest_articles_email(
 
         # Generate default subject if not provided
         if not subject:
-            subject = f"Le tue {len(processed_articles)} notizie di business - {datetime.now().strftime('%d %B %Y')}"
+            subject = f"Le tue {len(articles)} notizie di business - {datetime.now().strftime('%d %B %Y')}"
 
         # Prepare Resend email parameters
         email_params = {
@@ -132,7 +177,7 @@ def send_latest_articles_email(
             "text": text_content,
             "tags": [
                 {"name": "type", "value": "latest_articles"},
-                {"name": "article_count", "value": str(len(processed_articles))},
+                {"name": "article_count", "value": str(len(articles))},
             ],
         }
 
@@ -148,7 +193,7 @@ def send_latest_articles_email(
             "email_id": email_result.get("id"),
             "recipient": recipient_email,
             "subject": subject,
-            "articles_sent": len(processed_articles),
+            "articles_sent": len(articles),
             "timestamp": datetime.utcnow().isoformat(),
         }
 
@@ -169,7 +214,11 @@ def send_latest_articles_email(
             "timestamp": datetime.utcnow().isoformat(),
         }
 
-    finally:
-        # Clean up MongoDB connection
-        if client:
-            client.close()
+    except Exception as e:
+        logger.error(f"Unexpected error in email task: {e}")
+        return {
+            "status": "failed",
+            "recipient": recipient_email,
+            "error": str(e),
+            "timestamp": datetime.utcnow().isoformat(),
+        }

@@ -104,29 +104,16 @@
     <div class="card bg-base-100 shadow-md">
       <div class="card-body">
         <h2 class="card-title text-lg mb-4">Article Status</h2>
-        <div class="flex flex-wrap gap-6">
-          <div class="form-control">
-            <label class="label cursor-pointer">
-              {{ form.validated }}
-              <span class="label-text ml-2">Validated</span>
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Status</span>
+          </label>
+          {{ form.status }}
+          {% if form.status.errors %}
+            <label class="label">
+              <span class="label-text-alt text-error">{{ form.status.errors.0 }}</span>
             </label>
-            {% if form.validated.errors %}
-              <label class="label">
-                <span class="label-text-alt text-error">{{ form.validated.errors.0 }}</span>
-              </label>
-            {% endif %}
-          </div>
-          <div class="form-control">
-            <label class="label cursor-pointer">
-              {{ form.used }}
-              <span class="label-text ml-2">Used</span>
-            </label>
-            {% if form.used.errors %}
-              <label class="label">
-                <span class="label-text-alt text-error">{{ form.used.errors.0 }}</span>
-              </label>
-            {% endif %}
-          </div>
+          {% endif %}
         </div>
       </div>
     </div>

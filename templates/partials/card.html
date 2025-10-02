@@ -1,51 +1,153 @@
 {# templates/partials/card.html #}
-{# Usage: {% include "partials/card.html" with article=article %} #}
-<div class="card bg-base-100 shadow-md border transition-transform duration-200 ease-out hover:scale-[1.02] hover:-translate-y-0.5 hover:shadow-lg transform-gpu">
-  <div class="card-body">
-    <h2 class="card-title text-balance">
+{% load custom_i18n %}
+<div class="card bg-base-100 shadow-md border transition-all duration-200 ease-out hover:scale-[1.02] hover:-translate-y-1 hover:shadow-xl transform-gpu {% if article.status == 'APPROVED' %}border-green-200 bg-green-50/30{% elif article.status == 'DISCARDED' %}border-red-200 bg-red-50/30{% elif article.status == 'SENT' %}border-blue-200 bg-blue-50/30{% else %}border-base-300{% endif %}">
+  <div class="card-body p-5 relative">
+    
+    {# Status Badge - Top Right #}
+    <div class="absolute top-4 right-4">
+      {% if article.status == 'PENDING' %}
+        <span class="badge badge-warning gap-1">
+          <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8"/></svg>
+          {{ "Pending"|translate:current_language }}
+        </span>
+      {% elif article.status == 'APPROVED' %}
+        <span class="badge badge-success gap-1">
+          <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg>
+          {{ "Approved"|translate:current_language }}
+        </span>
+      {% elif article.status == 'DISCARDED' %}
+        <span class="badge badge-error gap-1">
+          <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"/></svg>
+          {{ "Discarded"|translate:current_language }}
+        </span>
+      {% elif article.status == 'SENT' %}
+        <span class="badge badge-info gap-1">
+          <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/><path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/></svg>
+          {{ "Sent"|translate:current_language }}
+        </span>
+      {% endif %}
+    </div>
+
+    {# Title #}
+    <h2 class="card-title text-lg font-bold leading-tight mb-3 pr-24">
       {% if article.id %}
-        <a href="{% url 'articles:article_detail' article.id %}" class="no-underline hover:color-primary">
+        <a href="{% url 'articles:article_detail' article.id %}" class="hover:text-primary transition-colors duration-200 line-clamp-2">
           {{ article.title_it|default:"Titolo non disponibile" }}
         </a>
       {% else %}
-        {{ article.title_it|default:"Titolo non disponibile" }}
+        <span class="line-clamp-2">{{ article.title_it|default:"Titolo non disponibile" }}</span>
       {% endif %}
     </h2>
 
-    <p class="text-sm text-base-content/80 mb-3">
-      {{ article.content_it|slice:":300" }}{% if article.content_it and article.content_it|length > 300 %}…{% endif %}
+    {# Content Preview #}
+    <p class="text-sm text-base-content/70 leading-relaxed mb-4 line-clamp-3">
+      {{ article.content_it|slice:":250" }}{% if article.content_it and article.content_it|length > 250 %}…{% endif %}
     </p>
 
-    <div class="text-xs text-base-content/60 space-y-1">
+    {# Divider #}
+    <div class="divider my-2"></div>
+
+    {# Metadata Grid #}
+    <div class="grid grid-cols-2 gap-3 text-xs mb-4">
       {% if article.article_date %}
-        <div>
-          <span class="font-medium">Pubblicato:</span> {{ article.article_date|date:"d/m/Y" }}
+        <div class="flex items-start gap-2">
+          <svg class="w-4 h-4 text-base-content/40 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+          </svg>
+          <div>
+            <div class="font-medium text-base-content/60">{{ "Published"|translate:current_language }}</div>
+            <div class="text-base-content/90">{{ article.article_date|date:"d/m/Y" }}</div>
+          </div>
         </div>
       {% endif %}
+      
       {% if article.sector %}
-        <div>
-          <span class="font-medium">Settore:</span> {{ article.sector }}
+        <div class="flex items-start gap-2">
+          <div class="text-primary text-xs font-medium flex items-center gap-1">
+            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z"/>
+            </svg>
+            {{ article.sector }}
+          </div>
         </div>
       {% endif %}
+      
       {% if article.source %}
-        <div>
-   
-          <span class="badge badge-outline badge-xs p-2">{{ article.source }}</span>
+        <div class="flex items-start gap-2">
+          <svg class="w-4 h-4 text-base-content/40 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/>
+          </svg>
+          <div>
+            <div class="font-medium text-base-content/60">{{ "Source"|translate:current_language }}</div>
+            <div class="text-base-content/90">{{ article.source }}</div>
+          </div>
         </div>
       {% endif %}
+      
       {% if article.url %}
-        <div>
-          <span class="font-medium">Originale:</span> 
-          <a href="{{ article.url }}" target="_blank" rel="noopener noreferrer" class="link link-primary text-xs">
-            {{ article.url|slice:":50" }}{% if article.url|length > 50 %}…{% endif %}
-          </a>
+        <div class="flex items-start gap-2 col-span-2">
+          <svg class="w-4 h-4 text-base-content/40 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+          </svg>
+          <div class="flex-1 min-w-0">
+            <div class="font-medium text-base-content/60 mb-1">{{ "Original Link"|translate:current_language }}</div>
+            <a href="{{ article.url }}" target="_blank" rel="noopener noreferrer" 
+               class="link link-primary text-xs truncate block hover:link-hover">
+              {{ article.url }}
+            </a>
+          </div>
         </div>
       {% endif %}
     </div>
 
-    <div class="card-actions justify-end mt-4">
+    {# Action Buttons #}
+    <div class="card-actions justify-end gap-2 mt-2">
+      {% if article.id and article.status == 'PENDING' %}
+        <button 
+          hx-post="{% url 'articles:validate_article' article.id %}"
+          hx-target="closest .card"
+          hx-swap="outerHTML swap:0.2s"
+          class="btn btn-success btn-sm gap-1">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+          </svg>
+          {{ "Approve"|translate:current_language }}
+        </button>
+        <button 
+          hx-post="{% url 'articles:discard_article' article.id %}"
+          hx-target="closest .card"
+          hx-swap="outerHTML swap:0.2s"
+          class="btn btn-error btn-sm gap-1">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+          {{ "Discard"|translate:current_language }}
+        </button>
+      {% elif article.id and article.status == 'DISCARDED' %}
+        <button 
+          hx-post="{% url 'articles:restore_article' article.id %}"
+          hx-target="closest .card"
+          hx-swap="outerHTML swap:0.2s"
+          class="btn btn-warning btn-sm gap-1">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+          </svg>
+          {{ "Restore"|translate:current_language }}
+        </button>
+      {% endif %}
       {% if article.id %}
-        <a href="{% url 'articles:article_detail' article.id %}" class="btn btn-primary btn-sm">Leggi tutto</a>
+        <a href="{% url 'articles:article_edit' article.id %}" class="btn btn-ghost btn-sm gap-1" title="{{ 'Edit article'|translate:current_language }}">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+          </svg>
+          {{ "Edit"|translate:current_language }}
+        </a>
+        <a href="{% url 'articles:article_detail' article.id %}" class="btn btn-primary btn-outline btn-sm gap-1">
+          {{ "Read more"|translate:current_language }}
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
+        </a>
       {% endif %}
     </div>
   </div>

@@ -11,6 +11,19 @@ class Article(models.Model):
     with tracking for validation and usage status.
     Compatible with MongoDB Compass document structure.
     """
+    
+    # Status constants
+    PENDING = 'PENDING'
+    APPROVED = 'APPROVED'
+    DISCARDED = 'DISCARDED'
+    SENT = 'SENT'
+    
+    STATUS_CHOICES = [
+        (PENDING, 'Pending Review'),
+        (APPROVED, 'Approved'),
+        (DISCARDED, 'Discarded'),
+        (SENT, 'Sent in Email'),
+    ]
 
     # Title fields - matching MongoDB field names exactly
     title_en = models.CharField(
@@ -101,11 +114,13 @@ class Article(models.Model):
         help_text="The source of the article",
     )
 
-    # Binary field for validation status
-    validated = models.BooleanField(
-        default=False,
-        db_column="validated",
-        help_text="Whether the article has been validated",
+    # Status field replacing validated and used
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default=PENDING,
+        db_column="status",
+        help_text="Current status of the article in the workflow"
     )
 
     time_translated = models.DateTimeField(
@@ -113,11 +128,6 @@ class Article(models.Model):
         blank=True,
         db_column="time_translated",
         help_text="Date and time when the article was translated",
-    )
-
-    # Binary field for usage status
-    used = models.BooleanField(
-        default=False, db_column="used", help_text="Whether the article has been used"
     )
 
     # Custom manager for MongoDB
@@ -135,7 +145,7 @@ class Article(models.Model):
         indexes = [
             models.Index(fields=["scraped_date"]),
             models.Index(fields=["article_date"]),
-            models.Index(fields=["validated", "used"]),
+            models.Index(fields=["status"]),
         ]
 
         # Default ordering
@@ -156,25 +166,57 @@ class Article(models.Model):
             else self.title_it or "Untitled Article"
         )
 
-    def is_validated_and_used(self):
+    def is_approved(self):
         """
-        Helper method to check if article is both validated and used.
+        Helper method to check if article is approved.
         """
-        return self.validated and self.used
+        return self.status == self.APPROVED
 
-    def mark_as_validated(self):
+    def is_sent(self):
         """
-        Helper method to mark the article as validated.
+        Helper method to check if article has been sent.
         """
-        self.validated = True
-        self.save(update_fields=["validated"])
+        return self.status == self.SENT
 
-    def mark_as_used(self):
+    def is_pending(self):
         """
-        Helper method to mark the article as used.
+        Helper method to check if article is pending review.
         """
-        self.used = True
-        self.save(update_fields=["used"])
+        return self.status == self.PENDING
+
+    def is_discarded(self):
+        """
+        Helper method to check if article is discarded.
+        """
+        return self.status == self.DISCARDED
+
+    def mark_as_approved(self):
+        """
+        Helper method to mark the article as approved.
+        """
+        self.status = self.APPROVED
+        self.save(update_fields=["status"])
+
+    def mark_as_sent(self):
+        """
+        Helper method to mark the article as sent.
+        """
+        self.status = self.SENT
+        self.save(update_fields=["status"])
+
+    def mark_as_discarded(self):
+        """
+        Helper method to mark the article as discarded.
+        """
+        self.status = self.DISCARDED
+        self.save(update_fields=["status"])
+
+    def mark_as_pending(self):
+        """
+        Helper method to mark the article as pending.
+        """
+        self.status = self.PENDING
+        self.save(update_fields=["status"])
 
     def get_content_by_language(self, language="en"):
         """
@@ -245,6 +287,5 @@ class Article(models.Model):
             if self.scraped_date
             else None,
             "llm_model": self.llm_model,
-            "validated": self.validated,
-            "used": self.used,
+            "status": self.status,
         }

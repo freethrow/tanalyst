@@ -1,0 +1,23 @@
+<!-- Language Switcher -->
+<div class="dropdown dropdown-end">
+  <div tabindex="0" role="button" class="btn btn-ghost btn-sm">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"/>
+    </svg>
+    {{ current_language|upper }}
+  </div>
+  <ul tabindex="0" class="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-32">
+    {% for lang_code, lang_name in languages %}
+      <li>
+        <form action="{% url 'set_language' %}" method="post" class="w-full">
+          {% csrf_token %}
+          <input name="next" type="hidden" value="{{ request.get_full_path }}" />
+          <input name="language" type="hidden" value="{{ lang_code }}" />
+          <button type="submit" class="w-full text-left {% if lang_code == current_language %}font-bold{% endif %}">
+            {{ lang_name }}
+          </button>
+        </form>
+      </li>
+    {% endfor %}
+  </ul>
+</div>
