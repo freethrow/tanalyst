@@ -13,6 +13,8 @@ from analyst.emails.notifications import send_latest_articles_email
 from pymongo import MongoClient
 
 from analyst.scrapers import ekapija, biznisrs
+# Import the summarizer module to register the task
+from analyst.agents import summarizer
 
 EMBEDDING_BATCH_SIZE = 10
 

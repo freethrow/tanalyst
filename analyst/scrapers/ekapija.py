@@ -108,15 +108,16 @@ class EkapijaSpider(CrawlSpider):
         "https://www.ekapija.com/en/news/gradjevina",
         "https://www.ekapija.com/en/news/saobracaj",
         "https://www.ekapija.com/en/news/it-telekomunikacije",
+        "https://www.ekapija.com/en/news/zdravstvo",
     ]
 
     custom_settings = {
         "ROBOTSTXT_OBEY": True,
-        "DOWNLOAD_DELAY": 20,
+        "DOWNLOAD_DELAY": 10,
         "RANDOMIZE_DOWNLOAD_DELAY": True,
         "CONCURRENT_REQUESTS_PER_DOMAIN": 8,
         "COOKIES_ENABLED": False,
-        "DOWNLOAD_TIMEOUT": 20,
+        "DOWNLOAD_TIMEOUT": 10,
         "DOWNLOADER_MIDDLEWARES": {
             "scrapy.downloadermiddlewares.useragent.UserAgentMiddleware": None,
             __name__ + ".RandomUserAgentMiddleware": 400,
@@ -146,7 +147,8 @@ class EkapijaSpider(CrawlSpider):
                     r"/en/news/gradjevina\?page=2$",
                     r"/en/news/saobracaj\?page=2$",
                     r"/en/news/it-telekomunikacije\?page=2$",
-                ],
+                    r"/en/news/zdravstvo\?page=2$",
+                        ],
                 restrict_xpaths="//div[contains(@class, 'contBox')]//ul[contains(@class, 'pagination')]",
             ),
             follow=True,

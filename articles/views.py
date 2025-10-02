@@ -3,12 +3,15 @@ from django.views.generic import ListView, DetailView, UpdateView, FormView
 from django.db import models
 from django import forms
 from django.http import HttpResponse
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.core.cache import cache
 from django.contrib import messages
 from django.urls import reverse_lazy
-
+from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.decorators.http import require_POST
+
 
 
 from analyst.emails.notifications import send_latest_articles_email
@@ -16,8 +19,15 @@ from analyst.agents.translator import translate_untranslated_articles
 from .forms import EmailArticlesForm
 from django.conf import settings
 from .tasks import scrape_ekapija, scrape_biznisrs, create_all_embeddings
+from analyst.agents.summarizer import get_latest_weekly_summary, get_weekly_summaries
 
 NOMIC_API_KEY = settings.NOMIC_API_KEY
+
+
+# Helper function to check if user is staff/admin
+def is_staff(user):
+    return user.is_staff or user.is_superuser
+
 
 # Hardcoded sectors list
 SECTORS = [
@@ -109,10 +119,11 @@ SECTORS = [
 ]
 
 
-class ArticleListView(ListView):
+class ArticleListView(LoginRequiredMixin, ListView):
     model = Article
     template_name = "index.html"
     context_object_name = "articles"
+    login_url = '/login/'
 
     def get_queryset(self):
         """
@@ -129,10 +140,11 @@ class ArticleListView(ListView):
         return queryset.order_by("-article_date")
 
 
-class ApprovedArticleListView(ListView):
+class ApprovedArticleListView(LoginRequiredMixin, ListView):
     model = Article
     template_name = "index.html"
     context_object_name = "articles"
+    login_url = '/login/'
 
     def get_queryset(self):
         """
@@ -149,10 +161,11 @@ class ApprovedArticleListView(ListView):
         return queryset.order_by("-time_translated")
 
 
-class DiscardedArticleListView(ListView):
+class DiscardedArticleListView(LoginRequiredMixin, ListView):
     model = Article
     template_name = "index.html"
     context_object_name = "articles"
+    login_url = '/login/'
 
     def get_queryset(self):
         """
@@ -170,6 +183,7 @@ class DiscardedArticleListView(ListView):
 
 
 @require_POST
+@login_required
 def validate_article(request, article_id):
     # Check if request is from HTMX
     if not request.headers.get('HX-Request'):
@@ -184,6 +198,7 @@ def validate_article(request, article_id):
         return HttpResponse(status=404)
 
 @require_POST
+@login_required
 def discard_article(request, article_id):
     # Check if request is from HTMX
     if not request.headers.get('HX-Request'):
@@ -198,6 +213,7 @@ def discard_article(request, article_id):
         return HttpResponse(status=404)
 
 @require_POST
+@login_required
 def restore_article(request, article_id):
     # Check if request is from HTMX
     if not request.headers.get('HX-Request'):
@@ -211,8 +227,9 @@ def restore_article(request, article_id):
     except Article.DoesNotExist:
         return HttpResponse(status=404)
 
+@user_passes_test(is_staff)
 def reset_all_articles_to_pending(request):
-    """Reset all articles to PENDING status for testing purposes."""
+    """Reset all articles to PENDING status for testing purposes (Admin only)."""
     Article.objects.update(status=Article.PENDING)
     return HttpResponse("All articles reset to PENDING status")
 
@@ -234,10 +251,11 @@ def set_language(request):
     # If not POST, redirect to home
     return HttpResponseRedirect('/')
 
-class ArticleDetailView(DetailView):
+class ArticleDetailView(LoginRequiredMixin, DetailView):
     model = Article
     template_name = "article_detail.html"
     context_object_name = "article"
+    login_url = '/login/'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -344,14 +362,93 @@ class ArticleDetailView(DetailView):
         return context
 
 
+@user_passes_test(is_staff)
 def test_tasks(request):
+    """Trigger background tasks (Admin only)."""
     # translate_untranslated_articles.delay()
     
-    create_all_embeddings.delay()
+    scrape_ekapija.delay()
     return HttpResponse("Task has been triggered.")
 
+@user_passes_test(is_staff)
+def generate_summary(request):
+    """Trigger weekly summary generation (Admin only)."""
+    try:
+        # Import the task directly
+        from analyst.agents.summarizer import generate_weekly_summary_task
+        
+        # Start the summary generation task
+        task = generate_weekly_summary_task.delay(weeks_back=2)
+        
+        message = f"✅ Weekly summary generation started. Task ID: {task.id}"
+        return HttpResponse(message)
+        
+    except Exception as e:
+        error_message = f"❌ Error starting summary generation: {str(e)}"
+        return HttpResponse(error_message, status=500)
+
+@login_required
+def weekly_summaries_list(request):
+    """Display list of weekly summaries."""
+    try:
+        summaries = get_weekly_summaries(limit=20)
+        
+        # Convert MongoDB _id to id for template consistency
+        for summary in summaries:
+            summary['id'] = str(summary['_id'])
+        
+        context = {
+            'summaries': summaries,
+            'total_summaries': len(summaries)
+        }
+        
+        return render(request, 'weekly_summaries.html', context)
+        
+    except Exception as e:
+        error_message = f"❌ Error retrieving summaries: {str(e)}"
+        return HttpResponse(error_message, status=500)
+
+@login_required
+def weekly_summary_detail(request, summary_id):
+    """Display detailed view of a specific weekly summary."""
+    from pymongo import MongoClient
+    from bson import ObjectId
+    import os
+    
+    try:
+        # Get MongoDB connection
+        mongo_uri = getattr(
+            settings,
+            "MONGO_URI",
+            os.getenv("MONGO_URI", "mongodb://localhost:8818/?directConnection=true"),
+        )
+        mongo_db = getattr(settings, "MONGO_DB", os.getenv("MONGO_DB", "analyst"))
+        
+        client = MongoClient(mongo_uri)
+        db = client[mongo_db]
+        summaries_collection = db["weekly_summaries"]
+        
+        # Get the specific summary
+        summary = summaries_collection.find_one({"_id": ObjectId(summary_id)})
+        
+        client.close()
+        
+        if not summary:
+            return HttpResponse("Summary not found", status=404)
+        
+        context = {
+            'summary': summary
+        }
+        
+        return render(request, 'weekly_summary_detail.html', context)
+        
+    except Exception as e:
+        error_message = f"❌ Error retrieving summary: {str(e)}"
+        return HttpResponse(error_message, status=500)
+
+@user_passes_test(is_staff)
 def remove_all_embeddings(request):
-    """Remove all embeddings from articles to prepare for regeneration."""
+    """Remove all embeddings from articles to prepare for regeneration (Admin only)."""
     from pymongo import MongoClient
     import os
     
@@ -392,8 +489,9 @@ def remove_all_embeddings(request):
         error_message = f"❌ Error removing embeddings: {str(e)}"
         return HttpResponse(error_message, status=500)
 
+@user_passes_test(is_staff)
 def embedding_management(request):
-    """View for managing embeddings - show stats and provide management options."""
+    """View for managing embeddings - show stats and provide management options (Admin only)."""
     from pymongo import MongoClient
     import os
     
@@ -448,6 +546,7 @@ def embedding_management(request):
         return HttpResponse(error_message, status=500)
 
 
+@login_required
 def vector_search(request):
     if request.method == "POST":
         query = request.POST.get("query", "").strip()
@@ -581,10 +680,13 @@ def vector_search(request):
     return render(request, "vector_search.html")
 
 
-class ArticleEditView(UpdateView):
+class ArticleEditView(LoginRequiredMixin, UpdateView):
     """
     Class-based view for editing articles.
     Allows editing of all article fields including titles, content, metadata, and status flags.
+    """
+    login_url = '/login/'
+    """
     Dynamically includes Serbian fields when English fields are not available.
     """
 
@@ -601,7 +703,7 @@ class ArticleEditView(UpdateView):
 
         # Create form widgets
         form_widgets = {
-            "content_it": forms.Textarea(attrs={"rows": 20, "class": "min-h-[400px]"}),
+            "content_it": forms.Textarea(attrs={"rows": 40, "cols": 60, "class": "min-h-[400px] font-light p-2"}),
         }
 
         # Create Meta class dynamically
@@ -676,16 +778,17 @@ class ArticleEditView(UpdateView):
         return context
 
 
-class SectorListView(ListView):
+class SectorListView(LoginRequiredMixin, ListView):
     """
     View to display all available sectors.
     """
+    login_url = '/login/'
 
     template_name = "sectors.html"
     context_object_name = "sectors"
 
     def get_queryset(self):
-        """Return the list of sectors with article counts."""
+        """Return the list of sectors with article counts, sorted by count descending."""
         sectors_with_counts = []
         for sector in SECTORS:
             count = (
@@ -694,13 +797,15 @@ class SectorListView(ListView):
                 .count()
             )
             sectors_with_counts.append({"name": sector, "count": count})
-        return sectors_with_counts
+        # Sort by count in descending order
+        return sorted(sectors_with_counts, key=lambda x: x["count"], reverse=True)
 
 
-class SectorDetailView(ListView):
+class SectorDetailView(LoginRequiredMixin, ListView):
     """
     View to display articles for a specific sector.
     """
+    login_url = '/login/'
 
     model = Article
     template_name = "sector_detail.html"
@@ -724,10 +829,11 @@ class SectorDetailView(ListView):
         return context
 
 
-class SendArticlesEmailView(FormView):
+class SendArticlesEmailView(LoginRequiredMixin, FormView):
     """
     View for sending latest articles via email.
     """
+    login_url = '/login/'
 
     template_name = "send_email.html"
     form_class = EmailArticlesForm
@@ -775,3 +881,34 @@ class SendArticlesEmailView(FormView):
         context["approved_articles"] = approved_articles
 
         return context
+
+
+# Authentication Views
+def login_view(request):
+    """User login view"""
+    if request.user.is_authenticated:
+        return redirect('articles:home')
+    
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        
+        user = authenticate(request, username=username, password=password)
+        
+        if user is not None:
+            auth_login(request, user)
+            next_url = request.GET.get('next', 'articles:home')
+            return redirect(next_url)
+        else:
+            return render(request, 'login.html', {
+                'error': 'Invalid username or password'
+            })
+    
+    return render(request, 'login.html')
+
+
+@login_required
+def logout_view(request):
+    """User logout view"""
+    auth_logout(request)
+    return redirect('login')

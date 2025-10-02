@@ -161,6 +161,11 @@ MIGRATION_MODULES = {
     "contenttypes": "mongo_migrations.contenttypes",
 }
 
+# Authentication settings
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/login/'
+
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djangoagent.settings")
 
@@ -191,15 +196,19 @@ CACHES = {
 CELERY_BEAT_SCHEDULE = {
     "create_all_embeddings": {
         "task": "create_all_embeddings",
-        "schedule": 20,  
+        "schedule": 60,
     },
     "translate_untranslated_articles": {
         "task": "translate_untranslated_articles",
-        "schedule": 20,  # Every 2.5 hours
+        "schedule": 60 * 2,  # Every 2.5 hours
     },
+    # "generate_weekly_summary": {
+    #     "task": "generate_weekly_summary",
+    #     "schedule": 60 * 60 * 24 * 7,  # Every week (7 days)
+    # },
     # "scrape_ekapija_scheduled": {
     #     "task": "scrape_ekapija",
-    #     "schedule": 60 * 2,  # Every 2 minutes
+    #     "schedule": 60 ,  # Every 1 minutes
     # },
     # "scrape_biznisrs_scheduled": {
     #     "task": "scrape_biznisrs",
@@ -208,9 +217,5 @@ CELERY_BEAT_SCHEDULE = {
     # "send_latest_articles_scheduled": {
     #     "task": "send_latest_articles_email",
     #     "schedule": 90,  # Every 90 seconds
-    #     "kwargs": {
-    #         "recipient_email": "aleksendric@gmail.com",
-    #         "num_articles": 15
-    #     },
     # },
-}   
+}

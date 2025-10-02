@@ -1,11 +1,11 @@
 {# templates/partials/card.html #}
 {% load custom_i18n %}
-<div class="card bg-base-100 shadow-sm border border-base-200 transition-shadow duration-200 hover:shadow-md {% if article.status == 'APPROVED' %}border-l-4 border-l-success{% elif article.status == 'DISCARDED' %}border-l-4 border-l-error{% elif article.status == 'SENT' %}border-l-4 border-l-info{% endif %}">
-  <div class="card-body p-6">
+<div class="h-full flex flex-col bg-white rounded-lg shadow-sm border border-secondary transition-all duration-300 hover:shadow-md hover:border-primary/30 overflow-hidden {% if article.status == 'APPROVED' %}border-l-4 border-l-green-500{% elif article.status == 'DISCARDED' %}border-l-4 border-l-red-500{% elif article.status == 'SENT' %}border-l-4 border-l-blue-500{% endif %}">
+  <div class="p-6 flex flex-col flex-1">
     
     {# Header Section with Title and Status #}
-    <div class="flex items-start justify-between gap-4 mb-4">
-      <h2 class="card-title text-base font-semibold text-base-content leading-snug flex-1">
+    <div class="flex items-start justify-between gap-4 mb-3">
+      <h2 class="text-lg font-semibold font-display text-gray-700 leading-tight flex-1">
         {% if article.id %}
           <a href="{% url 'articles:article_detail' article.id %}" class="hover:text-primary transition-colors duration-150 line-clamp-2">
             {{ article.title_it|default:"Titolo non disponibile" }}
@@ -15,61 +15,61 @@
         {% endif %}
       </h2>
       
-      {# Status Badge - Subtle Design #}
+      {# Status Badge - Clean Design #}
       <div class="flex-shrink-0">
         {% if article.status == 'PENDING' %}
-          <div class="badge badge-ghost badge-sm gap-1.5 text-warning border-warning/20">
-            <span class="w-1.5 h-1.5 rounded-full bg-warning"></span>
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-50 text-yellow-700 border border-yellow-200">
+            <span class="w-1.5 h-1.5 rounded-full bg-yellow-500"></span>
             {{ "Pending"|translate:current_language }}
-          </div>
+          </span>
         {% elif article.status == 'APPROVED' %}
-          <div class="badge badge-ghost badge-sm gap-1.5 text-success border-success/20">
-            <span class="w-1.5 h-1.5 rounded-full bg-success"></span>
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">
+            <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
             {{ "Approved"|translate:current_language }}
-          </div>
+          </span>
         {% elif article.status == 'DISCARDED' %}
-          <div class="badge badge-ghost badge-sm gap-1.5 text-error border-error/20">
-            <span class="w-1.5 h-1.5 rounded-full bg-error"></span>
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-red-50 text-red-700 border border-red-200">
+            <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
             {{ "Discarded"|translate:current_language }}
-          </div>
+          </span>
         {% elif article.status == 'SENT' %}
-          <div class="badge badge-ghost badge-sm gap-1.5 text-info border-info/20">
-            <span class="w-1.5 h-1.5 rounded-full bg-info"></span>
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
+            <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
             {{ "Sent"|translate:current_language }}
-          </div>
+          </span>
         {% endif %}
       </div>
     </div>
 
     {# Content Preview #}
-    <p class="text-sm text-base-content/60 leading-relaxed mb-4 line-clamp-3">
-      {{ article.content_it|slice:":250" }}{% if article.content_it and article.content_it|length > 250 %}…{% endif %}
+    <p class="text-sm text-gray-600 leading-relaxed mb-4 line-clamp-3">
+      {{ article.content_it|slice:":200" }}{% if article.content_it and article.content_it|length > 200 %}…{% endif %}
     </p>
 
     {# Metadata Section - Clean Layout #}
-    <div class="space-y-2 mb-4 text-xs">
-      <div class="flex flex-wrap gap-x-6 gap-y-2">
+    <div class="space-y-3 mb-5">
+      <div class="flex flex-wrap gap-x-4 gap-y-2">
         {% if article.article_date %}
-          <div class="flex items-center gap-2 text-base-content/70">
-            <svg class="w-3.5 h-3.5 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="flex items-center gap-1.5 text-xs text-gray-600">
+            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
             </svg>
-            <span class="font-medium">{{ article.article_date|date:"d/m/Y" }}</span>
+            <span class="font-medium">{{ article.article_date|date:"d M Y" }}</span>
           </div>
         {% endif %}
         
         {% if article.sector %}
-          <div class="flex items-center gap-2 text-base-content/70">
-            <svg class="w-3.5 h-3.5 opacity-50" fill="currentColor" viewBox="0 0 20 20">
+          <div class="flex items-center gap-1.5 text-xs">
+            <svg class="w-4 h-4 text-primary" fill="currentColor" viewBox="0 0 20 20">
               <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z"/>
             </svg>
-            <span class="font-medium">{{ article.sector }}</span>
+            <span class="font-medium text-primary">{{ article.sector }}</span>
           </div>
         {% endif %}
         
         {% if article.source %}
-          <div class="flex items-center gap-2 text-base-content/70">
-            <svg class="w-3.5 h-3.5 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="flex items-center gap-1.5 text-xs text-gray-600">
+            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/>
             </svg>
             <span class="font-medium">{{ article.source }}</span>
@@ -78,12 +78,12 @@
       </div>
       
       {% if article.url %}
-        <div class="flex items-center gap-2 text-base-content/70 pt-1">
-          <svg class="w-3.5 h-3.5 opacity-50 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="flex items-center gap-2 text-xs">
+          <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
           </svg>
           <a href="{{ article.url }}" target="_blank" rel="noopener noreferrer" 
-             class="link link-hover text-base-content/70 truncate text-xs hover:text-primary transition-colors">
+             class="text-gray-500 hover:text-primary truncate transition-colors underline-offset-2 hover:underline">
             {{ article.url }}
           </a>
         </div>
@@ -91,16 +91,16 @@
     </div>
 
     {# Divider #}
-    <div class="divider my-2"></div>
+    <div class="border-t border-gray-100 my-4 mt-auto"></div>
 
-    {# Action Buttons - Minimal Design #}
-    <div class="flex flex-wrap items-center justify-end gap-2">
+    {# Action Buttons - Clean Business Design #}
+    <div class="grid grid-cols-1 sm:grid-cols-4 gap-2">
       {% if article.id and article.status == 'PENDING' %}
         <button 
           hx-post="{% url 'articles:validate_article' article.id %}"
-          hx-target="closest .card"
+          hx-target="closest div[class*='bg-white rounded-lg']"
           hx-swap="outerHTML swap:0.2s"
-          class="btn btn-sm btn-ghost text-success hover:bg-success/10 gap-1.5">
+          class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-green-700 bg-green-50 hover:bg-green-100 border border-green-200 rounded-md transition-colors duration-200">
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
           </svg>
@@ -108,9 +108,9 @@
         </button>
         <button 
           hx-post="{% url 'articles:discard_article' article.id %}"
-          hx-target="closest .card"
+          hx-target="closest div[class*='bg-white rounded-lg']"
           hx-swap="outerHTML swap:0.2s"
-          class="btn btn-sm btn-ghost text-error hover:bg-error/10 gap-1.5">
+          class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 rounded-md transition-colors duration-200">
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
           </svg>
@@ -119,9 +119,9 @@
       {% elif article.id and article.status == 'DISCARDED' %}
         <button 
           hx-post="{% url 'articles:restore_article' article.id %}"
-          hx-target="closest .card"
+          hx-target="closest div[class*='bg-white rounded-lg']"
           hx-swap="outerHTML swap:0.2s"
-          class="btn btn-sm btn-ghost text-warning hover:bg-warning/10 gap-1.5">
+          class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-yellow-700 bg-yellow-50 hover:bg-yellow-100 border border-yellow-200 rounded-md transition-colors duration-200 sm:col-span-2">
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
           </svg>
@@ -130,7 +130,7 @@
       {% endif %}
       {% if article.id %}
         <a href="{% url 'articles:article_edit' article.id %}" 
-           class="btn btn-sm btn-ghost gap-1.5" 
+           class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-700 bg-white hover:bg-gray-50 border border-gray-200 rounded-md transition-colors duration-200" 
            title="{{ 'Edit article'|translate:current_language }}">
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
@@ -138,8 +138,8 @@
           {{ "Edit"|translate:current_language }}
         </a>
         <a href="{% url 'articles:article_detail' article.id %}" 
-           class="btn btn-sm btn-primary btn-ghost gap-1.5">
-          {{ "Read more"|translate:current_language }}
+           class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-primary hover:bg-primary/90 rounded-md transition-colors duration-200">
+          {{ "Read"|translate:current_language }}
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
           </svg>

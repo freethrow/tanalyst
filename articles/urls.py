@@ -33,4 +33,7 @@ urlpatterns = [
     path("set-language/", views.set_language, name="set_language"),
     path("remove-embeddings/", views.remove_all_embeddings, name="remove_all_embeddings"),
     path("embedding-management/", views.embedding_management, name="embedding_management"),
+    path("generate-summary/", views.generate_summary, name="generate_summary"),
+    path("weekly-summaries/", views.weekly_summaries_list, name="weekly_summaries"),
+    path("weekly-summary/<str:summary_id>/", views.weekly_summary_detail, name="weekly_summary_detail"),
 ]

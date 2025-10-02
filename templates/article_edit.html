@@ -3,20 +3,23 @@
 {% block title %}{{ page_title }} · TA{% endblock %}
 
 {% block content %}
-<div class="container mx-auto max-w-4xl">
-  <header class="mb-6">
+<div class="max-w-6xl mx-auto">
+  <header class="mb-8">
     <div class="flex items-center justify-between">
-      <h1 class="text-3xl font-bold">Edit Article</h1>
-      <div class="flex gap-2">
-        <a href="{% url 'articles:article_detail' article.pk %}" class="btn btn-ghost">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <div>
+        <h1 class="text-3xl font-bold font-display text-gray-700">Edit Article</h1>
+        <p class="text-sm text-gray-600 mt-1">Update article content and translation</p>
+      </div>
+      <div class="flex gap-3">
+        <a href="{% url 'articles:article_detail' article.pk %}" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium font-display text-gray-700 bg-white hover:bg-gray-50 border border-gray-200 rounded-md transition-colors duration-200">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
           </svg>
           View Article
         </a>
-        <a href="/" class="btn btn-outline">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <a href="/" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium font-display text-gray-700 bg-white hover:bg-gray-50 border border-gray-200 rounded-md transition-colors duration-200">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
           Back to List
@@ -25,75 +28,62 @@
     </div>
   </header>
 
-  <!-- Display messages -->
-  {% if messages %}
-    <div class="mb-6">
-      {% for message in messages %}
-        <div class="alert {% if message.tags == 'error' %}alert-error{% elif message.tags == 'success' %}alert-success{% else %}alert-info{% endif %} mb-2">
-          <span>{{ message }}</span>
-        </div>
-      {% endfor %}
-    </div>
-  {% endif %}
+  <!-- Messages are handled in base.html -->
 
   <form method="post" class="space-y-6">
     {% csrf_token %}
     
     <!-- Article Translation Editor -->
-    <div class="card bg-base-100 shadow-md">
-      <div class="card-body">
-        <h2 class="card-title text-lg mb-4">Translation Editor</h2>
+    <div class="bg-white rounded-lg shadow-sm border border-secondary mb-6">
+      <div class="p-6">
+        <h2 class="text-xl font-semibold font-display text-gray-700 mb-6">Translation Editor</h2>
         
         <!-- Titles Side by Side -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
           <!-- Original Title -->
           {% if source_language %}
-            <div class="form-control">
-              <label class="label">
-                <span class="label-text font-medium">{{ source_language }} Title</span>
+            <div>
+              <label class="block text-sm font-medium font-display text-gray-700 mb-2">
+                {{ source_language }} Title
               </label>
-              <div class="input input-bordered bg-base-200 text-base-content/70 cursor-not-allowed">
+              <div class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-600 cursor-not-allowed">
                 {{ source_title|default:"No title available" }}
               </div>
             </div>
           {% endif %}
           
           <!-- Italian Title -->
-          <div class="form-control">
-            <label class="label" for="{{ form.title_it.id_for_label }}">
-              <span class="label-text font-medium">Italian Title</span>
+          <div>
+            <label class="block text-sm font-medium font-display text-gray-700 mb-2" for="{{ form.title_it.id_for_label }}">
+              Italian Title
             </label>
             {{ form.title_it }}
             {% if form.title_it.errors %}
-              <label class="label">
-                <span class="label-text-alt text-error">{{ form.title_it.errors.0 }}</span>
-              </label>
+              <p class="mt-1 text-sm text-red-600">{{ form.title_it.errors.0 }}</p>
             {% endif %}
           </div>
         </div>
 
         <!-- Content Side by Side -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
           <!-- Original Content -->
           {% if source_language %}
-            <div class="form-control">
-              <label class="label">
-                <span class="label-text font-medium">{{ source_language }} Content</span>
+            <div class="lg:col-span-2">
+              <label class="block text-sm font-medium font-display text-gray-700 mb-2">
+                {{ source_language }} Content
               </label>
-              <div class="textarea textarea-bordered bg-base-200 text-base-content/70 cursor-not-allowed min-h-[400px] overflow-y-auto whitespace-pre-wrap">{{ source_content|default:"No content available" }}</div>
+              <div class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-md text-gray-600 cursor-not-allowed min-h-[400px] overflow-y-auto whitespace-pre-wrap">{{ source_content|default:"No content available" }}</div>
             </div>
           {% endif %}
           
           <!-- Italian Content -->
-          <div class="form-control">
-            <label class="label" for="{{ form.content_it.id_for_label }}">
-              <span class="label-text font-medium">Italian Content</span>
+          <div class="lg:col-span-2">
+            <label class="block text-sm font-medium font-display text-gray-700 mb-2" for="{{ form.content_it.id_for_label }}">
+              Italian Content
             </label>
             {{ form.content_it }}
             {% if form.content_it.errors %}
-              <label class="label">
-                <span class="label-text-alt text-error">{{ form.content_it.errors.0 }}</span>
-              </label>
+              <p class="mt-1 text-sm text-red-600">{{ form.content_it.errors.0 }}</p>
             {% endif %}
           </div>
         </div>
@@ -101,28 +91,28 @@
     </div>
 
     <!-- Status Flags -->
-    <div class="card bg-base-100 shadow-md">
-      <div class="card-body">
-        <h2 class="card-title text-lg mb-4">Article Status</h2>
-        <div class="form-control">
-          <label class="label">
-            <span class="label-text">Status</span>
+    <div class="bg-white rounded-lg shadow-sm border border-secondary mb-6">
+      <div class="p-6">
+        <h2 class="text-xl font-semibold font-display text-gray-700 mb-6">Article Status</h2>
+        <div>
+          <label class="block text-sm font-medium font-display text-gray-700 mb-2">
+            Status
           </label>
           {{ form.status }}
           {% if form.status.errors %}
-            <label class="label">
-              <span class="label-text-alt text-error">{{ form.status.errors.0 }}</span>
-            </label>
+            <p class="mt-1 text-sm text-red-600">{{ form.status.errors.0 }}</p>
           {% endif %}
         </div>
       </div>
     </div>
 
     <!-- Form Actions -->
-    <div class="flex justify-end gap-4 pt-6">
-      <a href="{% url 'articles:article_detail' article.pk %}" class="btn btn-ghost">Cancel</a>
-      <button type="submit" class="btn btn-primary">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <div class="flex justify-end gap-3 pt-6 border-t border-gray-100">
+      <a href="{% url 'articles:article_detail' article.pk %}" class="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-medium font-display text-gray-700 bg-white hover:bg-gray-50 border border-gray-200 rounded-md transition-colors duration-200">
+        Cancel
+      </a>
+      <button type="submit" class="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-medium font-display text-white bg-primary hover:bg-primary/90 rounded-md transition-colors duration-200">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
         </svg>
         Save Changes
@@ -133,20 +123,24 @@
 
 <style>
 /* Custom styles for form fields */
-.form-control input[type="text"],
-.form-control input[type="url"],
-.form-control input[type="datetime-local"],
-.form-control textarea,
-.form-control select {
-  @apply input input-bordered w-full;
+input[type="text"],
+input[type="url"],
+input[type="datetime-local"],
+textarea,
+select {
+  @apply w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors;
 }
 
-.form-control textarea {
-  @apply textarea textarea-bordered min-h-[120px];
+textarea {
+  @apply min-h-[400px] resize-y text-sm font-light;
 }
 
-.form-control input[type="checkbox"] {
-  @apply checkbox checkbox-primary;
+select {
+  @apply cursor-pointer bg-white;
+}
+
+input[type="checkbox"] {
+  @apply w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary cursor-pointer;
 }
 </style>
 {% endblock %}

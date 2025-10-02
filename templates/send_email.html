@@ -3,15 +3,15 @@
 {% block title %}{{ page_title }} · TA{% endblock %}
 
 {% block content %}
-<div class="container mx-auto max-w-2xl">
+<div class="max-w-3xl mx-auto">
   <header class="mb-8">
     <div class="flex items-center justify-between">
       <div>
-        <h1 class="text-4xl font-bold">Invia Articoli via Email</h1>
-        <p class="text-base-content/70 mt-2">Invia gli ultimi articoli tradotti a un indirizzo email</p>
+        <h1 class="text-3xl font-bold font-display text-gray-700">Invia Articoli via Email</h1>
+        <p class="text-sm text-gray-600 mt-2">Invia gli ultimi articoli tradotti a un indirizzo email</p>
       </div>
-      <a href="/" class="btn btn-outline">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <a href="/" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium font-display text-gray-700 bg-white hover:bg-gray-50 border border-gray-200 rounded-md transition-colors duration-200">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
         </svg>
         Torna alla Home
@@ -22,95 +22,89 @@
 
 
   <!-- Email Form -->
-  <div class="card bg-base-100 shadow-xl">
-    <div class="card-body">
-      <h2 class="card-title text-2xl mb-6">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-        </svg>
-        Configurazione Email
-      </h2>
+  <div class="bg-white rounded-lg shadow-sm border border-secondary">
+    <div class="p-8">
+      <div class="flex items-center gap-3 mb-6">
+        <div class="p-2 bg-primary/10 rounded-lg">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          </svg>
+        </div>
+        <h2 class="text-xl font-semibold font-display text-gray-700">Configurazione Email</h2>
+      </div>
 
       <form method="post" class="space-y-6">
         {% csrf_token %}
         
         <!-- Email Address -->
-        <div class="form-control">
-          <label class="label" for="{{ form.email.id_for_label }}">
-            <span class="label-text font-medium">{{ form.email.label }}</span>
-            <span class="label-text-alt text-error">*</span>
+        <div>
+          <label class="block text-xs font-medium font-display text-gray-600 mb-2" for="{{ form.email.id_for_label }}">
+            {{ form.email.label }}
+            <span class="text-red-500 ml-1">*</span>
           </label>
           {{ form.email }}
           {% if form.email.help_text %}
-            <label class="label">
-              <span class="label-text-alt">{{ form.email.help_text }}</span>
-            </label>
+            <p class="mt-1 text-xs text-gray-500">{{ form.email.help_text }}</p>
           {% endif %}
           {% if form.email.errors %}
-            <label class="label">
-              <span class="label-text-alt text-error">{{ form.email.errors.0 }}</span>
-            </label>
+            <p class="mt-1 text-xs text-red-600">{{ form.email.errors.0 }}</p>
           {% endif %}
         </div>
 
         <!-- Number of Articles -->
-        <div class="form-control">
-          <label class="label" for="{{ form.num_articles.id_for_label }}">
-            <span class="label-text font-medium">{{ form.num_articles.label }}</span>
-            <span class="label-text-alt text-error">*</span>
+        <div>
+          <label class="block text-xs font-medium font-display text-gray-600 mb-2" for="{{ form.num_articles.id_for_label }}">
+            {{ form.num_articles.label }}
+            <span class="text-red-500 ml-1">*</span>
           </label>
           {{ form.num_articles }}
           {% if form.num_articles.help_text %}
-            <label class="label">
-              <span class="label-text-alt">{{ form.num_articles.help_text }}</span>
-            </label>
+            <p class="mt-1 text-xs text-gray-500">{{ form.num_articles.help_text }}</p>
           {% endif %}
           {% if form.num_articles.errors %}
-            <label class="label">
-              <span class="label-text-alt text-error">{{ form.num_articles.errors.0 }}</span>
-            </label>
+            <p class="mt-1 text-xs text-red-600">{{ form.num_articles.errors.0 }}</p>
           {% endif %}
         </div>
 
         <!-- Subject -->
-        <div class="form-control">
-          <label class="label" for="{{ form.subject.id_for_label }}">
-            <span class="label-text font-medium">{{ form.subject.label }}</span>
+        <div>
+          <label class="block text-xs font-medium font-display text-gray-600 mb-2" for="{{ form.subject.id_for_label }}">
+            {{ form.subject.label }}
           </label>
           {{ form.subject }}
           {% if form.subject.help_text %}
-            <label class="label">
-              <span class="label-text-alt">{{ form.subject.help_text }}</span>
-            </label>
+            <p class="mt-1 text-xs text-gray-500">{{ form.subject.help_text }}</p>
           {% endif %}
           {% if form.subject.errors %}
-            <label class="label">
-              <span class="label-text-alt text-error">{{ form.subject.errors.0 }}</span>
-            </label>
+            <p class="mt-1 text-xs text-red-600">{{ form.subject.errors.0 }}</p>
           {% endif %}
         </div>
 
         <!-- Info Box -->
-        <div class="alert alert-info">
-          <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-          </svg>
-          <div>
-            <h3 class="font-bold">Informazioni sull'invio</h3>
-            <div class="text-xs">
-              • Verranno inviati solo articoli con status APPROVATO<br>
-              • Gli articoli saranno ordinati per data di traduzione (più recenti per primi)<br>
-              • Dopo l'invio, lo status degli articoli diventerà INVIATO<br>
-              • L'email verrà inviata in background e potrebbe richiedere alcuni minuti
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div class="flex gap-3">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <div>
+              <h3 class="font-semibold font-display text-blue-900 text-sm mb-2">Informazioni sull'invio</h3>
+              <ul class="text-xs text-blue-800 space-y-1">
+                <li>• Verranno inviati solo articoli con status APPROVATO</li>
+                <li>• Gli articoli saranno ordinati per data di traduzione (più recenti per primi)</li>
+                <li>• Dopo l'invio, lo status degli articoli diventerà INVIATO</li>
+                <li>• L'email verrà inviata in background e potrebbe richiedere alcuni minuti</li>
+              </ul>
             </div>
           </div>
         </div>
 
         <!-- Form Actions -->
-        <div class="card-actions justify-end pt-4">
-          <a href="/" class="btn btn-ghost">Annulla</a>
-          <button type="submit" class="btn btn-primary">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div class="flex justify-end gap-3 pt-6 border-t border-gray-100">
+          <a href="/" class="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-medium font-display text-gray-700 bg-white hover:bg-gray-50 border border-gray-200 rounded-md transition-colors duration-200">
+            Annulla
+          </a>
+          <button type="submit" class="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-medium font-display text-white bg-primary hover:bg-primary/90 rounded-md transition-colors duration-200">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
             </svg>
             Invia Email
@@ -121,14 +115,29 @@
   </div>
 
   <!-- Additional Info -->
-  <div class="mt-8 text-center">
-    <div class="stats shadow">
-      <div class="stat">
-        <div class="stat-title">Articoli Approvati</div>
-        <div class="stat-value text-primary">{{ approved_articles|default:"0" }}</div>
-        <div class="stat-desc">Pronti per l'invio</div>
-      </div>
+  <div class="mt-8">
+    <div class="bg-white rounded-lg shadow-sm border border-secondary p-6 text-center">
+      <div class="text-sm font-medium font-display text-gray-600 mb-2">Articoli Approvati</div>
+      <div class="text-4xl font-bold text-primary mb-1">{{ approved_articles|default:"0" }}</div>
+      <div class="text-xs text-gray-500">Pronti per l'invio</div>
     </div>
   </div>
 </div>
+
+<style>
+/* Custom styles for form fields */
+input[type="email"],
+input[type="number"],
+input[type="text"] {
+  @apply w-full px-4 py-3 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors bg-white;
+}
+
+input[type="number"] {
+  @apply cursor-pointer;
+}
+
+input::placeholder {
+  @apply text-gray-400 text-sm p-2;
+}
+</style>
 {% endblock %}

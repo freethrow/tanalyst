@@ -3,89 +3,60 @@
 {% block title %}Settori · TA{% endblock %}
 
 {% block content %}
-<div class="container mx-auto max-w-6xl">
+<div class="max-w-4xl mx-auto">
   <header class="mb-8">
     <div class="flex items-center justify-between">
-      <h1 class="text-4xl font-bold">Settori</h1>
-      <a href="/" class="btn btn-outline">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <div>
+        <h1 class="text-3xl font-bold font-display text-gray-700">Settori</h1>
+        <p class="text-sm text-gray-600 mt-2">Esplora gli articoli per settore industriale</p>
+      </div>
+      <a href="/" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium font-display text-gray-700 bg-white hover:bg-gray-50 border border-gray-200 rounded-md transition-colors duration-200">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
         </svg>
         Torna alla Home
       </a>
     </div>
-    <p class="text-base-content/70 mt-2">Esplora gli articoli per settore industriale</p>
   </header>
 
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-    {% for sector_info in sectors %}
-      <div class="card bg-base-100 shadow-md border hover:shadow-lg transition-shadow">
-        <div class="card-body">
-          <h2 class="card-title text-lg">
-            <a href="{% url 'articles:sector_detail' sector_info.name %}" class="no-underline hover:text-primary">
-              {{ sector_info.name }}
-            </a>
-          </h2>
-          
-          <div class="flex items-center justify-between mt-4">
-            <div class="badge badge-primary">
-              {{ sector_info.count }} articol{{ sector_info.count|pluralize:"o,i" }}
+  <!-- Sectors List -->
+  <div class="bg-white rounded-lg shadow-sm border border-secondary overflow-hidden">
+    <div class="divide-y divide-gray-100">
+      {% for sector_info in sectors %}
+        {% if sector_info.count > 0 %}
+          <a href="{% url 'articles:sector_detail' sector_info.name %}" class="flex items-center justify-between px-6 py-4 hover:bg-secondary/50 transition-colors group">
+            <div class="flex items-center gap-4 flex-1">
+              <div class="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 text-primary group-hover:bg-primary/20 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+                </svg>
+              </div>
+              <div>
+                <h3 class="text-base font-semibold font-display text-gray-700 group-hover:text-primary transition-colors">
+                  {{ sector_info.name }}
+                </h3>
+              </div>
             </div>
             
-            {% if sector_info.count > 0 %}
-              <a href="{% url 'articles:sector_detail' sector_info.name %}" class="btn btn-sm btn-outline">
-                Visualizza
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-              </a>
-            {% else %}
-              <span class="text-sm text-base-content/50">Nessun articolo</span>
-            {% endif %}
-          </div>
+            <div class="flex items-center gap-4">
+              <div class="text-right">
+                <div class="text-2xl font-bold text-primary">{{ sector_info.count }}</div>
+                <div class="text-xs text-gray-500">articol{{ sector_info.count|pluralize:"o,i" }}</div>
+              </div>
+              <svg class="w-5 h-5 text-gray-400 group-hover:text-primary group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+              </svg>
+            </div>
+          </a>
+        {% endif %}
+      {% empty %}
+        <div class="px-6 py-12 text-center">
+          <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+          </svg>
+          <p class="text-gray-600">Nessun settore disponibile.</p>
         </div>
-      </div>
-    {% empty %}
-      <div class="col-span-full text-center py-12">
-        <p class="text-base-content/70">Nessun settore disponibile.</p>
-      </div>
-    {% endfor %}
-  </div>
-
-  <!-- Summary Stats -->
-  <div class="mt-12 stats shadow w-full">
-    <div class="stat">
-      <div class="stat-title">Settori Totali</div>
-      <div class="stat-value">{{ sectors|length }}</div>
-      <div class="stat-desc">Categorie industriali</div>
-    </div>
-    
-    <div class="stat">
-      <div class="stat-title">Settori con Articoli</div>
-      <div class="stat-value">
-        {% with sectors_with_articles=sectors|length %}
-          {% for sector_info in sectors %}
-            {% if sector_info.count > 0 %}
-              {% if forloop.first %}1{% else %}{{ forloop.counter }}{% endif %}
-            {% endif %}
-          {% endfor %}
-        {% endwith %}
-      </div>
-      <div class="stat-desc">Hanno contenuti disponibili</div>
-    </div>
-    
-    <div class="stat">
-      <div class="stat-title">Articoli Totali</div>
-      <div class="stat-value">
-        {% with total_articles=0 %}
-          {% for sector_info in sectors %}
-            {% with total_articles=total_articles|add:sector_info.count %}
-              {% if forloop.last %}{{ total_articles }}{% endif %}
-            {% endwith %}
-          {% endfor %}
-        {% endwith %}
-      </div>
-      <div class="stat-desc">Tradotti in italiano</div>
+      {% endfor %}
     </div>
   </div>
 </div>

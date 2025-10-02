@@ -3,9 +3,12 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.conf.urls.i18n import i18n_patterns
+from articles import views as articles_views
 
 urlpatterns = [
     path("i18n/", include("django.conf.urls.i18n")),  # Language switching URLs
+    path("login/", articles_views.login_view, name="login"),  # Login page
+    path("logout/", articles_views.logout_view, name="logout"),  # Logout page
 ]
 
 # Add i18n patterns for main content
