@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load i18n %}
 
 {% block title %}{{ page_title }} · TA{% endblock %}
 
@@ -7,14 +8,14 @@
   <header class="mb-8">
     <div class="flex items-center justify-between">
       <div>
-        <h1 class="text-3xl font-bold font-display text-gray-700">Invia Articoli via Email</h1>
-        <p class="text-sm text-gray-600 mt-2">Invia gli ultimi articoli tradotti a un indirizzo email</p>
+        <h1 class="text-3xl font-bold font-display text-gray-700">{% trans "Send Articles via Email" %}</h1>
+        <p class="text-sm text-gray-600 mt-2">{% trans "Send the latest translated articles to an email address" %}</p>
       </div>
       <a href="/" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium font-display text-gray-700 bg-white hover:bg-gray-50 border border-gray-200 rounded-md transition-colors duration-200">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
         </svg>
-        Torna alla Home
+        {% trans "Back to Home" %}
       </a>
     </div>
   </header>
@@ -30,7 +31,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
           </svg>
         </div>
-        <h2 class="text-xl font-semibold font-display text-gray-700">Configurazione Email</h2>
+        <h2 class="text-xl font-semibold font-display text-gray-700">{% trans "Email Configuration" %}</h2>
       </div>
 
       <form method="post" class="space-y-6">
@@ -87,12 +88,12 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
             <div>
-              <h3 class="font-semibold font-display text-blue-900 text-sm mb-2">Informazioni sull'invio</h3>
+              <h3 class="font-semibold font-display text-blue-900 text-sm mb-2">{% trans "Sending Information" %}</h3>
               <ul class="text-xs text-blue-800 space-y-1">
-                <li>• Verranno inviati solo articoli con status APPROVATO</li>
-                <li>• Gli articoli saranno ordinati per data di traduzione (più recenti per primi)</li>
-                <li>• Dopo l'invio, lo status degli articoli diventerà INVIATO</li>
-                <li>• L'email verrà inviata in background e potrebbe richiedere alcuni minuti</li>
+                <li>• {% trans "Only articles with APPROVED status will be sent" %}</li>
+                <li>• {% trans "Articles will be sorted by translation date (most recent first)" %}</li>
+                <li>• {% trans "After sending, the status of articles will become SENT" %}</li>
+                <li>• {% trans "The email will be sent in the background and may take a few minutes" %}</li>
               </ul>
             </div>
           </div>
@@ -101,13 +102,13 @@
         <!-- Form Actions -->
         <div class="flex justify-end gap-3 pt-6 border-t border-gray-100">
           <a href="/" class="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-medium font-display text-gray-700 bg-white hover:bg-gray-50 border border-gray-200 rounded-md transition-colors duration-200">
-            Annulla
+            {% trans "Cancel" %}
           </a>
           <button type="submit" class="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-medium font-display text-white bg-primary hover:bg-primary/90 rounded-md transition-colors duration-200">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
             </svg>
-            Invia Email
+            {% trans "Send Email" %}
           </button>
         </div>
       </form>
@@ -117,9 +118,9 @@
   <!-- Additional Info -->
   <div class="mt-8">
     <div class="bg-white rounded-lg shadow-sm border border-secondary p-6 text-center">
-      <div class="text-sm font-medium font-display text-gray-600 mb-2">Articoli Approvati</div>
+      <div class="text-sm font-medium font-display text-gray-600 mb-2">{% trans "Approved Articles" %}</div>
       <div class="text-4xl font-bold text-primary mb-1">{{ approved_articles|default:"0" }}</div>
-      <div class="text-xs text-gray-500">Pronti per l'invio</div>
+      <div class="text-xs text-gray-500">{% trans "Ready to send" %}</div>
     </div>
   </div>
 </div>

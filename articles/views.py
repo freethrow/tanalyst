@@ -234,22 +234,35 @@ def reset_all_articles_to_pending(request):
     return HttpResponse("All articles reset to PENDING status")
 
 def set_language(request):
-    """Simple language switcher using session storage."""
+    """Language switcher using Django's i18n system via GET or POST."""
     from django.http import HttpResponseRedirect
-    from django.urls import reverse
-    
-    if request.method == 'POST':
-        language = request.POST.get('language', 'it')
-        next_url = request.POST.get('next', '/')
-        
-        # Store language preference in session
-        request.session['language'] = language
-        
-        # Redirect back to the page they came from
-        return HttpResponseRedirect(next_url)
-    
-    # If not POST, redirect to home
-    return HttpResponseRedirect('/')
+    from django.utils import translation
+
+    method = request.method
+    # Support both GET (from menu links) and POST (if used elsewhere)
+    data = request.GET if method == 'GET' else request.POST
+
+    # Debug: Show incoming data and current session
+    print(f"[set_language] METHOD={method} DATA={data}")
+    print(f"[set_language] Current session language: {request.session.get('_language')}")
+
+    language = data.get('language', 'en')
+    next_url = data.get('next', '/')
+
+    # Debug output
+    print(f"[set_language] Switching to: {language}")
+    if language in ['en', 'it']:
+        # Activate language now
+        translation.activate(language)
+        # Persist in session
+        request.session['_language'] = language
+        print(f"[set_language] Stored in session: {request.session.get('_language')}")
+
+    # Redirect back to the page they came from
+    response = HttpResponseRedirect(next_url)
+    # Also persist in cookie for middleware and consistency
+    response.set_cookie('django_language', language, max_age=365 * 24 * 60 * 60)
+    return response
 
 class ArticleDetailView(LoginRequiredMixin, DetailView):
     model = Article

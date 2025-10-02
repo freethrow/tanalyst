@@ -60,12 +60,12 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-    "django.middleware.locale.LocaleMiddleware",  # Add locale middleware
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "articles.middleware.LanguageMiddleware",  # Custom language middleware AFTER all others
 ]
 
 ROOT_URLCONF = "analyst.urls"
@@ -119,20 +119,20 @@ AUTH_PASSWORD_VALIDATORS = [
         "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
     },
     {
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
 
 
 # Internationalization
-# https://docs.djangoproject.com/en/4.2/topics/i18n/
+# https://docs.djangoproject.com/en/5.1/topics/i18n/
 
-LANGUAGE_CODE = "it"  # Default to Italian
+LANGUAGE_CODE = "en"  # Default language
 
 TIME_ZONE = "Europe/Belgrade"
 
-USE_I18N = False
+USE_I18N = True
 USE_L10N = True
-USE_TZ = True
 
 # Available languages
 LANGUAGES = [
@@ -140,10 +140,10 @@ LANGUAGES = [
     ('en', 'English'),
 ]
 
-# Locale paths - commented out temporarily to avoid gettext issues
-# LOCALE_PATHS = [
-#     BASE_DIR / 'locale',
-# ]
+# Locale paths
+LOCALE_PATHS = [
+    BASE_DIR / 'locale',
+]
 
 
 STATIC_URL = "static/"

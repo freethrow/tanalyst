@@ -1,7 +1,7 @@
 {% extends "base.html" %}
-{% load custom_i18n %}
+{% load i18n %}
 
-{% block title %}{{ "Weekly Summaries"|translate:current_language }} - TA{% endblock %}
+{% block title %}{% trans "Weekly Summaries" %} - TA{% endblock %}
 
 {% block content %}
 <div class="max-w-6xl mx-auto">
@@ -14,7 +14,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                     </svg>
                 </div>
-                <h1 class="text-3xl font-bold font-display text-gray-700">{{ "Weekly Business Summaries"|translate:current_language }}</h1>
+                <h1 class="text-3xl font-bold font-display text-gray-700">{% trans "Weekly Business Summaries" %}</h1>
             </div>
             
             <!-- Generate New Summary Button -->
@@ -23,10 +23,10 @@
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                 </svg>
-                {{ "Generate New Summary"|translate:current_language }}
+                {% trans "Generate New Summary" %}
             </a>
         </div>
-        <p class="text-sm text-gray-600">{{ "AI-generated weekly analysis of business news"|translate:current_language }}</p>
+        <p class="text-sm text-gray-600">{% trans "AI-generated weekly analysis of business news" %}</p>
     </div>
 
     <!-- Statistics -->
@@ -38,9 +38,9 @@
                 </svg>
             </div>
             <div>
-                <div class="text-sm font-medium font-display text-gray-600">{{ "Total Summaries"|translate:current_language }}</div>
+                <div class="text-sm font-medium font-display text-gray-600">{% trans "Total Summaries" %}</div>
                 <div class="text-3xl font-bold text-primary">{{ total_summaries }}</div>
-                <div class="text-xs text-gray-500">{{ "Generated reports"|translate:current_language }}</div>
+                <div class="text-xs text-gray-500">{% trans "Generated reports" %}</div>
             </div>
         </div>
     </div>
@@ -70,13 +70,13 @@
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                                 </svg>
-                                {{ summary.articles_analyzed }} {{ "articles analyzed"|translate:current_language }}
+                                {% blocktrans count count=summary.articles_analyzed %}{{ count }} article analyzed{% plural %}{{ count }} articles analyzed{% endblocktrans %}
                             </div>
                             <div class="flex items-center gap-1.5">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
                                 </svg>
-                                {{ summary.weeks_analyzed }} {{ "weeks period"|translate:current_language }}
+                                {% blocktrans count count=summary.weeks_analyzed %}{{ count }} week period{% plural %}{{ count }} weeks period{% endblocktrans %}
                             </div>
                         </div>
                     </div>
@@ -84,7 +84,7 @@
 
                 <!-- Executive Summary -->
                 <div class="mb-4">
-                    <h3 class="text-sm font-semibold font-display text-gray-700 mb-2">{{ "Executive Summary"|translate:current_language }}</h3>
+                    <h3 class="text-sm font-semibold font-display text-gray-700 mb-2">{% trans "Executive Summary" %}</h3>
                     <p class="text-sm text-gray-600 leading-relaxed">
                         {{ summary.executive_summary|truncatechars:300 }}
                     </p>
@@ -93,7 +93,7 @@
                 <!-- Featured Sectors -->
                 {% if summary.featured_sectors %}
                 <div class="mb-4">
-                    <h3 class="text-sm font-semibold font-display text-gray-700 mb-2">{{ "Featured Sectors"|translate:current_language }}</h3>
+                    <h3 class="text-sm font-semibold font-display text-gray-700 mb-2">{% trans "Featured Sectors" %}</h3>
                     <div class="flex flex-wrap gap-2">
                         {% for sector in summary.featured_sectors|slice:":5" %}
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700 border border-gray-200">{{ sector }}</span>
@@ -108,7 +108,7 @@
                 <div class="flex justify-end pt-4 border-t border-gray-100">
                     <a href="{% url 'articles:weekly_summary_detail' summary.id %}" 
                        class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium font-display text-white bg-primary hover:bg-primary/90 rounded-md transition-colors duration-200">
-                        {{ "Read Full Summary"|translate:current_language }}
+                        {% trans "Read Full Summary" %}
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                         </svg>
@@ -123,16 +123,16 @@
             <svg class="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
             </svg>
-            <h3 class="text-lg font-semibold font-display text-gray-700 mb-2">{{ "No Weekly Summaries Yet"|translate:current_language }}</h3>
+            <h3 class="text-lg font-semibold font-display text-gray-700 mb-2">{% trans "No Weekly Summaries Yet" %}</h3>
             <p class="text-gray-600 mb-6 max-w-md mx-auto">
-                {{ "Generate your first weekly business summary to get started with AI-powered analysis."|translate:current_language }}
+                {% trans "Generate your first weekly business summary to get started with AI-powered analysis." %}
             </p>
             <a href="{% url 'articles:generate_summary' %}" 
                class="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-medium font-display text-white bg-primary hover:bg-primary/90 rounded-md transition-colors duration-200">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                 </svg>
-                {{ "Generate First Summary"|translate:current_language }}
+                {% trans "Generate First Summary" %}
             </a>
         </div>
     {% endif %}

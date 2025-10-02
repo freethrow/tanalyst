@@ -1,4 +1,4 @@
-{% load custom_i18n %}
+{% load i18n %}
 <!DOCTYPE html>
 <html lang="{{ LANGUAGE_CODE }}">
 <head>
@@ -156,22 +156,22 @@
           <!-- Desktop Navigation -->
           <nav class="hidden md:flex items-center space-x-1">
             <a href="/" class="px-3 py-2 rounded-md text-sm font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary transition-colors">
-              {{ "Home"|translate:current_language }}
+              {% trans "Home" %}
             </a>
             <a href="{% url 'articles:approved' %}" class="px-3 py-2 rounded-md text-sm font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary transition-colors">
-              {{ "Approved"|translate:current_language }}
+              {% trans "Approved" %}
             </a>
             <a href="{% url 'articles:discarded' %}" class="px-3 py-2 rounded-md text-sm font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary transition-colors">
-              {{ "Discarded"|translate:current_language }}
+              {% trans "Discarded" %}
             </a>
             <a href="{% url 'articles:sectors' %}" class="px-3 py-2 rounded-md text-sm font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary transition-colors">
-              {{ "Sectors"|translate:current_language }}
+              {% trans "Sectors" %}
             </a>
             
             <!-- Tools Dropdown -->
             <div class="relative group">
               <button class="px-3 py-2 rounded-md text-sm font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary transition-colors flex items-center gap-1">
-                Tools
+                {% trans "Tools" %}
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                 </svg>
@@ -179,20 +179,20 @@
               <div class="absolute left-0 mt-1 w-48 bg-white rounded-md shadow-lg border border-secondary opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                 <div class="py-1">
                   <a href="/vector-search/" class="block px-4 py-2 text-sm text-gray-700 hover:bg-secondary hover:text-primary">
-                    🔍 Vector Search
+                    🔍 {% trans "Vector Search" %}
                   </a>
                   <a href="{% url 'articles:embedding_management' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-secondary hover:text-primary">
-                    🔧 Embeddings
+                    🔧 {% trans "Embeddings" %}
                   </a>
                 </div>
               </div>
             </div>
 
             <a href="{% url 'articles:weekly_summaries' %}" class="px-3 py-2 rounded-md text-sm font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary transition-colors">
-              📊 Summaries
+              📊 {% trans "Summaries" %}
             </a>
             <a href="{% url 'articles:send_email' %}" class="px-3 py-2 rounded-md text-sm font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary transition-colors">
-              📧 Email
+              📧 {% trans "Email" %}
             </a>
           </nav>
 
@@ -213,14 +213,14 @@
               <div class="absolute right-0 mt-1 w-48 bg-white rounded-md shadow-lg border border-secondary opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                 <div class="py-1">
                   <div class="px-4 py-2 text-xs text-gray-500 border-b border-gray-100">
-                    Signed in as<br>
+                    {% trans "Signed in as" %}<br>
                     <strong>{{ user.username }}</strong>
                   </div>
                   <a href="{% url 'logout' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-secondary hover:text-primary">
                     <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
                     </svg>
-                    Sign Out
+                    {% trans "Sign Out" %}
                   </a>
                 </div>
               </div>
@@ -233,19 +233,17 @@
                 <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"/>
                 </svg>
-                {{ current_language|upper }}
+                {{ current_language|upper|default:"IT" }}
               </button>
-              <div class="absolute right-0 mt-1 w-32 bg-white rounded-md shadow-lg border border-secondary opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+              <div class="absolute right-0 mt-1 w-40 bg-white rounded-md shadow-lg border border-secondary opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                 <div class="py-1">
                   {% for lang_code, lang_name in available_languages %}
-                    <form action="{% url 'articles:set_language' %}" method="post" class="w-full">
-                      {% csrf_token %}
-                      <input name="next" type="hidden" value="{{ request.get_full_path }}" />
-                      <input name="language" type="hidden" value="{{ lang_code }}" />
-                      <button type="submit" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-secondary hover:text-primary {% if lang_code == current_language %}font-bold text-primary{% endif %}">
-                        {{ lang_name }}
-                      </button>
-                    </form>
+                    <a
+                      href="{% url 'articles:set_language' %}?language={{ lang_code }}&next={{ request.get_full_path|urlencode }}"
+                      class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-secondary hover:text-primary {% if lang_code == current_language %}font-bold text-primary{% endif %}"
+                    >
+                      {{ lang_name }} ({{ lang_code }})
+                    </a>
                   {% endfor %}
                 </div>
               </div>
@@ -264,31 +262,31 @@
         <div id="mobile-menu" class="md:hidden hidden border-t border-secondary">
           <div class="px-2 pt-2 pb-3 space-y-1">
             <a href="/" class="block px-3 py-2 rounded-md text-base font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary">
-              {{ "Home"|translate:current_language }}
+              {% trans "Home" %}
             </a>
             <a href="{% url 'articles:approved' %}" class="block px-3 py-2 rounded-md text-base font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary">
-              {{ "Approved"|translate:current_language }}
+              {% trans "Approved" %}
             </a>
             <a href="{% url 'articles:discarded' %}" class="block px-3 py-2 rounded-md text-base font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary">
-              {{ "Discarded"|translate:current_language }}
+              {% trans "Discarded" %}
             </a>
             <a href="{% url 'articles:sectors' %}" class="block px-3 py-2 rounded-md text-base font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary">
-              {{ "Sectors"|translate:current_language }}
+              {% trans "Sectors" %}
             </a>
             <div class="border-t border-secondary my-2 pt-2">
-              <div class="px-3 py-2 text-xs font-semibold font-display text-gray-500 uppercase">Tools</div>
+              <div class="px-3 py-2 text-xs font-semibold font-display text-gray-500 uppercase">{% trans "Tools" %}</div>
               <a href="/vector-search/" class="block px-3 py-2 rounded-md text-base font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary">
-                🔍 Vector Search
+                🔍 {% trans "Vector Search" %}
               </a>
               <a href="{% url 'articles:embedding_management' %}" class="block px-3 py-2 rounded-md text-base font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary">
-                🔧 Embeddings
+                🔧 {% trans "Embeddings" %}
               </a>
             </div>
             <a href="{% url 'articles:weekly_summaries' %}" class="block px-3 py-2 rounded-md text-base font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary">
-              📊 Summaries
+              📊 {% trans "Summaries" %}
             </a>
             <a href="{% url 'articles:send_email' %}" class="block px-3 py-2 rounded-md text-base font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary">
-              📧 Email
+              📧 {% trans "Email" %}
             </a>
           </div>
         </div>
@@ -323,19 +321,19 @@
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
-            <h3 class="text-sm font-semibold font-display text-white uppercase tracking-wider mb-4">{{ "Navigation"|translate:current_language }}</h3>
+            <h3 class="text-sm font-semibold font-display text-white uppercase tracking-wider mb-4">{% trans "Navigation" %}</h3>
             <ul class="space-y-2">
-              <li><a href="/" class="text-white/80 hover:text-white text-sm transition-colors">{{ "Home"|translate:current_language }}</a></li>
-              <li><a href="{% url 'articles:approved' %}" class="text-white/80 hover:text-white text-sm transition-colors">{{ "Approved"|translate:current_language }}</a></li>
-              <li><a href="{% url 'articles:discarded' %}" class="text-white/80 hover:text-white text-sm transition-colors">{{ "Discarded"|translate:current_language }}</a></li>
-              <li><a href="/vector-search/" class="text-white/80 hover:text-white text-sm transition-colors">{{ "Vector Search"|translate:current_language }}</a></li>
+              <li><a href="/" class="text-white/80 hover:text-white text-sm transition-colors">{% trans "Home" %}</a></li>
+              <li><a href="{% url 'articles:approved' %}" class="text-white/80 hover:text-white text-sm transition-colors">{% trans "Approved" %}</a></li>
+              <li><a href="{% url 'articles:discarded' %}" class="text-white/80 hover:text-white text-sm transition-colors">{% trans "Discarded" %}</a></li>
+              <li><a href="/vector-search/" class="text-white/80 hover:text-white text-sm transition-colors">{% trans "Vector Search" %}</a></li>
             </ul>
           </div>
           <div>
-            <h3 class="text-sm font-semibold font-display text-white uppercase tracking-wider mb-4">{{ "Company"|translate:current_language }}</h3>
+            <h3 class="text-sm font-semibold font-display text-white uppercase tracking-wider mb-4">{% trans "Company" %}</h3>
             <ul class="space-y-2">
-              <li><a href="/about/" class="text-white/80 hover:text-white text-sm transition-colors">{{ "About us"|translate:current_language }}</a></li>
-              <li><a href="mailto:info@example.com" class="text-white/80 hover:text-white text-sm transition-colors">{{ "Contact"|translate:current_language }}</a></li>
+              <li><a href="/about/" class="text-white/80 hover:text-white text-sm transition-colors">{% trans "About us" %}</a></li>
+              <li><a href="mailto:info@example.com" class="text-white/80 hover:text-white text-sm transition-colors">{% trans "Contact" %}</a></li>
             </ul>
           </div>
           <div>
