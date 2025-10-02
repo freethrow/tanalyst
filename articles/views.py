@@ -20,6 +20,7 @@ from .forms import EmailArticlesForm
 from django.conf import settings
 from .tasks import scrape_ekapija, scrape_biznisrs, create_all_embeddings
 from analyst.agents.summarizer import get_latest_weekly_summary, get_weekly_summaries
+from django.utils.translation import gettext as _
 
 NOMIC_API_KEY = settings.NOMIC_API_KEY
 
@@ -137,7 +138,7 @@ class ArticleListView(LoginRequiredMixin, ListView):
             title_it__exact="",
             content_it__exact="",
         )
-        return queryset.order_by("-article_date")
+        return queryset.order_by("-scraped_date")
 
 
 class ApprovedArticleListView(LoginRequiredMixin, ListView):
@@ -925,3 +926,58 @@ def logout_view(request):
     """User logout view"""
     auth_logout(request)
     return redirect('login')
+
+
+@login_required
+@user_passes_test(is_staff)
+def scrapers_view(request):
+    """Manual scrapers page"""
+    return render(request, 'scrapers.html')
+
+
+@login_required
+@user_passes_test(is_staff)
+def translation_service_view(request):
+    """Translation service page"""
+    return render(request, 'translation_service.html')
+
+
+@login_required
+@user_passes_test(is_staff)
+@require_POST
+def trigger_translation(request):
+    """Trigger translation task for untranslated articles"""
+    try:
+        # Trigger the Celery task
+        translate_untranslated_articles.delay()
+        messages.success(request, _('Translation service started successfully. Articles will be translated shortly.'))
+    except Exception as e:
+        messages.error(request, _('Error starting translation: %(error)s') % {'error': str(e)})
+    
+    return redirect('articles:home')
+
+
+@login_required
+@user_passes_test(is_staff)
+@require_POST
+def trigger_scraper(request, scraper_name):
+    """Trigger a specific scraper task"""
+    scraper_tasks = {
+        'ekapija': (scrape_ekapija, _('Ekapija scraper started successfully. New articles will appear shortly.')),
+        'biznisrs': (scrape_biznisrs, _('BiznisRS scraper started successfully. New articles will appear shortly.')),
+    }
+    
+    if scraper_name not in scraper_tasks:
+        messages.error(request, _('Invalid scraper name'))
+        return redirect('articles:home')
+    
+    task_func, success_message = scraper_tasks[scraper_name]
+    
+    try:
+        # Trigger the Celery task
+        task_func.delay()
+        messages.success(request, success_message)
+    except Exception as e:
+        messages.error(request, _('Error starting scraper: %(error)s') % {'error': str(e)})
+    
+    return redirect('articles:home')

@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Scrapers" %} - TA{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+  <!-- Header -->
+  <div class="mb-8">
+    <div class="flex items-center gap-3 mb-2">
+      <div class="p-2 bg-primary/10 rounded-lg">
+        <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+        </svg>
+      </div>
+      <h1 class="text-3xl font-bold font-display text-gray-700">{% trans "Manual Scrapers" %}</h1>
+    </div>
+    <p class="text-sm text-gray-600">{% trans "Manually trigger news scrapers to fetch latest articles" %}</p>
+  </div>
+
+  <!-- Success/Error Messages -->
+  {% if messages %}
+    {% for message in messages %}
+      <div class="mb-6 bg-{% if message.tags == 'success' %}green{% elif message.tags == 'error' %}red{% else %}blue{% endif %}-50 border border-{% if message.tags == 'success' %}green{% elif message.tags == 'error' %}red{% else %}blue{% endif %}-200 rounded-lg p-4">
+        <div class="flex items-center gap-2 text-{% if message.tags == 'success' %}green{% elif message.tags == 'error' %}red{% else %}blue{% endif %}-800">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            {% if message.tags == 'success' %}
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            {% elif message.tags == 'error' %}
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            {% else %}
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            {% endif %}
+          </svg>
+          <span class="text-sm font-medium">{{ message }}</span>
+        </div>
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <!-- Scrapers Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    
+    <!-- Ekapija Scraper -->
+    <div class="bg-white rounded-lg shadow-sm border border-secondary p-6">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="p-2 bg-blue-100 rounded-lg">
+          <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/>
+          </svg>
+        </div>
+        <div>
+          <h2 class="text-lg font-semibold font-display text-gray-700">Ekapija</h2>
+          <p class="text-xs text-gray-500">ekapija.com</p>
+        </div>
+      </div>
+      <p class="text-sm text-gray-600 mb-4">
+        {% trans "Scrapes latest business news from Ekapija news portal" %}
+      </p>
+      <form method="post" action="{% url 'articles:trigger_scraper' 'ekapija' %}">
+        {% csrf_token %}
+        <button type="submit" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium font-display text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors duration-200">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+          </svg>
+          {% trans "Start Scraper" %}
+        </button>
+      </form>
+    </div>
+
+    <!-- BiznisRS Scraper -->
+    <div class="bg-white rounded-lg shadow-sm border border-secondary p-6">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="p-2 bg-green-100 rounded-lg">
+          <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          </svg>
+        </div>
+        <div>
+          <h2 class="text-lg font-semibold font-display text-gray-700">BiznisRS</h2>
+          <p class="text-xs text-gray-500">biznis.rs</p>
+        </div>
+      </div>
+      <p class="text-sm text-gray-600 mb-4">
+        {% trans "Scrapes latest business news from BiznisRS news portal" %}
+      </p>
+      <form method="post" action="{% url 'articles:trigger_scraper' 'biznisrs' %}">
+        {% csrf_token %}
+        <button type="submit" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium font-display text-white bg-green-600 hover:bg-green-700 rounded-md transition-colors duration-200">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+          </svg>
+          {% trans "Start Scraper" %}
+        </button>
+      </form>
+    </div>
+
+  </div>
+
+  <!-- Info Box -->
+  <div class="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
+    <div class="flex gap-3">
+      <svg class="w-6 h-6 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <div>
+        <h3 class="font-semibold font-display text-blue-900 text-sm mb-2">{% trans "How Scrapers Work" %}</h3>
+        <ul class="text-xs text-blue-800 space-y-1">
+          <li>• {% trans "Scrapers run as background Celery tasks" %}</li>
+          <li>• {% trans "New articles are automatically fetched and stored" %}</li>
+          <li>• {% trans "Articles will appear in the main list after scraping completes" %}</li>
+          <li>• {% trans "Duplicate articles are automatically detected and skipped" %}</li>
+          <li>• {% trans "You can run multiple scrapers simultaneously" %}</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

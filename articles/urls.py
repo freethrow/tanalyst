@@ -36,4 +36,10 @@ urlpatterns = [
     path("generate-summary/", views.generate_summary, name="generate_summary"),
     path("weekly-summaries/", views.weekly_summaries_list, name="weekly_summaries"),
     path("weekly-summary/<str:summary_id>/", views.weekly_summary_detail, name="weekly_summary_detail"),
+    # Scrapers
+    path("scrapers/", views.scrapers_view, name="scrapers"),
+    path("trigger-scraper/<str:scraper_name>/", views.trigger_scraper, name="trigger_scraper"),
+    # Translation Service
+    path("translation-service/", views.translation_service_view, name="translation_service"),
+    path("trigger-translation/", views.trigger_translation, name="trigger_translation"),
 ]

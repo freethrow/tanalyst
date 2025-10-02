@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Translation Service" %} - TA{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+  <!-- Header -->
+  <div class="mb-8">
+    <div class="flex items-center gap-3 mb-2">
+      <div class="p-2 bg-primary/10 rounded-lg">
+        <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"/>
+        </svg>
+      </div>
+      <h1 class="text-3xl font-bold font-display text-gray-700">{% trans "Translation Service" %}</h1>
+    </div>
+    <p class="text-sm text-gray-600">{% trans "Automatically translate articles to Italian using AI" %}</p>
+  </div>
+
+  <!-- Success/Error Messages -->
+  {% if messages %}
+    {% for message in messages %}
+      <div class="mb-6 bg-{% if message.tags == 'success' %}green{% elif message.tags == 'error' %}red{% else %}blue{% endif %}-50 border border-{% if message.tags == 'success' %}green{% elif message.tags == 'error' %}red{% else %}blue{% endif %}-200 rounded-lg p-4">
+        <div class="flex items-center gap-2 text-{% if message.tags == 'success' %}green{% elif message.tags == 'error' %}red{% else %}blue{% endif %}-800">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            {% if message.tags == 'success' %}
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            {% elif message.tags == 'error' %}
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            {% else %}
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            {% endif %}
+          </svg>
+          <span class="text-sm font-medium">{{ message }}</span>
+        </div>
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <!-- Translation Service Card -->
+  <div class="bg-white rounded-lg shadow-sm border border-secondary p-8">
+    <div class="flex items-center gap-4 mb-6">
+      <div class="p-3 bg-purple-100 rounded-lg">
+        <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"/>
+        </svg>
+      </div>
+      <div>
+        <h2 class="text-2xl font-semibold font-display text-gray-700">{% trans "AI Translation" %}</h2>
+        <p class="text-sm text-gray-500">{% trans "Powered by OpenAI GPT-4" %}</p>
+      </div>
+    </div>
+
+    <div class="space-y-4 mb-6">
+      <p class="text-gray-600">
+        {% trans "This service automatically translates untranslated articles from Serbian/English to Italian using advanced AI language models." %}
+      </p>
+      
+      <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <h3 class="font-semibold text-blue-900 text-sm mb-2">{% trans "What gets translated:" %}</h3>
+        <ul class="text-xs text-blue-800 space-y-1">
+          <li>• {% trans "Article titles (title_it)" %}</li>
+          <li>• {% trans "Article content (content_it)" %}</li>
+          <li>• {% trans "Only articles without existing Italian translations" %}</li>
+        </ul>
+      </div>
+
+      <div class="bg-amber-50 border border-amber-200 rounded-lg p-4">
+        <h3 class="font-semibold text-amber-900 text-sm mb-2">{% trans "Translation Process:" %}</h3>
+        <ul class="text-xs text-amber-800 space-y-1">
+          <li>• {% trans "Runs as a background Celery task" %}</li>
+          <li>• {% trans "Processes articles in batches" %}</li>
+          <li>• {% trans "Preserves original formatting and structure" %}</li>
+          <li>• {% trans "Automatically retries on failures" %}</li>
+        </ul>
+      </div>
+    </div>
+
+    <form method="post" action="{% url 'articles:trigger_translation' %}">
+      {% csrf_token %}
+      <button type="submit" class="w-full inline-flex items-center justify-center gap-2 px-6 py-3 text-base font-medium font-display text-white bg-purple-600 hover:bg-purple-700 rounded-md transition-colors duration-200">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+        </svg>
+        {% trans "Start Translation" %}
+      </button>
+    </form>
+  </div>
+
+  <!-- Info Box -->
+  <div class="mt-8 bg-green-50 border border-green-200 rounded-lg p-6">
+    <div class="flex gap-3">
+      <svg class="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <div>
+        <h3 class="font-semibold font-display text-green-900 text-sm mb-2">{% trans "Best Practices" %}</h3>
+        <ul class="text-xs text-green-800 space-y-1">
+          <li>• {% trans "Run translations after scraping new articles" %}</li>
+          <li>• {% trans "Translated articles will be ready for validation" %}</li>
+          <li>• {% trans "Check the main article list to see translated content" %}</li>
+          <li>• {% trans "Translation quality is reviewed by AI for accuracy" %}</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
