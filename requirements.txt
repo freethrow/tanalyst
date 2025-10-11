@@ -12,3 +12,4 @@ resend
 ruff
 python-dotenv
 nomic
+reportlab

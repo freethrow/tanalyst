@@ -1,11 +1,192 @@
 {% extends "base.html" %}
+{% load custom_i18n %}
+{% load static %}
 
-{% block title %}About · TA{% endblock %}
+{% block title %}{{ "About"|translate }} · TA{% endblock %}
 
 {% block content %}
-<div class="container mx-auto max-w-6xl h-screen flex items-center justify-center">
-  <div class="w-full h-full bg-cover bg-center bg-no-repeat rounded-lg shadow-xl" 
-       style="background-image: url('{{ MEDIA_URL }}logo.png');">
+<!-- Background Image Section -->
+<div class="relative -mx-4 sm:-mx-6 lg:-mx-8 mb-12 overflow-hidden">
+  <div class="absolute inset-0 bg-cover bg-center bg-no-repeat" style="background-image: url('{% static 'images/about.png' %}');"></div>
+  <div class="absolute inset-0 bg-gradient-to-b from-white/80 via-white/75 to-white/90"></div>
+  <div class="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <!-- Hero Section -->
+      <div class="text-center">
+        <h1 class="text-5xl font-bold font-display text-gray-800 mb-4">Trade <span class="text-accent">AI</span> Analyst</h1>
+        <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+          {% if LANGUAGE_CODE == 'en' %}
+            An advanced business intelligence application for monitoring and analyzing Serbian business news
+          {% else %}
+            Un'applicazione avanzata di business intelligence per monitorare e analizzare le notizie economiche serbe
+          {% endif %}
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="max-w-5xl mx-auto">
+
+  <!-- Main Content -->
+  <div class="bg-white rounded-lg shadow-sm border border-secondary p-8 md:p-12 mb-8">
+    {% if LANGUAGE_CODE == 'en' %}
+      <!-- English Content -->
+      <section class="prose prose-lg max-w-none">
+        <h2 class="text-3xl font-bold font-display text-gray-800 mb-6">About Trade AI Analyst</h2>
+        <p class="text-gray-700 leading-relaxed mb-6">
+          <strong>Trade AI Analyst (TAA)</strong> is an advanced business intelligence application designed to streamline the process of monitoring and analyzing Serbian business news for Italian-speaking professionals and organizations.
+        </p>
+
+        <h3 class="text-2xl font-bold font-display text-gray-800 mt-10 mb-4">Key Features</h3>
+        <p class="text-gray-700 leading-relaxed mb-4">
+          TAA automatically scrapes reputable Serbian business news websites, ensuring you stay informed about the latest developments in the Serbian market. The application leverages sophisticated AI translation to convert Serbian content into professional Italian business language, making the information immediately accessible and actionable.
+        </p>
+        <p class="text-gray-700 leading-relaxed mb-4">
+          The platform organizes news by industry sectors, allowing users to focus on the areas most relevant to their business interests. TAA generates comprehensive reports that are delivered both via email and as professionally formatted PDF documents, ensuring flexibility in how you consume and share information.
+        </p>
+        <p class="text-gray-700 leading-relaxed mb-6">
+          One of TAA's standout features is its <strong>vector search capability with semantic searching</strong>, enabling users to find relevant information based on meaning and context rather than just keywords, making research more intuitive and efficient.
+        </p>
+
+        <h3 class="text-2xl font-bold font-display text-gray-800 mt-10 mb-4">Technology Stack</h3>
+        <p class="text-gray-700 leading-relaxed mb-4">TAA is built on a robust and modern technology stack:</p>
+        <ul class="space-y-2 text-gray-700 mb-6">
+          <li><strong>MongoDB</strong> serves as the database solution, providing flexible and scalable data storage</li>
+          <li><strong>Django with MongoDB Backend</strong> powers the application framework</li>
+          <li><strong>Pydantic AI</strong> manages intelligent AI agents for data processing</li>
+          <li><strong>OpenRouter</strong> enables access to multiple LLM models for optimal performance</li>
+          <li><strong>ReportLab</strong> generates professional PDF reports</li>
+          <li><strong>Celery</strong> handles background task processing</li>
+          <li><strong>Celery Beat</strong> manages scheduled task automation</li>
+          <li><strong>Resend</strong> provides reliable email delivery</li>
+          <li><strong>Tailwind CSS</strong> creates a modern, responsive user interface</li>
+        </ul>
+        <p class="text-gray-700 leading-relaxed">
+          Trade AI Analyst represents a comprehensive solution for businesses and professionals seeking to bridge the information gap between Serbian and Italian markets.
+        </p>
+      </section>
+    {% else %}
+      <!-- Italian Content -->
+      <section class="prose prose-lg max-w-none">
+        <h2 class="text-3xl font-bold font-display text-gray-800 mb-6">Su Trade AI Analyst</h2>
+        <p class="text-gray-700 leading-relaxed mb-6">
+          <strong>Trade AI Analyst (TAA)</strong> è un'applicazione avanzata di business intelligence progettata per semplificare il processo di monitoraggio e analisi delle notizie economiche serbe per professionisti e organizzazioni di lingua italiana.
+        </p>
+
+        <h3 class="text-2xl font-bold font-display text-gray-800 mt-10 mb-4">Funzionalità Principali</h3>
+        <p class="text-gray-700 leading-relaxed mb-4">
+          TAA raccoglie automaticamente informazioni dai più affidabili siti web di notizie economiche serbi, garantendo un aggiornamento costante sugli ultimi sviluppi del mercato serbo. L'applicazione utilizza una sofisticata traduzione AI per convertire i contenuti serbi in un linguaggio professionale italiano del settore business, rendendo le informazioni immediatamente accessibili e utilizzabili.
+        </p>
+        <p class="text-gray-700 leading-relaxed mb-4">
+          La piattaforma organizza le notizie per settori industriali, consentendo agli utenti di concentrarsi sulle aree più rilevanti per i propri interessi commerciali. TAA genera report completi che vengono consegnati sia via email che come documenti PDF formattati professionalmente, garantendo flessibilità nel modo in cui si consultano e condividono le informazioni.
+        </p>
+        <p class="text-gray-700 leading-relaxed mb-6">
+          Una delle caratteristiche distintive di TAA è la sua <strong>capacità di ricerca vettoriale con ricerca semantica</strong>, che permette agli utenti di trovare informazioni rilevanti basandosi sul significato e sul contesto piuttosto che solo sulle parole chiave, rendendo la ricerca più intuitiva ed efficiente.
+        </p>
+
+        <h3 class="text-2xl font-bold font-display text-gray-800 mt-10 mb-4">Stack Tecnologico</h3>
+        <p class="text-gray-700 leading-relaxed mb-4">TAA è costruito su uno stack tecnologico robusto e moderno:</p>
+        <ul class="space-y-2 text-gray-700 mb-6">
+          <li><strong>MongoDB</strong> funge da soluzione database, fornendo un'archiviazione dati flessibile e scalabile</li>
+          <li><strong>Django con MongoDB Backend</strong> alimenta il framework dell'applicazione</li>
+          <li><strong>Pydantic AI</strong> gestisce agenti AI intelligenti per l'elaborazione dei dati</li>
+          <li><strong>OpenRouter</strong> consente l'accesso a molteplici modelli LLM per prestazioni ottimali</li>
+          <li><strong>ReportLab</strong> genera report PDF professionali</li>
+          <li><strong>Celery</strong> gestisce l'elaborazione delle attività in background</li>
+          <li><strong>Celery Beat</strong> gestisce l'automazione delle attività programmate</li>
+          <li><strong>Resend</strong> fornisce un servizio affidabile di invio email</li>
+          <li><strong>Tailwind CSS</strong> crea un'interfaccia utente moderna e responsiva</li>
+        </ul>
+        <p class="text-gray-700 leading-relaxed">
+          Trade AI Analyst rappresenta una soluzione completa per aziende e professionisti che desiderano colmare il divario informativo tra i mercati serbo e italiano.
+        </p>
+      </section>
+    {% endif %}
+  </div>
+
+  <!-- Features Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="bg-white rounded-lg shadow-sm border border-secondary p-6 text-center hover:shadow-md transition-shadow">
+      <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+        <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
+      </div>
+      <h3 class="text-lg font-bold font-display text-gray-800 mb-2">
+        {% if LANGUAGE_CODE == 'en' %}Semantic Search{% else %}Ricerca Semantica{% endif %}
+      </h3>
+      <p class="text-sm text-gray-600">
+        {% if LANGUAGE_CODE == 'en' %}
+          Find information by meaning, not just keywords
+        {% else %}
+          Trova informazioni per significato, non solo parole chiave
+        {% endif %}
+      </p>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-secondary p-6 text-center hover:shadow-md transition-shadow">
+      <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+        <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+        </svg>
+      </div>
+      <h3 class="text-lg font-bold font-display text-gray-800 mb-2">
+        {% if LANGUAGE_CODE == 'en' %}Email Reports{% else %}Report via Email{% endif %}
+      </h3>
+      <p class="text-sm text-gray-600">
+        {% if LANGUAGE_CODE == 'en' %}
+          Receive curated news directly in your inbox
+        {% else %}
+          Ricevi notizie selezionate direttamente nella tua casella di posta
+        {% endif %}
+      </p>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-secondary p-6 text-center hover:shadow-md transition-shadow">
+      <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+        <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+        </svg>
+      </div>
+      <h3 class="text-lg font-bold font-display text-gray-800 mb-2">
+        {% if LANGUAGE_CODE == 'en' %}PDF Reports{% else %}Report PDF{% endif %}
+      </h3>
+      <p class="text-sm text-gray-600">
+        {% if LANGUAGE_CODE == 'en' %}
+          Professional documents ready to share
+        {% else %}
+          Documenti professionali pronti da condividere
+        {% endif %}
+      </p>
+    </div>
+  </div>
+
+  <!-- CTA Section -->
+  <div class="bg-gradient-to-r from-primary to-primary/80 rounded-lg shadow-lg p-8 text-center text-white mb-8">
+    <h2 class="text-3xl font-bold font-display mb-4">
+      {% if LANGUAGE_CODE == 'en' %}Ready to Get Started?{% else %}Pronto per Iniziare?{% endif %}
+    </h2>
+    <p class="text-lg mb-6 opacity-90">
+      {% if LANGUAGE_CODE == 'en' %}
+        Explore Serbian business news with AI-powered intelligence
+      {% else %}
+        Esplora le notizie economiche serbe con intelligenza artificiale
+      {% endif %}
+    </p>
+    <div class="flex flex-wrap gap-4 justify-center">
+      <a href="/" class="inline-flex items-center gap-2 px-6 py-3 text-base font-medium font-display bg-white text-primary hover:bg-gray-50 rounded-md transition-colors duration-200">
+        {% if LANGUAGE_CODE == 'en' %}View Articles{% else %}Vedi Articoli{% endif %}
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+        </svg>
+      </a>
+      <a href="{% url 'articles:vector_search' %}" class="inline-flex items-center gap-2 px-6 py-3 text-base font-medium font-display bg-white/10 text-white hover:bg-white/20 border border-white/30 rounded-md transition-colors duration-200">
+        {% if LANGUAGE_CODE == 'en' %}Try Vector Search{% else %}Prova la Ricerca Vettoriale{% endif %}
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
+      </a>
+    </div>
   </div>
 </div>
 {% endblock %}

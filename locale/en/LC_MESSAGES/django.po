@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: TA 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-02 20:51+0200\n"
+"POT-Creation-Date: 2025-10-02 23:02+0200\n"
 "PO-Revision-Date: 2024-10-01 18:50+0200\n"
 "Last-Translator: TA Team\n"
 "Language-Team: English\n"
@@ -15,6 +15,61 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: .\articles\middleware.py:30 .\articles\views.py:1011
+#: .\templates\base.html:162 .\templates\base.html:274
+#: .\templates\base.html:333 .\templates\partials\card.html:28
+msgid "Approved"
+msgstr "Approved"
+
+#: .\articles\middleware.py:31 .\templates\partials\card.html:117
+msgid "Discard"
+msgstr "Discard"
+
+#: .\articles\views.py:957
+msgid ""
+"Translation service started successfully. Articles will be translated "
+"shortly."
+msgstr ""
+
+#: .\articles\views.py:959
+#, python-format
+msgid "Error starting translation: %(error)s"
+msgstr ""
+
+#: .\articles\views.py:970
+msgid "Ekapija scraper started successfully. New articles will appear shortly."
+msgstr ""
+
+#: .\articles\views.py:971
+msgid ""
+"BiznisRS scraper started successfully. New articles will appear shortly."
+msgstr ""
+
+#: .\articles\views.py:975
+msgid "Invalid scraper name"
+msgstr ""
+
+#: .\articles\views.py:985
+#, python-format
+msgid "Error starting scraper: %(error)s"
+msgstr ""
+
+#: .\articles\views.py:1006
+msgid "Business News Report"
+msgstr ""
+
+#: .\articles\views.py:1007
+#, fuzzy
+#| msgid "Edit Article"
+msgid "Approved Articles Collection"
+msgstr "Edit Article"
+
+#: .\articles\views.py:1010
+#, fuzzy
+#| msgid "Edit Article"
+msgid "Latest Articles"
+msgstr "Edit Article"
 
 #: .\templates\article_detail.html:15
 msgid "Print"
@@ -94,7 +149,7 @@ msgid "Status"
 msgstr "Status"
 
 #: .\templates\article_edit.html:111 .\templates\embedding_management.html:218
-#: .\templates\send_email.html:105
+#: .\templates\send_email.html:113
 msgid "Cancel"
 msgstr "Cancel"
 
@@ -103,69 +158,72 @@ msgid "Save Changes"
 msgstr ""
 
 # Navigation
-#: .\templates\base.html:159 .\templates\base.html:267
-#: .\templates\base.html:328
+#: .\templates\base.html:159 .\templates\base.html:271
+#: .\templates\base.html:332
 msgid "Home"
 msgstr "Home"
 
-#: .\templates\base.html:162 .\templates\base.html:270
-#: .\templates\base.html:329 .\templates\partials\card.html:28
-msgid "Approved"
-msgstr "Approved"
-
-#: .\templates\base.html:165 .\templates\base.html:273
-#: .\templates\base.html:330 .\templates\partials\card.html:33
+#: .\templates\base.html:165 .\templates\base.html:277
+#: .\templates\base.html:334 .\templates\partials\card.html:33
 msgid "Discarded"
 msgstr "Discarded"
 
-#: .\templates\base.html:168 .\templates\base.html:276
+#: .\templates\base.html:168 .\templates\base.html:280
 msgid "Sectors"
 msgstr "Sectors"
 
-#: .\templates\base.html:174 .\templates\base.html:279
+#: .\templates\base.html:174 .\templates\base.html:283
 msgid "Tools"
 msgstr "Tools"
 
-#: .\templates\base.html:182 .\templates\base.html:281
-#: .\templates\base.html:331 .\templates\vector_search.html:8
+#: .\templates\base.html:182 .\templates\base.html:285
+#: .\templates\base.html:335 .\templates\vector_search.html:8
 msgid "Vector Search"
 msgstr "Vector Search"
 
-#: .\templates\base.html:185 .\templates\base.html:284
+#: .\templates\base.html:185 .\templates\base.html:288
 msgid "Embeddings"
 msgstr "Embeddings"
 
-#: .\templates\base.html:192 .\templates\base.html:288
+#: .\templates\base.html:188 .\templates\scrapers.html:4
+msgid "Scrapers"
+msgstr ""
+
+#: .\templates\base.html:191
+msgid "Translation"
+msgstr ""
+
+#: .\templates\base.html:198 .\templates\base.html:292
 msgid "Summaries"
 msgstr "Summaries"
 
-#: .\templates\base.html:195 .\templates\base.html:291
+#: .\templates\base.html:201 .\templates\base.html:295
 #, fuzzy
 #| msgid "Send Email"
 msgid "Email"
 msgstr "Send Email"
 
-#: .\templates\base.html:216
+#: .\templates\base.html:222
 msgid "Signed in as"
 msgstr "Signed in as"
 
-#: .\templates\base.html:223
+#: .\templates\base.html:229
 msgid "Sign Out"
 msgstr "Sign Out"
 
-#: .\templates\base.html:326
+#: .\templates\base.html:330
 msgid "Navigation"
 msgstr "Navigation"
 
-#: .\templates\base.html:335
+#: .\templates\base.html:339
 msgid "Company"
 msgstr "Company"
 
-#: .\templates\base.html:337
+#: .\templates\base.html:341
 msgid "About us"
 msgstr "About us"
 
-#: .\templates\base.html:338
+#: .\templates\base.html:342
 msgid "Contact"
 msgstr "Contact"
 
@@ -358,10 +416,6 @@ msgstr "Sent"
 msgid "Approve"
 msgstr "Approve"
 
-#: .\templates\partials\card.html:117
-msgid "Discard"
-msgstr "Discard"
-
 #: .\templates\partials\card.html:128
 msgid "Restore"
 msgstr "Restore"
@@ -380,6 +434,50 @@ msgstr "Edit"
 msgid "Read"
 msgstr "Read more"
 
+#: .\templates\scrapers.html:16
+msgid "Manual Scrapers"
+msgstr ""
+
+#: .\templates\scrapers.html:18
+msgid "Manually trigger news scrapers to fetch latest articles"
+msgstr ""
+
+#: .\templates\scrapers.html:58
+msgid "Scrapes latest business news from Ekapija news portal"
+msgstr ""
+
+#: .\templates\scrapers.html:66 .\templates\scrapers.html:93
+msgid "Start Scraper"
+msgstr ""
+
+#: .\templates\scrapers.html:85
+msgid "Scrapes latest business news from BiznisRS news portal"
+msgstr ""
+
+#: .\templates\scrapers.html:107
+msgid "How Scrapers Work"
+msgstr ""
+
+#: .\templates\scrapers.html:109
+msgid "Scrapers run as background Celery tasks"
+msgstr ""
+
+#: .\templates\scrapers.html:110
+msgid "New articles are automatically fetched and stored"
+msgstr ""
+
+#: .\templates\scrapers.html:111
+msgid "Articles will appear in the main list after scraping completes"
+msgstr ""
+
+#: .\templates\scrapers.html:112
+msgid "Duplicate articles are automatically detected and skipped"
+msgstr ""
+
+#: .\templates\scrapers.html:113
+msgid "You can run multiple scrapers simultaneously"
+msgstr ""
+
 # Page Titles
 #: .\templates\send_email.html:11
 msgid "Send Articles via Email"
@@ -389,48 +487,137 @@ msgstr "Send Articles via Email"
 msgid "Send the latest translated articles to an email address"
 msgstr ""
 
-#: .\templates\send_email.html:18
+#: .\templates\send_email.html:19
+msgid "Download PDF"
+msgstr ""
+
+#: .\templates\send_email.html:25
 msgid "Back to Home"
 msgstr ""
 
-#: .\templates\send_email.html:34
+#: .\templates\send_email.html:42
 msgid "Email Configuration"
 msgstr ""
 
-#: .\templates\send_email.html:91
+#: .\templates\send_email.html:99
 msgid "Sending Information"
 msgstr ""
 
-#: .\templates\send_email.html:93
+#: .\templates\send_email.html:101
 msgid "Only articles with APPROVED status will be sent"
 msgstr ""
 
-#: .\templates\send_email.html:94
+#: .\templates\send_email.html:102
 msgid "Articles will be sorted by translation date (most recent first)"
 msgstr ""
 
-#: .\templates\send_email.html:95
+#: .\templates\send_email.html:103
 msgid "After sending, the status of articles will become SENT"
 msgstr ""
 
-#: .\templates\send_email.html:96
+#: .\templates\send_email.html:104
 msgid "The email will be sent in the background and may take a few minutes"
 msgstr ""
 
-#: .\templates\send_email.html:111
+#: .\templates\send_email.html:119
 #, fuzzy
 #| msgid "Send Email"
 msgid "Send Email"
 msgstr "Send Email"
 
-#: .\templates\send_email.html:121
+#: .\templates\send_email.html:129
 #, fuzzy
 #| msgid "Edit Article"
 msgid "Approved Articles"
 msgstr "Edit Article"
 
-#: .\templates\send_email.html:123
+#: .\templates\send_email.html:131
 msgid "Ready to send"
+msgstr ""
+
+#: .\templates\translation_service.html:4
+#: .\templates\translation_service.html:16
+msgid "Translation Service"
+msgstr ""
+
+#: .\templates\translation_service.html:18
+msgid "Automatically translate articles to Italian using AI"
+msgstr ""
+
+#: .\templates\translation_service.html:50
+msgid "AI Translation"
+msgstr ""
+
+#: .\templates\translation_service.html:51
+msgid "Powered by OpenAI GPT-4"
+msgstr ""
+
+#: .\templates\translation_service.html:57
+msgid ""
+"This service automatically translates untranslated articles from Serbian/"
+"English to Italian using advanced AI language models."
+msgstr ""
+
+#: .\templates\translation_service.html:61
+msgid "What gets translated:"
+msgstr ""
+
+#: .\templates\translation_service.html:63
+#, fuzzy
+#| msgid "Article Details"
+msgid "Article titles (title_it)"
+msgstr "Article Details"
+
+#: .\templates\translation_service.html:64
+msgid "Article content (content_it)"
+msgstr ""
+
+#: .\templates\translation_service.html:65
+msgid "Only articles without existing Italian translations"
+msgstr ""
+
+#: .\templates\translation_service.html:70
+msgid "Translation Process:"
+msgstr ""
+
+#: .\templates\translation_service.html:72
+msgid "Runs as a background Celery task"
+msgstr ""
+
+#: .\templates\translation_service.html:73
+msgid "Processes articles in batches"
+msgstr ""
+
+#: .\templates\translation_service.html:74
+msgid "Preserves original formatting and structure"
+msgstr ""
+
+#: .\templates\translation_service.html:75
+msgid "Automatically retries on failures"
+msgstr ""
+
+#: .\templates\translation_service.html:86
+msgid "Start Translation"
+msgstr ""
+
+#: .\templates\translation_service.html:98
+msgid "Best Practices"
+msgstr ""
+
+#: .\templates\translation_service.html:100
+msgid "Run translations after scraping new articles"
+msgstr ""
+
+#: .\templates\translation_service.html:101
+msgid "Translated articles will be ready for validation"
+msgstr ""
+
+#: .\templates\translation_service.html:102
+msgid "Check the main article list to see translated content"
+msgstr ""
+
+#: .\templates\translation_service.html:103
+msgid "Translation quality is reviewed by AI for accuracy"
 msgstr ""
 
 #: .\templates\vector_search.html:10
@@ -581,6 +768,3 @@ msgstr ""
 
 #~ msgid "Error sending email"
 #~ msgstr "Error sending email"
-
-#~ msgid "Article Details"
-#~ msgstr "Article Details"

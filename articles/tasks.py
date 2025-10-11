@@ -7,10 +7,11 @@ import os
 
 from nomic import embed
 import numpy as np
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from analyst.emails.notifications import send_latest_articles_email
 from pymongo import MongoClient
+from django.utils import timezone
 
 from analyst.scrapers import ekapija, biznisrs
 # Import the summarizer module to register the task
@@ -257,3 +258,76 @@ def create_all_embeddings(
     finally:
         if client:
             client.close()
+
+
+@shared_task(name="mark_old_articles_used")
+def mark_old_articles_used(days_threshold=30):
+    """
+    Mark articles older than specified days as SENT (used in email).
+    
+    Args:
+        days_threshold (int): Number of days after which articles should be marked as SENT (default: 30)
+    
+    Returns:
+        dict: Status and count of updated articles
+    """
+    from articles.models import Article
+    
+    logger.info(f"Starting task to mark articles older than {days_threshold} days as SENT")
+    
+    # Calculate the cutoff date
+    cutoff_date = timezone.now() - timedelta(days=days_threshold)
+    
+    logger.info(f"Cutoff date: {cutoff_date.strftime('%Y-%m-%d %H:%M:%S')}")
+    
+    try:
+        # Find articles that are:
+        # 1. Older than the threshold (based on article_date)
+        # 2. Not already marked as SENT
+        # 3. Have Italian content (to match the existing workflow)
+        old_articles = Article.objects.filter(
+            article_date__lt=cutoff_date,
+            title_it__isnull=False,
+            content_it__isnull=False
+        ).exclude(
+            status=Article.SENT
+        ).exclude(
+            title_it__exact="",
+            content_it__exact=""
+        )
+        
+        count = old_articles.count()
+        
+        if count == 0:
+            logger.info(f"No articles found older than {days_threshold} days that need to be marked as SENT")
+            return {
+                "status": "success",
+                "message": f"No articles older than {days_threshold} days to mark as SENT",
+                "updated_count": 0
+            }
+        
+        logger.info(f"Found {count} articles to mark as SENT")
+        
+        # Update the articles
+        updated_count = 0
+        for article in old_articles:
+            article.status = Article.SENT
+            article.save()
+            updated_count += 1
+        
+        logger.info(f"Successfully marked {updated_count} articles as SENT")
+        
+        return {
+            "status": "success",
+            "message": f"Successfully marked {updated_count} articles as SENT",
+            "updated_count": updated_count,
+            "cutoff_date": cutoff_date.strftime('%Y-%m-%d %H:%M:%S')
+        }
+        
+    except Exception as e:
+        logger.error(f"Error marking old articles as sent: {str(e)}")
+        return {
+            "status": "error",
+            "message": str(e),
+            "updated_count": 0
+        }

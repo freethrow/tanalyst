@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>{{ title }}</title>
+    <style>
+        @page {
+            size: a4;
+            margin: 2cm;
+        }
+        
+        body {
+            font-family: Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #dc2626;
+        }
+        
+        .header h1 {
+            color: #dc2626;
+            font-size: 28pt;
+            margin: 0 0 10px 0;
+        }
+        
+        .header .subtitle {
+            color: #666;
+            font-size: 12pt;
+        }
+        
+        .metadata {
+            background: #fee2e2;
+            padding: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .metadata-item {
+            font-size: 10pt;
+            display: inline-block;
+            width: 48%;
+            margin-bottom: 5px;
+        }
+        
+        .metadata-label {
+            font-weight: bold;
+            color: #dc2626;
+        }
+        
+        .article {
+            page-break-inside: avoid;
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #e5e7eb;
+            background: #fff;
+        }
+        
+        .article-header {
+            border-bottom: 2px solid #dc2626;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .article-title {
+            color: #991b1b;
+            font-size: 16pt;
+            font-weight: bold;
+            margin: 0 0 10px 0;
+        }
+        
+        .article-meta {
+            font-size: 9pt;
+            color: #666;
+        }
+        
+        .article-meta-item {
+            display: inline-block;
+            margin-right: 15px;
+        }
+        
+        .article-meta-item strong {
+            color: #dc2626;
+        }
+        
+        .article-content {
+            font-size: 11pt;
+            text-align: justify;
+            margin-top: 15px;
+        }
+        
+        .article-content p {
+            margin: 10px 0;
+        }
+        
+        .sector-badge {
+            display: inline-block;
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 4px 12px;
+            font-size: 9pt;
+            font-weight: bold;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            font-size: 9pt;
+            font-weight: bold;
+        }
+        
+        .status-approved {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #e5e7eb;
+            text-align: center;
+            font-size: 9pt;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1>{{ title }}</h1>
+        <div class="subtitle">{{ subtitle }}</div>
+    </div>
+    
+    <!-- Metadata -->
+    <div class="metadata">
+        <div class="metadata-item">
+            <span class="metadata-label">Data Generazione:</span> {{ generation_date }}
+        </div>
+        <div class="metadata-item">
+            <span class="metadata-label">Totale Articoli:</span> {{ total_articles }}
+        </div>
+        <div class="metadata-item">
+            <span class="metadata-label">Periodo:</span> {{ period }}
+        </div>
+        <div class="metadata-item">
+            <span class="metadata-label">Stato:</span> {{ status }}
+        </div>
+    </div>
+    
+    <!-- Articles -->
+    {% for article in articles %}
+    <div class="article">
+        <div class="article-header">
+            <h2 class="article-title">{{ forloop.counter }}. {{ article.title_it|default:article.title_en }}</h2>
+            <div class="article-meta">
+                <span class="article-meta-item">
+                    <strong>Data:</strong> {{ article.article_date|date:"d F Y" }}
+                </span>
+                <span class="article-meta-item">
+                    <strong>Fonte:</strong> {{ article.source|default:"N/A" }}
+                </span>
+                {% if article.sector %}
+                <span class="sector-badge">{{ article.sector }}</span>
+                {% endif %}
+                <span class="status-badge status-approved">Approvato</span>
+            </div>
+        </div>
+        
+        <div class="article-content">
+            {{ article.content_it|default:article.content_en|safe }}
+        </div>
+        
+        {% if article.url %}
+        <div style="margin-top: 15px; font-size: 9pt; color: #666;">
+            <strong>Link:</strong> <a href="{{ article.url }}" style="color: #2563eb;">{{ article.url }}</a>
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+    
+    <!-- Footer -->
+    <div class="footer">
+        <p>Report generato automaticamente da TA - Trade AI Analyst</p>
+        <p>© {{ current_year }} - Tutti i diritti riservati</p>
+    </div>
+</body>
+</html>

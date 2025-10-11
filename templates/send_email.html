@@ -11,12 +11,20 @@
         <h1 class="text-3xl font-bold font-display text-gray-700">{% trans "Send Articles via Email" %}</h1>
         <p class="text-sm text-gray-600 mt-2">{% trans "Send the latest translated articles to an email address" %}</p>
       </div>
-      <a href="/" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium font-display text-gray-700 bg-white hover:bg-gray-50 border border-gray-200 rounded-md transition-colors duration-200">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-        </svg>
-        {% trans "Back to Home" %}
-      </a>
+      <div class="flex gap-2">
+        <a href="{% url 'articles:generate_pdf_report' %}" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium font-display text-white bg-red-600 hover:bg-red-700 border border-red-600 rounded-md transition-colors duration-200">
+          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          </svg>
+          {% trans "Download PDF" %}
+        </a>
+        <a href="/" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium font-display text-gray-700 bg-white hover:bg-gray-50 border border-gray-200 rounded-md transition-colors duration-200">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          {% trans "Back to Home" %}
+        </a>
+      </div>
     </div>
   </header>
 

@@ -49,10 +49,10 @@ class Article(models.Model):
     )
 
     # Date when the article was scraped
-    scraped_date = models.DateTimeField(
+    scraped_at = models.DateTimeField(
         null=True,
         blank=True,
-        db_column="scraped_date",
+        db_column="scraped_at",
         help_text="Date and time when the article was scraped",
     )
 
@@ -143,13 +143,13 @@ class Article(models.Model):
 
         # Indexes for better query performance
         indexes = [
-            models.Index(fields=["scraped_date"]),
+            models.Index(fields=["scraped_at"]),
             models.Index(fields=["article_date"]),
             models.Index(fields=["status"]),
         ]
 
         # Default ordering
-        ordering = ["-scraped_date"]
+        ordering = ["-scraped_at"]
 
         # Verbose names for admin interface
         verbose_name = "Article"
@@ -262,8 +262,8 @@ class Article(models.Model):
         """
         Calculate days since the article was scraped.
         """
-        if self.scraped_date:
-            delta = timezone.now() - self.scraped_date
+        if self.scraped_at:
+            delta = timezone.now() - self.scraped_at
             return delta.days
         return None
 
@@ -283,8 +283,8 @@ class Article(models.Model):
             "content_it": self.content_it,
             "url": self.url,
             "source": self.source,
-            "scraped_date": self.scraped_date.isoformat()
-            if self.scraped_date
+            "scraped_at": self.scraped_at.isoformat()
+            if self.scraped_at
             else None,
             "llm_model": self.llm_model,
             "status": self.status,

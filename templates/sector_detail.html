@@ -7,14 +7,18 @@
   <header class="mb-8">
     <div class="flex items-center justify-between">
       <div>
-        <nav class="breadcrumbs text-sm mb-2">
-          <ul>
-            <li><a href="/" class="link link-hover">Home</a></li>
-            <li><a href="{% url 'articles:sectors' %}" class="link link-hover">Settori</a></li>
-            <li>{{ sector }}</li>
-          </ul>
+        <nav class="flex items-center gap-2 text-sm mb-3 text-gray-600">
+          <a href="/" class="hover:text-primary transition-colors">Home</a>
+          <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
+          <a href="{% url 'articles:sectors' %}" class="hover:text-primary transition-colors">Settori</a>
+          <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
+          <span class="text-gray-900 font-medium">{{ sector }}</span>
         </nav>
-        <h1 class="text-4xl font-bold">{{ sector }}</h1>
+        <h1 class="text-4xl font-bold font-display text-gray-700">{{ sector }}</h1>
         <p class="text-base-content/70 mt-2">
           {% if articles %}
             {{ articles|length }} articol{{ articles|length|pluralize:"o,i" }} in questo settore
@@ -24,14 +28,19 @@
         </p>
       </div>
       
-      <div class="flex gap-2">
-        <a href="{% url 'articles:sectors' %}" class="btn btn-outline">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <div class="flex gap-3">
+        <a href="{% url 'articles:sectors' %}" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium font-display text-gray-700 bg-white hover:bg-gray-50 border border-gray-200 rounded-md transition-colors duration-200">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
           Tutti i Settori
         </a>
-        <a href="/" class="btn btn-ghost">Home</a>
+        <a href="/" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium font-display text-white bg-primary hover:bg-primary/90 rounded-md transition-colors duration-200">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+          </svg>
+          Home
+        </a>
       </div>
     </div>
   </header>

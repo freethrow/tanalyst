@@ -239,6 +239,7 @@ class EkapijaSpider(CrawlSpider):
                 "content_en": content,
                 "url": response.url,
                 "source": "ekapija.com",
+                "status": "PENDING",
             }
 
             logger.info(f"Successfully parsed article: {title}")

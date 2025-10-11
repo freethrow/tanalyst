@@ -195,6 +195,7 @@ class BiznisRsSpider(CrawlSpider):
                 "content_rs": content,
                 "url": response.url,
                 "source": "biznis.rs",
+                "status": "PENDING",
             }
 
             logger.info(f"Successfully parsed article: {title}")

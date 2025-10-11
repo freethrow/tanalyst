@@ -127,6 +127,12 @@ translations = {
     "Translation quality is reviewed by AI for accuracy": "La qualità della traduzione è verificata dall'IA per accuratezza",
     "Translation service started successfully. Articles will be translated shortly.": "Servizio di traduzione avviato con successo. Gli articoli saranno tradotti a breve.",
     "Error starting translation: %(error)s": "Errore nell'avvio della traduzione: %(error)s",
+    
+    # PDF Report
+    "Download PDF": "Scarica PDF",
+    "Business News Report": "Report Notizie di Business",
+    "Approved Articles Collection": "Raccolta Articoli Approvati",
+    "Latest Articles": "Ultimi Articoli",
 }
 
 def fill_translations():

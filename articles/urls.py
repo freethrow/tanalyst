@@ -42,4 +42,7 @@ urlpatterns = [
     # Translation Service
     path("translation-service/", views.translation_service_view, name="translation_service"),
     path("trigger-translation/", views.trigger_translation, name="trigger_translation"),
+    # PDF Report
+    path("generate-pdf-report/", views.generate_pdf_report, name="generate_pdf_report"),
+    path("weekly-summary/<str:summary_id>/pdf/", views.generate_weekly_summary_pdf, name="weekly_summary_pdf"),
 ]

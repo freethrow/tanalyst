@@ -131,6 +131,7 @@ class TranslatedArticle(BaseModel):
     )
     settore: str = Field(description="Il settore più rilevante per l'articolo")
 
+
     @field_validator("settore")
     @classmethod
     def validate_settore(cls, v: str) -> str:
@@ -139,7 +140,7 @@ class TranslatedArticle(BaseModel):
         return v
 
 
-def get_system_prompt() -> str:
+def get_system_prompt(source: str = "the source") -> str:
     """Get the system prompt for translation."""
     sectors_list = "\n".join(f"- {sector}" for sector in SECTORS)
 
@@ -163,11 +164,20 @@ TRANSLATION GUIDELINES:
 - Make the title short and concise, ideally under 6 words: if the title is longer, shorten it while keeping the main point
 - Example of a good title: "Crescita del 10% nel settore energetico", "Nuove opportunità per le imprese edili"
 - Remove any references to links, like available HERE and so on since they won't be clickable in the italian version
-- When referencing "us" remember that the source is Ekapija, so As we were told means according to Ekapija sources
+- When referencing "us" remember that the source is {source}, so As we were told means according to {source} sources
+- Do not use "fonte mediatica" or "fonte media" in the translation, but "come riportato da {source}"
+- Cite the source only regarding the facts of the article, not the opportunity for Italy part
+- Do not use "fonte mediatica" or "fonte media" in the translation, but "come riportato da {source}"
+- Mark articles dealing with Montenegro as not pertinent and do not translate them
 - Do not use markdown formatting in the translation, only plain text is allowed
 - Feel free to shorten the article a bit and convey meaning using Italian business language, not necessarily doing a word per word translation
 - Do not use any business jargon or business language that is not common in Italian business language
 - Use a bit higher level of language
+- Shorten long articles to about 2000 characters but keep the facts precise
+- DO not add anz additional information not present in the original article
+- DO not add any additional comments not present in the original article
+- Keep a serious and official style and insert "as stated by the source media - {source}" if needed
+
 
 OUTPUT REQUIREMENTS:
 - Provide clean, publication-ready Italian translations
@@ -194,7 +204,7 @@ def get_mongodb_connection():
 
 
 async def translate_article_async(
-    title: str, content: str, source_language: str = "en", wait_time: int = 10
+    title: str, content: str, source: str = "Unknown", source_language: str = "en", wait_time: int = 10
 ) -> Dict[str, Any]:
     """
     Translate a single article to Italian.
@@ -212,7 +222,7 @@ async def translate_article_async(
     agent = Agent(
         model=model,
         output_type=TranslatedArticle,
-        system_prompt=get_system_prompt(),
+        system_prompt=get_system_prompt(source),
     )
 
     # Determine language label for prompt
@@ -223,6 +233,7 @@ async def translate_article_async(
 Article to translate:
 Titolo: {title}
 Contenuto: {content}
+Fonte: {source}
 
 Provide a professional Italian translation suitable for business publications."""
 
@@ -242,6 +253,7 @@ Provide a professional Italian translation suitable for business publications.""
             "llm_model": MODEL_NAME,
             "time_translated": datetime.utcnow(),
             "translation_success": True,
+            "status": "PENDING"
         }
     except Exception as e:
         logger.error(f"Translation error: {str(e)}")
@@ -257,7 +269,7 @@ Provide a professional Italian translation suitable for business publications.""
 
 
 def translate_article(
-    title: str, content: str, source_language: str = "en", wait_time: int = 10
+    title: str, content: str, source: str = "Unknown", source_language: str = "en", wait_time: int = 10
 ) -> Dict[str, Any]:
     """
     Synchronous wrapper for translate_article_async.
@@ -266,7 +278,7 @@ def translate_article(
     asyncio.set_event_loop(loop)
     try:
         return loop.run_until_complete(
-            translate_article_async(title, content, source_language, wait_time)
+            translate_article_async(title, content, source, source_language, wait_time)
         )
     finally:
         loop.close()
@@ -369,11 +381,15 @@ def translate_untranslated_articles(self, limit: int = None):
                         f"[{article_num}/{articles_to_process}] Translating {language_label}: {title[:50]}..."
                     )
 
+                    # Get source information
+                    source = article.get("source", "Unknown")
+                    
                     # Translate the article (wait time is 0 for first article in batch, 10 for others)
                     wait_time = 0 if idx == 0 else 10
                     translation_result = translate_article(
                         title=title,
                         content=content,
+                        source=source,
                         source_language=source_language,
                         wait_time=wait_time,
                     )

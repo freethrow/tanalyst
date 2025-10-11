@@ -1,16 +1,17 @@
 {% extends "base.html" %}
 {% load i18n %}
+{% load custom_i18n %}
 {% block content %}
   <div class="max-w-7xl mx-auto">
     <!-- Page Header -->
     <div class="mb-8">
       <div class="flex items-center justify-between mb-2">
-        <h1 class="text-3xl font-bold font-display text-gray-700">{% trans "Vector Search" %}</h1>
+        <h1 class="text-3xl font-bold font-display text-gray-700">{{ "Vector Search"|translate }}</h1>
         {% if results %}
-          <span class="text-sm text-gray-600">{% blocktrans count counter=results|length %}{{ counter }} result{% plural %}{{ counter }} results{% endblocktrans %}</span>
+          <span class="text-sm text-gray-600">{{ results|length }} {% if results|length == 1 %}{{ "result"|translate }}{% else %}{{ "results"|translate }}{% endif %}</span>
         {% endif %}
       </div>
-      <p class="text-sm text-gray-600">{% trans "Search articles using semantic similarity" %}</p>
+      <p class="text-sm text-gray-600">{{ "Search by meaning, not just keywords - find articles with similar concepts and topics"|translate }}</p>
     </div>
 
     <!-- Search Form -->
@@ -30,7 +31,7 @@
               type="text" 
               name="query" 
               value="{{ query }}" 
-              placeholder="{% trans 'Enter your search query...' %}" 
+              placeholder="{{ 'Enter your search query...'|translate }}" 
               class="w-full px-4 py-3 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
               autofocus
             />
@@ -42,18 +43,20 @@
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
             </svg>
-            {% trans "Search" %}
+            {{ "Search"|translate }}
           </button>
         </div>
       </form>
 
       <!-- Search Indicator -->
-      <div id="searching-indicator" class="hidden htmx-indicator mt-4 flex items-center gap-2 text-sm text-gray-600">
-        <svg class="animate-spin h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-        <span>{% trans "Searching..." %}</span>
+      <div id="searching-indicator" class="htmx-indicator mt-4">
+        <div class="flex items-center justify-center gap-3 text-sm text-primary bg-primary/5 border border-primary/20 rounded-md p-4">
+          <svg class="animate-spin h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <span class="font-medium">{{ "Searching..."|translate }}</span>
+        </div>
       </div>
     </div>
 
@@ -78,16 +81,16 @@
           <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
           </svg>
-          <h3 class="text-lg font-medium font-display text-gray-700 mb-2">{% trans "No results found" %}</h3>
-          <p class="text-gray-600">{% trans "Try different search terms or check your spelling" %}</p>
+          <h3 class="text-lg font-medium font-display text-gray-700 mb-2">{{ "No results found"|translate }}</h3>
+          <p class="text-gray-600">{{ "Try different search terms or check your spelling"|translate }}</p>
         </div>
       {% else %}
         <div class="bg-white border border-secondary rounded-lg p-12 text-center">
           <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
           </svg>
-          <h3 class="text-lg font-medium font-display text-gray-700 mb-2">{% trans "Start searching" %}</h3>
-          <p class="text-gray-600">{% trans "Enter a query above to find relevant articles" %}</p>
+          <h3 class="text-lg font-medium font-display text-gray-700 mb-2">{{ "Start searching"|translate }}</h3>
+          <p class="text-gray-600">{{ "Enter a query above to find relevant articles"|translate }}</p>
         </div>
       {% endif %}
     </div>

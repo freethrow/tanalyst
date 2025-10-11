@@ -99,7 +99,7 @@
         <button 
           hx-post="{% url 'articles:validate_article' article.id %}"
           hx-target="closest div[class*='bg-white rounded-lg']"
-          hx-swap="outerHTML swap:0.2s"
+          hx-swap="outerHTML swap:0.3s"
           class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-green-700 bg-green-50 hover:bg-green-100 border border-green-200 rounded-md transition-colors duration-200">
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
@@ -109,7 +109,7 @@
         <button 
           hx-post="{% url 'articles:discard_article' article.id %}"
           hx-target="closest div[class*='bg-white rounded-lg']"
-          hx-swap="outerHTML swap:0.2s"
+          hx-swap="outerHTML swap:0.3s"
           class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 rounded-md transition-colors duration-200">
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
@@ -120,7 +120,7 @@
         <button 
           hx-post="{% url 'articles:restore_article' article.id %}"
           hx-target="closest div[class*='bg-white rounded-lg']"
-          hx-swap="outerHTML swap:0.2s"
+          hx-swap="outerHTML swap:0.3s"
           class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-yellow-700 bg-yellow-50 hover:bg-yellow-100 border border-yellow-200 rounded-md transition-colors duration-200 sm:col-span-2">
           <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
