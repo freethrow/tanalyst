@@ -16,33 +16,73 @@ urlpatterns = [
     # Article detail page
     path("article/<str:pk>/", views.ArticleDetailView.as_view(), name="article_detail"),
     # Article edit page
-    path("article/<str:pk>/edit/", views.ArticleEditView.as_view(), name="article_edit"),
+    path(
+        "article/<str:pk>/edit/", views.ArticleEditView.as_view(), name="article_edit"
+    ),
     # Test Celery task trigger
     path("test-tasks/", views.test_tasks, name="test_tasks"),
     # Vector search page
     path("vector-search/", views.vector_search, name="vector_search"),
     # Sectors pages
     path("settori/", views.SectorListView.as_view(), name="sectors"),
-    path("settori/<str:sector>/", views.SectorDetailView.as_view(), name="sector_detail"),
+    path(
+        "settori/<str:sector>/", views.SectorDetailView.as_view(), name="sector_detail"
+    ),
     # Email articles page
     path("invia-email/", views.SendArticlesEmailView.as_view(), name="send_email"),
-    path("validate-article/<str:article_id>/", views.validate_article, name="validate_article"),
-    path("discard-article/<str:article_id>/", views.discard_article, name="discard_article"),
-    path("restore-article/<str:article_id>/", views.restore_article, name="restore_article"),
-    path("reset-pending/", views.reset_all_articles_to_pending, name="reset_all_articles_to_pending"),
+    path(
+        "validate-article/<str:article_id>/",
+        views.validate_article,
+        name="validate_article",
+    ),
+    path(
+        "discard-article/<str:article_id>/",
+        views.discard_article,
+        name="discard_article",
+    ),
+    path(
+        "restore-article/<str:article_id>/",
+        views.restore_article,
+        name="restore_article",
+    ),
+    path(
+        "reset-pending/",
+        views.reset_all_articles_to_pending,
+        name="reset_all_articles_to_pending",
+    ),
     path("set-language/", views.set_language, name="set_language"),
-    path("remove-embeddings/", views.remove_all_embeddings, name="remove_all_embeddings"),
-    path("embedding-management/", views.embedding_management, name="embedding_management"),
+    path(
+        "remove-embeddings/", views.remove_all_embeddings, name="remove_all_embeddings"
+    ),
+    path(
+        "embedding-management/", views.embedding_management, name="embedding_management"
+    ),
     path("generate-summary/", views.generate_summary, name="generate_summary"),
     path("weekly-summaries/", views.weekly_summaries_list, name="weekly_summaries"),
-    path("weekly-summary/<str:summary_id>/", views.weekly_summary_detail, name="weekly_summary_detail"),
+    path(
+        "weekly-summary/<str:summary_id>/",
+        views.weekly_summary_detail,
+        name="weekly_summary_detail",
+    ),
     # Scrapers
     path("scrapers/", views.scrapers_view, name="scrapers"),
-    path("trigger-scraper/<str:scraper_name>/", views.trigger_scraper, name="trigger_scraper"),
+    path(
+        "trigger-scraper/<str:scraper_name>/",
+        views.trigger_scraper,
+        name="trigger_scraper",
+    ),
     # Translation Service
-    path("translation-service/", views.translation_service_view, name="translation_service"),
+    path(
+        "translation-service/",
+        views.translation_service_view,
+        name="translation_service",
+    ),
     path("trigger-translation/", views.trigger_translation, name="trigger_translation"),
     # PDF Report
     path("generate-pdf-report/", views.generate_pdf_report, name="generate_pdf_report"),
-    path("weekly-summary/<str:summary_id>/pdf/", views.generate_weekly_summary_pdf, name="weekly_summary_pdf"),
+    path(
+        "weekly-summary/<str:summary_id>/pdf/",
+        views.generate_weekly_summary_pdf,
+        name="weekly_summary_pdf",
+    ),
 ]

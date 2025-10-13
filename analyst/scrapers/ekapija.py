@@ -15,9 +15,6 @@ from scrapy.exceptions import DropItem
 from scrapy import signals
 import pytz
 
-from dotenv import load_dotenv
-
-load_dotenv("../.env")
 # Configure logging
 logging.basicConfig(
     format="%(asctime)s [%(name)s] %(levelname)s: %(message)s", level=logging.INFO
@@ -148,7 +145,7 @@ class EkapijaSpider(CrawlSpider):
                     r"/en/news/saobracaj\?page=2$",
                     r"/en/news/it-telekomunikacije\?page=2$",
                     r"/en/news/zdravstvo\?page=2$",
-                        ],
+                ],
                 restrict_xpaths="//div[contains(@class, 'contBox')]//ul[contains(@class, 'pagination')]",
             ),
             follow=True,

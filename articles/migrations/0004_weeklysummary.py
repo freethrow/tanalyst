@@ -5,35 +5,119 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('articles', '0003_alter_article_options'),
+        ("articles", "0003_alter_article_options"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='WeeklySummary',
+            name="WeeklySummary",
             fields=[
-                ('id', django_mongodb_backend.fields.ObjectIdAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('title', models.CharField(db_column='title', help_text='Title of the weekly summary', max_length=500)),
-                ('executive_summary', models.TextField(db_column='executive_summary', help_text="Brief executive summary of the week's main points")),
-                ('main_trends', models.JSONField(db_column='main_trends', default=list, help_text='List of main business trends identified')),
-                ('featured_sectors', models.JSONField(db_column='featured_sectors', default=list, help_text='List of sectors that were most prominent')),
-                ('opportunities_italy', models.TextField(db_column='opportunities_italy', help_text='Analysis of opportunities for Italian businesses')),
-                ('full_content', models.TextField(db_column='full_content', help_text='Complete detailed analysis and summary')),
-                ('period_start', models.DateTimeField(db_column='period_start', help_text='Start date of the analysis period')),
-                ('period_end', models.DateTimeField(db_column='period_end', help_text='End date of the analysis period')),
-                ('articles_analyzed', models.IntegerField(db_column='articles_analyzed', help_text='Number of articles included in the analysis')),
-                ('llm_model', models.CharField(db_column='llm_model', help_text='AI model used to generate the summary', max_length=100)),
-                ('generated_at', models.DateTimeField(db_column='generated_at', help_text='Date and time when the summary was generated')),
-                ('weeks_analyzed', models.IntegerField(db_column='weeks_analyzed', default=2, help_text='Number of weeks back that were analyzed')),
+                (
+                    "id",
+                    django_mongodb_backend.fields.ObjectIdAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "title",
+                    models.CharField(
+                        db_column="title",
+                        help_text="Title of the weekly summary",
+                        max_length=500,
+                    ),
+                ),
+                (
+                    "executive_summary",
+                    models.TextField(
+                        db_column="executive_summary",
+                        help_text="Brief executive summary of the week's main points",
+                    ),
+                ),
+                (
+                    "main_trends",
+                    models.JSONField(
+                        db_column="main_trends",
+                        default=list,
+                        help_text="List of main business trends identified",
+                    ),
+                ),
+                (
+                    "featured_sectors",
+                    models.JSONField(
+                        db_column="featured_sectors",
+                        default=list,
+                        help_text="List of sectors that were most prominent",
+                    ),
+                ),
+                (
+                    "opportunities_italy",
+                    models.TextField(
+                        db_column="opportunities_italy",
+                        help_text="Analysis of opportunities for Italian businesses",
+                    ),
+                ),
+                (
+                    "full_content",
+                    models.TextField(
+                        db_column="full_content",
+                        help_text="Complete detailed analysis and summary",
+                    ),
+                ),
+                (
+                    "period_start",
+                    models.DateTimeField(
+                        db_column="period_start",
+                        help_text="Start date of the analysis period",
+                    ),
+                ),
+                (
+                    "period_end",
+                    models.DateTimeField(
+                        db_column="period_end",
+                        help_text="End date of the analysis period",
+                    ),
+                ),
+                (
+                    "articles_analyzed",
+                    models.IntegerField(
+                        db_column="articles_analyzed",
+                        help_text="Number of articles included in the analysis",
+                    ),
+                ),
+                (
+                    "llm_model",
+                    models.CharField(
+                        db_column="llm_model",
+                        help_text="AI model used to generate the summary",
+                        max_length=100,
+                    ),
+                ),
+                (
+                    "generated_at",
+                    models.DateTimeField(
+                        db_column="generated_at",
+                        help_text="Date and time when the summary was generated",
+                    ),
+                ),
+                (
+                    "weeks_analyzed",
+                    models.IntegerField(
+                        db_column="weeks_analyzed",
+                        default=2,
+                        help_text="Number of weeks back that were analyzed",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Weekly Summary',
-                'verbose_name_plural': 'Weekly Summaries',
-                'db_table': 'weekly_summaries',
-                'ordering': ['-generated_at'],
-                'managed': False,
+                "verbose_name": "Weekly Summary",
+                "verbose_name_plural": "Weekly Summaries",
+                "db_table": "weekly_summaries",
+                "ordering": ["-generated_at"],
+                "managed": False,
             },
         ),
     ]

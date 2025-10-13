@@ -17,7 +17,7 @@ app.config_from_object("django.conf:settings", namespace="CELERY")
 app.autodiscover_tasks()
 
 # Also discover tasks from our agents modules
-app.autodiscover_tasks(['analyst.agents.summarizer'])
+app.autodiscover_tasks(["analyst.agents.summarizer"])
 
 
 @app.task(bind=True, ignore_result=True)

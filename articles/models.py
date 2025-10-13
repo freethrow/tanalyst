@@ -11,18 +11,18 @@ class Article(models.Model):
     with tracking for validation and usage status.
     Compatible with MongoDB Compass document structure.
     """
-    
+
     # Status constants
-    PENDING = 'PENDING'
-    APPROVED = 'APPROVED'
-    DISCARDED = 'DISCARDED'
-    SENT = 'SENT'
-    
+    PENDING = "PENDING"
+    APPROVED = "APPROVED"
+    DISCARDED = "DISCARDED"
+    SENT = "SENT"
+
     STATUS_CHOICES = [
-        (PENDING, 'Pending Review'),
-        (APPROVED, 'Approved'),
-        (DISCARDED, 'Discarded'),
-        (SENT, 'Sent in Email'),
+        (PENDING, "Pending Review"),
+        (APPROVED, "Approved"),
+        (DISCARDED, "Discarded"),
+        (SENT, "Sent in Email"),
     ]
 
     # Title fields - matching MongoDB field names exactly
@@ -120,7 +120,7 @@ class Article(models.Model):
         choices=STATUS_CHOICES,
         default=PENDING,
         db_column="status",
-        help_text="Current status of the article in the workflow"
+        help_text="Current status of the article in the workflow",
     )
 
     time_translated = models.DateTimeField(
@@ -283,9 +283,7 @@ class Article(models.Model):
             "content_it": self.content_it,
             "url": self.url,
             "source": self.source,
-            "scraped_at": self.scraped_at.isoformat()
-            if self.scraped_at
-            else None,
+            "scraped_at": self.scraped_at.isoformat() if self.scraped_at else None,
             "llm_model": self.llm_model,
             "status": self.status,
         }
@@ -296,130 +294,127 @@ class WeeklySummary(models.Model):
     Weekly Summary model for storing AI-generated business summaries.
     Compatible with MongoDB weekly_summaries collection.
     """
-    
+
     # Title of the weekly summary
     title = models.CharField(
-        max_length=500,
-        db_column="title",
-        help_text="Title of the weekly summary"
+        max_length=500, db_column="title", help_text="Title of the weekly summary"
     )
-    
+
     # Executive summary (2-3 sentences)
     executive_summary = models.TextField(
         db_column="executive_summary",
-        help_text="Brief executive summary of the week's main points"
+        help_text="Brief executive summary of the week's main points",
     )
-    
+
     # Main trends (stored as JSON array in MongoDB)
     main_trends = models.JSONField(
         default=list,
         db_column="main_trends",
-        help_text="List of main business trends identified"
+        help_text="List of main business trends identified",
     )
-    
+
     # Featured sectors (stored as JSON array in MongoDB)
     featured_sectors = models.JSONField(
         default=list,
         db_column="featured_sectors",
-        help_text="List of sectors that were most prominent"
+        help_text="List of sectors that were most prominent",
     )
-    
+
     # Opportunities for Italian companies
     opportunities_italy = models.TextField(
         db_column="opportunities_italy",
-        help_text="Analysis of opportunities for Italian businesses"
+        help_text="Analysis of opportunities for Italian businesses",
     )
-    
+
     # Full content of the summary
     full_content = models.TextField(
-        db_column="full_content",
-        help_text="Complete detailed analysis and summary"
+        db_column="full_content", help_text="Complete detailed analysis and summary"
     )
-    
+
     # Period covered by the summary
     period_start = models.DateTimeField(
-        db_column="period_start",
-        help_text="Start date of the analysis period"
+        db_column="period_start", help_text="Start date of the analysis period"
     )
-    
+
     period_end = models.DateTimeField(
-        db_column="period_end",
-        help_text="End date of the analysis period"
+        db_column="period_end", help_text="End date of the analysis period"
     )
-    
+
     # Number of articles analyzed
     articles_analyzed = models.IntegerField(
         db_column="articles_analyzed",
-        help_text="Number of articles included in the analysis"
+        help_text="Number of articles included in the analysis",
     )
-    
+
     # LLM model used for generation
     llm_model = models.CharField(
         max_length=100,
         db_column="llm_model",
-        help_text="AI model used to generate the summary"
+        help_text="AI model used to generate the summary",
     )
-    
+
     # When the summary was generated
     generated_at = models.DateTimeField(
         db_column="generated_at",
-        help_text="Date and time when the summary was generated"
+        help_text="Date and time when the summary was generated",
     )
-    
+
     # Number of weeks analyzed
     weeks_analyzed = models.IntegerField(
         default=2,
         db_column="weeks_analyzed",
-        help_text="Number of weeks back that were analyzed"
+        help_text="Number of weeks back that were analyzed",
     )
-    
+
     # Custom manager for MongoDB
     objects = MongoManager()
-    
+
     class Meta:
         # MongoDB collection name
         db_table = "weekly_summaries"
-        
+
         # Set to False since we're managing the collection through MongoDB
         managed = False
-        
+
         # Indexes for better query performance
         indexes = [
             models.Index(fields=["generated_at"]),
             models.Index(fields=["period_start", "period_end"]),
         ]
-        
+
         # Default ordering (newest first)
         ordering = ["-generated_at"]
-        
+
         # Verbose names for admin interface
         verbose_name = "Weekly Summary"
         verbose_name_plural = "Weekly Summaries"
-    
+
     def __str__(self):
         """
         String representation of the WeeklySummary model.
         """
         return f"{self.title} ({self.generated_at.strftime('%d %b %Y')})"
-    
+
     def get_absolute_url(self):
         """
         Return the absolute URL for this summary.
         """
-        return reverse('articles:weekly_summary_detail', kwargs={'summary_id': str(self.pk)})
-    
+        return reverse(
+            "articles:weekly_summary_detail", kwargs={"summary_id": str(self.pk)}
+        )
+
     def get_period_display(self):
         """
         Return a formatted string showing the analysis period.
         """
         return f"{self.period_start.strftime('%d %b')} - {self.period_end.strftime('%d %b %Y')}"
-    
+
     def get_trends_count(self):
         """
         Return the number of main trends identified.
         """
         return len(self.main_trends) if self.main_trends else 0
-    
+
     def get_sectors_count(self):
         """
         Return the number of featured sectors.

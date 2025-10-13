@@ -10,7 +10,6 @@ translations = {
     "Related Articles": "Articoli Correlati",
     "Back": "Indietro",
     "View Original": "Visualizza Originale",
-    
     # Article Edit
     "Update article content and translation": "Aggiorna contenuto e traduzione dell'articolo",
     "View Article": "Visualizza Articolo",
@@ -21,7 +20,6 @@ translations = {
     "%(source_language)s Content": "Contenuto %(source_language)s",
     "Italian Content": "Contenuto Italiano",
     "Save Changes": "Salva Modifiche",
-    
     # Embedding Management
     "Embedding Management": "Gestione Embeddings",
     "Manage vector embeddings for semantic search": "Gestisci gli embeddings vettoriali per la ricerca semantica",
@@ -44,12 +42,10 @@ translations = {
     "Your system is now configured to use Nomic embeddings (nomic-embed-text-v1.5) instead of VoyageAI. Remove old embeddings first, then generate new ones for better performance.": "Il tuo sistema è ora configurato per usare gli embeddings Nomic (nomic-embed-text-v1.5) invece di VoyageAI. Rimuovi prima i vecchi embeddings, poi genera quelli nuovi per prestazioni migliori.",
     "Confirm Removal": "Conferma Rimozione",
     "Yes, Remove All": "Sì, Rimuovi Tutto",
-    
     # Index
     "Articles": "Articoli",
     "No articles found": "Nessun articolo trovato",
     "Start by adding some articles to get started.": "Inizia aggiungendo alcuni articoli per cominciare.",
-    
     # Login
     "Login": "Accedi",
     "Welcome Back": "Bentornato",
@@ -62,7 +58,6 @@ translations = {
     "Remember me": "Ricordami",
     "Sign In": "Accedi",
     "Contact your administrator to create an account": "Contatta il tuo amministratore per creare un account",
-    
     # Send Email
     "Send the latest translated articles to an email address": "Invia gli ultimi articoli tradotti a un indirizzo email",
     "Back to Home": "Torna alla Home",
@@ -74,7 +69,6 @@ translations = {
     "The email will be sent in the background and may take a few minutes": "L'email verrà inviata in background e potrebbe richiedere alcuni minuti",
     "Approved Articles": "Articoli Approvati",
     "Ready to send": "Pronti per l'invio",
-    
     # Vector Search
     "Search articles using semantic similarity": "Cerca articoli usando la similarità semantica",
     "Enter your search query...": "Inserisci la tua ricerca...",
@@ -84,7 +78,6 @@ translations = {
     "Try different search terms or check your spelling": "Prova termini di ricerca diversi o controlla l'ortografia",
     "Start searching": "Inizia a cercare",
     "Enter a query above to find relevant articles": "Inserisci una query sopra per trovare articoli rilevanti",
-    
     # Scrapers
     "Scrapers": "Scrapers",
     "Manual Scrapers": "Scrapers Manuali",
@@ -102,7 +95,6 @@ translations = {
     "BiznisRS scraper started successfully. New articles will appear shortly.": "Scraper BiznisRS avviato con successo. I nuovi articoli appariranno a breve.",
     "Invalid scraper name": "Nome scraper non valido",
     "Error starting scraper: %(error)s": "Errore nell'avvio dello scraper: %(error)s",
-    
     # Translation Service
     "Translation Service": "Servizio di Traduzione",
     "Translation": "Traduzione",
@@ -127,7 +119,6 @@ translations = {
     "Translation quality is reviewed by AI for accuracy": "La qualità della traduzione è verificata dall'IA per accuratezza",
     "Translation service started successfully. Articles will be translated shortly.": "Servizio di traduzione avviato con successo. Gli articoli saranno tradotti a breve.",
     "Error starting translation: %(error)s": "Errore nell'avvio della traduzione: %(error)s",
-    
     # PDF Report
     "Download PDF": "Scarica PDF",
     "Business News Report": "Report Notizie di Business",
@@ -135,37 +126,39 @@ translations = {
     "Latest Articles": "Ultimi Articoli",
 }
 
+
 def fill_translations():
     """Read the PO file and fill in missing translations."""
     import re
-    
+
     po_file = r"c:\Users\DELL\Desktop\TA\locale\it\LC_MESSAGES\django.po"
-    
-    with open(po_file, 'r', encoding='utf-8') as f:
+
+    with open(po_file, "r", encoding="utf-8") as f:
         content = f.read()
-    
+
     # For each translation in our dictionary
     for english, italian in translations.items():
         # Escape special regex characters
         english_escaped = re.escape(english)
-        
+
         # Pattern to find msgid with empty msgstr
         pattern = rf'(msgid "{english_escaped}"\nmsgstr ")("")'
-        
+
         # Replace with Italian translation
-        replacement = rf'\1{italian}\2'
+        replacement = rf"\1{italian}\2"
         content = re.sub(pattern, replacement, content)
-    
+
     # Remove fuzzy markers
-    content = re.sub(r'#, fuzzy\n#\| msgid "[^"]*"\n', '', content)
-    content = re.sub(r'#, fuzzy\n', '', content)
-    
+    content = re.sub(r'#, fuzzy\n#\| msgid "[^"]*"\n', "", content)
+    content = re.sub(r"#, fuzzy\n", "", content)
+
     # Write back
-    with open(po_file, 'w', encoding='utf-8') as f:
+    with open(po_file, "w", encoding="utf-8") as f:
         f.write(content)
-    
+
     print(f"✅ Filled translations in {po_file}")
     print("Now run: python manage.py compilemessages --ignore=venv")
+
 
 if __name__ == "__main__":
     fill_translations()

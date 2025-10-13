@@ -15,9 +15,6 @@ from pymongo import MongoClient
 from celery import shared_task
 from django.conf import settings
 
-
-load_dotenv("../.env")
-
 # Configure logging
 logger = logging.getLogger(__name__)
 
@@ -131,7 +128,6 @@ class TranslatedArticle(BaseModel):
     )
     settore: str = Field(description="Il settore più rilevante per l'articolo")
 
-
     @field_validator("settore")
     @classmethod
     def validate_settore(cls, v: str) -> str:
@@ -188,8 +184,8 @@ def get_mongodb_connection():
     """Get MongoDB connection using settings from Django or environment variables."""
     mongo_uri = getattr(
         settings,
-        "MONGO_URI",
-        os.getenv("MONGO_URI", "mongodb://localhost:8818/?directConnection=true"),
+        "MONGODB_URI",
+        os.getenv("MONGODB_URI", "mongodb://localhost:7587/?directConnection=true"),
     )
     mongo_db = getattr(settings, "MONGO_DB", os.getenv("MONGO_DB", "analyst"))
     mongo_collection = getattr(
@@ -204,7 +200,11 @@ def get_mongodb_connection():
 
 
 async def translate_article_async(
-    title: str, content: str, source: str = "Unknown", source_language: str = "en", wait_time: int = 10
+    title: str,
+    content: str,
+    source: str = "Unknown",
+    source_language: str = "en",
+    wait_time: int = 10,
 ) -> Dict[str, Any]:
     """
     Translate a single article to Italian.
@@ -227,7 +227,7 @@ async def translate_article_async(
 
     # Determine language label for prompt
     language_label = "English" if source_language == "en" else "Serbian"
-    
+
     prompt = f"""Translate this business article from {language_label} to Italian.
 
 Article to translate:
@@ -253,7 +253,7 @@ Provide a professional Italian translation suitable for business publications.""
             "llm_model": MODEL_NAME,
             "time_translated": datetime.utcnow(),
             "translation_success": True,
-            "status": "PENDING"
+            "status": "PENDING",
         }
     except Exception as e:
         logger.error(f"Translation error: {str(e)}")
@@ -269,7 +269,11 @@ Provide a professional Italian translation suitable for business publications.""
 
 
 def translate_article(
-    title: str, content: str, source: str = "Unknown", source_language: str = "en", wait_time: int = 10
+    title: str,
+    content: str,
+    source: str = "Unknown",
+    source_language: str = "en",
+    wait_time: int = 10,
 ) -> Dict[str, Any]:
     """
     Synchronous wrapper for translate_article_async.
@@ -383,7 +387,7 @@ def translate_untranslated_articles(self, limit: int = None):
 
                     # Get source information
                     source = article.get("source", "Unknown")
-                    
+
                     # Translate the article (wait time is 0 for first article in batch, 10 for others)
                     wait_time = 0 if idx == 0 else 10
                     translation_result = translate_article(

@@ -1,0 +1,62 @@
+
+services:
+  # Django web application
+  web:
+    build: .
+    container_name: ta_web
+    command: gunicorn analyst.wsgi:application --bind 0.0.0.0:8000 --workers 4 --timeout 120
+    volumes:
+      - .:/app
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      # Use host-published ports for your existing containers
+      - REDIS_URL=redis://host.docker.internal:6379/0
+      - DB_HOST=host.docker.internal
+      - DB_PORT=7587
+      - MONGODB_URI=mongodb://host.docker.internal:7587/?directConnection=true
+    restart: unless-stopped
+
+  # Celery worker for background tasks
+  celery_worker:
+    build: .
+    container_name: ta_celery_worker
+    command: celery -A analyst worker --loglevel=info --concurrency=4
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    environment:
+      - REDIS_URL=redis://host.docker.internal:6379/0
+      - DB_HOST=host.docker.internal
+      - DB_PORT=7587
+      - MONGODB_URI=mongodb://host.docker.internal:7587/?directConnection=true
+    restart: unless-stopped
+
+  # Celery beat for scheduled tasks
+  celery_beat:
+    build: .
+    container_name: ta_celery_beat
+    command: celery -A analyst beat --loglevel=info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    environment:
+      - REDIS_URL=redis://host.docker.internal:6379/0
+      - DB_HOST=host.docker.internal
+      - DB_PORT=7587
+      - MONGODB_URI=mongodb://host.docker.internal:7587/?directConnection=true
+    restart: unless-stopped
+
+volumes:
+  static_volume:
+  media_volume:
+
+networks:
+  default:
+    name: ta_network

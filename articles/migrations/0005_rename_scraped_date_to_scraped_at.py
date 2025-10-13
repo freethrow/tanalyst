@@ -4,14 +4,18 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('articles', '0004_weeklysummary'),
+        ("articles", "0004_weeklysummary"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='article',
-            options={'managed': False, 'ordering': ['-scraped_at'], 'verbose_name': 'Article', 'verbose_name_plural': 'Articles'},
+            name="article",
+            options={
+                "managed": False,
+                "ordering": ["-scraped_at"],
+                "verbose_name": "Article",
+                "verbose_name_plural": "Articles",
+            },
         ),
     ]

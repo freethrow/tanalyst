@@ -15,9 +15,6 @@ from pymongo import MongoClient
 from celery import shared_task
 from django.conf import settings
 
-
-load_dotenv("../.env")
-
 # Configure logging
 logger = logging.getLogger(__name__)
 
@@ -91,8 +88,8 @@ def get_mongodb_connection():
     """Get MongoDB connection using settings from Django or environment variables."""
     mongo_uri = getattr(
         settings,
-        "MONGO_URI",
-        os.getenv("MONGO_URI", "mongodb://localhost:8818/?directConnection=true"),
+        "MONGODB_URI",
+        os.getenv("MONGODB_URI", "mongodb://localhost:7587/?directConnection=true"),
     )
     mongo_db = getattr(settings, "MONGO_DB", os.getenv("MONGO_DB", "analyst"))
     mongo_collection = getattr(
@@ -133,7 +130,7 @@ async def generate_weekly_summary_async(
         content = article.get("content_it", "")
         sector = article.get("sector", "Non specificato")
         date = article.get("article_date", "")
-        
+
         articles_text += f"""
 Articolo {i}:
 Titolo: {title}
@@ -232,7 +229,9 @@ def generate_weekly_summary_task(self, weeks_back: int = 2):
         end_date = datetime.utcnow()
         start_date = end_date - timedelta(weeks=weeks_back)
 
-        logger.info(f"Generating weekly summary for articles from {start_date.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')}")
+        logger.info(
+            f"Generating weekly summary for articles from {start_date.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')}"
+        )
 
         # Query for articles from the last N weeks with Italian content
         query = {
@@ -243,13 +242,13 @@ def generate_weekly_summary_task(self, weeks_back: int = 2):
                 # Must be from the specified date range
                 {"article_date": {"$gte": start_date, "$lte": end_date}},
                 # Must be validated/approved articles
-                {"status": {"$in": ["APPROVED", "SENT"]}}
+                {"status": {"$in": ["APPROVED", "SENT"]}},
             ]
         }
 
         # Get articles
         articles = list(collection.find(query).sort("article_date", -1))
-        
+
         logger.info(f"Found {len(articles)} articles for summary generation")
 
         if len(articles) == 0:
@@ -261,7 +260,9 @@ def generate_weekly_summary_task(self, weeks_back: int = 2):
             }
 
         if len(articles) < 5:
-            logger.warning(f"Only {len(articles)} articles found - summary may be limited")
+            logger.warning(
+                f"Only {len(articles)} articles found - summary may be limited"
+            )
 
         # Generate the weekly summary
         logger.info("Generating weekly summary...")
@@ -269,8 +270,10 @@ def generate_weekly_summary_task(self, weeks_back: int = 2):
 
         if summary_result["generation_success"]:
             # Save summary to a separate collection
-            summaries_collection = client[getattr(settings, "MONGO_DB", "analyst")]["weekly_summaries"]
-            
+            summaries_collection = client[getattr(settings, "MONGO_DB", "analyst")][
+                "weekly_summaries"
+            ]
+
             summary_doc = {
                 "title": summary_result["title"],
                 "executive_summary": summary_result["executive_summary"],
@@ -285,13 +288,13 @@ def generate_weekly_summary_task(self, weeks_back: int = 2):
                 "generated_at": summary_result["generated_at"],
                 "weeks_analyzed": weeks_back,
             }
-            
+
             # Insert the summary
             result = summaries_collection.insert_one(summary_doc)
             summary_id = result.inserted_id
-            
+
             logger.info(f"✅ Weekly summary generated and saved with ID: {summary_id}")
-            
+
             return {
                 "status": "success",
                 "message": "Weekly summary generated successfully",
@@ -299,10 +302,14 @@ def generate_weekly_summary_task(self, weeks_back: int = 2):
                 "articles_analyzed": len(articles),
                 "summary_generated": True,
                 "title": summary_result["title"],
-                "executive_summary": summary_result["executive_summary"][:200] + "..." if len(summary_result["executive_summary"]) > 200 else summary_result["executive_summary"],
+                "executive_summary": summary_result["executive_summary"][:200] + "..."
+                if len(summary_result["executive_summary"]) > 200
+                else summary_result["executive_summary"],
             }
         else:
-            logger.error(f"Failed to generate summary: {summary_result.get('generation_error', 'Unknown error')}")
+            logger.error(
+                f"Failed to generate summary: {summary_result.get('generation_error', 'Unknown error')}"
+            )
             return {
                 "status": "error",
                 "message": f"Failed to generate summary: {summary_result.get('generation_error', 'Unknown error')}",
@@ -322,23 +329,22 @@ def generate_weekly_summary_task(self, weeks_back: int = 2):
 def get_latest_weekly_summary():
     """
     Get the most recent weekly summary from the database.
-    
+
     Returns:
         Dict with the latest summary or None if no summaries exist
     """
     client = None
     try:
         client, _ = get_mongodb_connection()
-        summaries_collection = client[getattr(settings, "MONGO_DB", "analyst")]["weekly_summaries"]
-        
+        summaries_collection = client[getattr(settings, "MONGO_DB", "analyst")][
+            "weekly_summaries"
+        ]
+
         # Get the most recent summary
-        latest_summary = summaries_collection.find_one(
-            {},
-            sort=[("generated_at", -1)]
-        )
-        
+        latest_summary = summaries_collection.find_one({}, sort=[("generated_at", -1)])
+
         return latest_summary
-        
+
     except Exception as e:
         logger.error(f"Error retrieving latest summary: {str(e)}")
         return None
@@ -350,26 +356,27 @@ def get_latest_weekly_summary():
 def get_weekly_summaries(limit: int = 10):
     """
     Get recent weekly summaries from the database.
-    
+
     Args:
         limit: Maximum number of summaries to retrieve
-        
+
     Returns:
         List of summary dictionaries
     """
     client = None
     try:
         client, _ = get_mongodb_connection()
-        summaries_collection = client[getattr(settings, "MONGO_DB", "analyst")]["weekly_summaries"]
-        
+        summaries_collection = client[getattr(settings, "MONGO_DB", "analyst")][
+            "weekly_summaries"
+        ]
+
         # Get recent summaries
-        summaries = list(summaries_collection.find(
-            {},
-            sort=[("generated_at", -1)]
-        ).limit(limit))
-        
+        summaries = list(
+            summaries_collection.find({}, sort=[("generated_at", -1)]).limit(limit)
+        )
+
         return summaries
-        
+
     except Exception as e:
         logger.error(f"Error retrieving summaries: {str(e)}")
         return []

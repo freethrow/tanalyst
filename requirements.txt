@@ -6,6 +6,7 @@ pydantic-ai
 scrapy
 pytz
 celery
+django-celery-beat
 redis
 django-redis
 resend
@@ -13,3 +14,7 @@ ruff
 python-dotenv
 nomic
 reportlab
+waitress
+whitenoise
+gunicorn
+vine<6.0.0

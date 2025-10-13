@@ -768,3 +768,7 @@ msgstr ""
 
 #~ msgid "Error sending email"
 #~ msgstr "Error sending email"
+
+# Admin permission error message
+msgid "This action can only be performed by an administrator"
+msgstr "This action can only be performed by an administrator"

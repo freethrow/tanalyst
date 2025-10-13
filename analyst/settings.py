@@ -26,7 +26,6 @@ DB_PORT = os.getenv("DB_PORT")
 DB_NAME = os.getenv("DB_NAME")
 
 
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -40,7 +39,7 @@ SECRET_KEY = "django-insecure-y(&cyhtuzn9#=3^uv3(6+cso$0@nmbaaqfah!*fxs_bc7^u))3
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]  # Allow all hosts for local LAN deployment
 
 
 # Application definition
@@ -55,10 +54,12 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django_htmx",
+    "django_celery_beat",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -96,8 +97,8 @@ WSGI_APPLICATION = "analyst.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django_mongodb_backend",
-        "HOST": "mongodb://localhost:8818/?directConnection=true",
-        "NAME": "analyst",
+        "HOST": f"mongodb://{DB_HOST or 'localhost'}:{DB_PORT or '8818'}/?directConnection=true",
+        "NAME": DB_NAME or "analyst",
     },
 }
 
@@ -136,17 +137,21 @@ USE_L10N = True
 
 # Available languages
 LANGUAGES = [
-    ('it', 'Italiano'),
-    ('en', 'English'),
+    ("it", "Italiano"),
+    ("en", "English"),
 ]
 
 # Locale paths
 LOCALE_PATHS = [
-    BASE_DIR / 'locale',
+    BASE_DIR / "locale",
 ]
 
 
 STATIC_URL = "static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
+# WhiteNoise configuration for serving static files with Waitress
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
@@ -162,17 +167,17 @@ MIGRATION_MODULES = {
 }
 
 # Authentication settings
-LOGIN_URL = '/login/'
-LOGIN_REDIRECT_URL = '/'
-LOGOUT_REDIRECT_URL = '/login/'
+LOGIN_URL = "/login/"
+LOGIN_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = "/login/"
 
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djangoagent.settings")
 
 TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
 
-CELERY_BROKER_URL = "redis://localhost:6379/0"
-CELERY_RESULT_BACKEND = "redis://localhost:6379/0"
+CELERY_BROKER_URL = REDIS_URL
+CELERY_RESULT_BACKEND = REDIS_URL
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
@@ -184,7 +189,7 @@ CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
         # Use a different Redis DB index than Celery (Celery uses 0)
-        "LOCATION": "redis://127.0.0.1:6379/1",
+        "LOCATION": REDIS_URL.replace("/0", "/1"),  # Use DB 1 instead of 0
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         },

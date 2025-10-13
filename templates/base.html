@@ -229,11 +229,17 @@
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center h-16">
           <!-- Logo -->
-          <div class="flex items-center">
+          <div class="flex items-center gap-6">
             <a href="/" class="text-2xl font-bold font-display text-primary hover:text-accent transition-colors">TA</a>
+            {% if not user.is_authenticated %}
+            <a href="{% url 'articles:about' %}" class="text-sm font-medium font-display text-gray-700 hover:text-primary transition-colors">
+              {% trans "About" %}
+            </a>
+            {% endif %}
           </div>
 
           <!-- Desktop Navigation -->
+          {% if user.is_authenticated %}
           <nav class="hidden md:flex items-center space-x-1">
             <a href="/" class="px-3 py-2 rounded-md text-sm font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary transition-colors">
               {% trans "Home" %}
@@ -261,6 +267,7 @@
                   <a href="/vector-search/" class="block px-4 py-2 text-sm text-gray-700 hover:bg-secondary hover:text-primary">
                     🔍 {% trans "Vector Search" %}
                   </a>
+                  {% if user.is_staff %}
                   <a href="{% url 'articles:embedding_management' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-secondary hover:text-primary">
                     🔧 {% trans "Embeddings" %}
                   </a>
@@ -270,17 +277,21 @@
                   <a href="{% url 'articles:translation_service' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-secondary hover:text-primary">
                     🌐 {% trans "Translation" %}
                   </a>
+                  {% endif %}
                 </div>
               </div>
             </div>
 
+            {% if user.is_staff %}
             <a href="{% url 'articles:weekly_summaries' %}" class="px-3 py-2 rounded-md text-sm font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary transition-colors">
               📊 {% trans "Summaries" %}
             </a>
             <a href="{% url 'articles:send_email' %}" class="px-3 py-2 rounded-md text-sm font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary transition-colors">
               📧 {% trans "Email" %}
             </a>
+            {% endif %}
           </nav>
+          {% endif %}
 
           <!-- User Menu, Language Switcher & Mobile Menu Button -->
           <div class="flex items-center space-x-3">
@@ -336,11 +347,13 @@
             </div>
 
             <!-- Mobile menu button -->
+            {% if user.is_authenticated %}
             <button id="mobile-menu-button" class="md:hidden p-2 rounded-md text-gray-700 hover:bg-secondary hover:text-primary transition-colors">
               <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
               </svg>
             </button>
+            {% endif %}
           </div>
         </div>
 
@@ -369,6 +382,7 @@
             </div>
           {% endif %}
           
+          {% if user.is_authenticated %}
           <div class="px-2 pt-2 pb-3 space-y-1">
             <a href="/" class="block px-3 py-2 rounded-md text-base font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary">
               {% trans "Home" %}
@@ -387,17 +401,28 @@
               <a href="/vector-search/" class="block px-3 py-2 rounded-md text-base font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary">
                 🔍 {% trans "Vector Search" %}
               </a>
+              {% if user.is_staff %}
               <a href="{% url 'articles:embedding_management' %}" class="block px-3 py-2 rounded-md text-base font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary">
                 🔧 {% trans "Embeddings" %}
               </a>
+              <a href="{% url 'articles:scrapers' %}" class="block px-3 py-2 rounded-md text-base font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary">
+                🤖 {% trans "Scrapers" %}
+              </a>
+              <a href="{% url 'articles:translation_service' %}" class="block px-3 py-2 rounded-md text-base font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary">
+                🌐 {% trans "Translation" %}
+              </a>
+              {% endif %}
             </div>
+            {% if user.is_staff %}
             <a href="{% url 'articles:weekly_summaries' %}" class="block px-3 py-2 rounded-md text-base font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary">
               📊 {% trans "Summaries" %}
             </a>
             <a href="{% url 'articles:send_email' %}" class="block px-3 py-2 rounded-md text-base font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary">
               📧 {% trans "Email" %}
             </a>
+            {% endif %}
           </div>
+          {% endif %}
         </div>
       </div>
     </header>

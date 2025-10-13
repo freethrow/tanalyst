@@ -67,10 +67,8 @@ msgid "Approved Articles Collection"
 msgstr "Modifica Articolo"
 
 #: .\articles\views.py:1010
-#, fuzzy
-#| msgid "Related Articles"
 msgid "Latest Articles"
-msgstr "Modifica Articolo"
+msgstr "Ultimi Articoli"
 
 #: .\templates\article_detail.html:15
 msgid "Print"
@@ -82,7 +80,7 @@ msgstr ""
 
 #: .\templates\article_detail.html:77
 msgid "Related Articles"
-msgstr "Modifica Articolo"
+msgstr "Articoli Correlati"
 
 #: .\templates\article_detail.html:91
 msgid "No related articles found"
@@ -347,47 +345,47 @@ msgstr ""
 
 #: .\templates\login.html:4
 msgid "Login"
-msgstr ""
+msgstr "Accedi"
 
 #: .\templates\login.html:18
 msgid "Welcome Back"
-msgstr ""
+msgstr "Bentornato"
 
 #: .\templates\login.html:19
 msgid "Sign in to access your account"
-msgstr ""
+msgstr "Accedi per accedere al tuo account"
 
 #: .\templates\login.html:33
 msgid "Invalid username or password"
-msgstr ""
+msgstr "Nome utente o password non validi"
 
 #: .\templates\login.html:47
 msgid "Username"
-msgstr ""
+msgstr "Nome utente"
 
 #: .\templates\login.html:56
 msgid "Enter your username"
-msgstr ""
+msgstr "Inserisci il tuo nome utente"
 
 #: .\templates\login.html:63
 msgid "Password"
-msgstr ""
+msgstr "Password"
 
 #: .\templates\login.html:71
 msgid "Enter your password"
-msgstr ""
+msgstr "Inserisci la tua password"
 
 #: .\templates\login.html:79
 msgid "Remember me"
-msgstr ""
+msgstr "Ricordami"
 
 #: .\templates\login.html:91
 msgid "Sign In"
-msgstr ""
+msgstr "Accedi"
 
 #: .\templates\login.html:103
 msgid "Contact your administrator to create an account"
-msgstr ""
+msgstr "Contatta il tuo amministratore per creare un account"
 
 # Article Status
 #: .\templates\partials\card.html:23
@@ -774,3 +772,15 @@ msgstr "Genera Primo Riassunto"
 
 #~ msgid "Error sending email"
 #~ msgstr "Errore nell'invio dell'email"
+
+# Admin permission error message
+msgid "This action can only be performed by an administrator"
+msgstr "Questa azione richiede un amministratore"
+
+# Navigation
+msgid "About"
+msgstr "Chi Siamo"
+
+# Embedding management
+msgid "Embeddings generation started"
+msgstr "Iniziata la creazione di embeddings"

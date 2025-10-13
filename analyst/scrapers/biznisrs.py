@@ -15,9 +15,6 @@ from scrapy.exceptions import DropItem
 from scrapy import signals
 import pytz
 
-from dotenv import load_dotenv
-
-load_dotenv("../.env")
 # Configure logging
 logging.basicConfig(
     format="%(asctime)s [%(name)s] %(levelname)s: %(message)s", level=logging.INFO
@@ -86,12 +83,12 @@ class MongoDBPipeline:
 
             # Insert into MongoDB
             self.collection.insert_one(dict(item))
-            logger.info(f"Successfully saved article: {item['title_en']}")
+            logger.info(f"Successfully saved article: {item.get('title_rs', item.get('title_en', 'Unknown'))}")
             return item
 
         except DuplicateKeyError:
-            logger.info(f"Duplicate article found: {item['title_en']}")
-            raise DropItem(f"Duplicate article found: {item['title_en']}")
+            logger.info(f"Duplicate article found: {item.get('title_rs', item.get('title_en', 'Unknown'))}")
+            raise DropItem(f"Duplicate article found: {item.get('title_rs', item.get('title_en', 'Unknown'))}")
 
         except Exception as e:
             logger.error(f"Error saving article to MongoDB: {str(e)}")
@@ -153,7 +150,7 @@ class BiznisRsSpider(CrawlSpider):
             # Extract content from div.post[itemprop="articleBody"]
             content_blocks = []
             content_div = response.css('div.post[itemprop="articleBody"]')
-            
+
             if content_div:
                 # Get all text nodes from paragraphs and other elements
                 text_parts = content_div.xpath(".//text()[normalize-space()]").getall()
@@ -162,7 +159,7 @@ class BiznisRsSpider(CrawlSpider):
             # Clean and join content
             content_parts = [part.strip() for part in content_blocks if part.strip()]
             content = " ".join(content_parts)
-            
+
             # If we have intro, prepend it to content
             if intro and content:
                 content = f"{intro} {content}"
@@ -173,12 +170,16 @@ class BiznisRsSpider(CrawlSpider):
             date = None
             try:
                 # Look for date in meta tags or structured data
-                date_meta = response.css('meta[property="article:published_time"]::attr(content)').get()
+                date_meta = response.css(
+                    'meta[property="article:published_time"]::attr(content)'
+                ).get()
                 if date_meta:
-                    date = datetime.fromisoformat(date_meta.replace('Z', '+00:00'))
+                    date = datetime.fromisoformat(date_meta.replace("Z", "+00:00"))
                 else:
                     # Look for date in text content - this might need adjustment based on actual site structure
-                    date_text = response.css('.date, .published, .post-date::text').get()
+                    date_text = response.css(
+                        ".date, .published, .post-date::text"
+                    ).get()
                     if date_text:
                         # Try to parse Serbian date format
                         date_text = date_text.strip()

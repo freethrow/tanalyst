@@ -14,6 +14,7 @@ from pymongo import MongoClient
 from django.utils import timezone
 
 from analyst.scrapers import ekapija, biznisrs
+
 # Import the summarizer module to register the task
 from analyst.agents import summarizer
 
@@ -23,7 +24,7 @@ EMBEDDING_BATCH_SIZE = 10
 logger = get_task_logger(__name__)
 
 # Initialize Nomic client
-os.environ['NOMIC_API_KEY'] = settings.NOMIC_API_KEY
+os.environ["NOMIC_API_KEY"] = settings.NOMIC_API_KEY
 
 
 def get_mongodb_connection():
@@ -31,7 +32,7 @@ def get_mongodb_connection():
     mongo_uri = getattr(
         settings,
         "MONGODB_URI",
-        os.getenv("MONGO_URI", "mongodb://localhost:8818/?directConnection=true"),
+        os.getenv("MONGODB_URI", "mongodb://localhost:7587/?directConnection=true"),
     )
     mongo_db = getattr(settings, "MONGO_DB", os.getenv("MONGO_DB", "analyst"))
     mongo_collection = getattr(
@@ -57,10 +58,12 @@ def scrape_ekapija():
     ekapija.main()
     return "Scraping Ekapija started"
 
+
 @shared_task(max_retries=3, name="scrape_biznisrs")
 def scrape_biznisrs():
     biznisrs.main()
     return "Scraping Biznisrs started"
+
 
 @shared_task(bind=True, max_retries=3, name="create_all_embeddings")
 def create_all_embeddings(
@@ -89,7 +92,7 @@ def create_all_embeddings(
                 {"embedding": {"$exists": False}},
                 # Must have Italian title and content (required for embedding)
                 {"title_it": {"$exists": True, "$ne": None, "$ne": ""}},
-                {"content_it": {"$exists": True, "$ne": None, "$ne": ""}}
+                {"content_it": {"$exists": True, "$ne": None, "$ne": ""}},
             ]
         }
 
@@ -110,7 +113,7 @@ def create_all_embeddings(
         failed = 0
 
         logger.info(f"Starting to create embeddings for {articles_to_process} articles")
-        #sleep(30)  # Brief pause before starting
+        # sleep(30)  # Brief pause before starting
 
         while processed + failed < articles_to_process:
             # Get batch of articles
@@ -143,23 +146,25 @@ def create_all_embeddings(
 
             try:
                 # Nomic has more generous rate limits, but we'll still be conservative
-                rate_limit_sleep = 2  # 2 seconds between requests (much more generous than VoyageAI)
-                
+                rate_limit_sleep = (
+                    2  # 2 seconds between requests (much more generous than VoyageAI)
+                )
+
                 logger.info(f"Creating embeddings for batch of {len(texts)} articles")
                 logger.info(f"Waiting {rate_limit_sleep} seconds between requests")
                 sleep(rate_limit_sleep)
 
                 # Use Nomic embed API
                 result = embed.text(
-                    texts=texts, 
-                    model='nomic-embed-text-v1.5', 
-                    task_type='search_document',
-                    dimensionality=768  # Full dimensionality for best performance
+                    texts=texts,
+                    model="nomic-embed-text-v1.5",
+                    task_type="search_document",
+                    dimensionality=768,  # Full dimensionality for best performance
                 )
 
                 # Update each article with its embedding
                 for idx, (article_id, embedding) in enumerate(
-                    zip(article_ids, result['embeddings'])
+                    zip(article_ids, result["embeddings"])
                 ):
                     try:
                         collection.update_one(
@@ -184,26 +189,34 @@ def create_all_embeddings(
 
             except Exception as e:
                 error_message = str(e).lower()
-                
+
                 # Check if it's a rate limit error
-                if "rate limit" in error_message or "429" in error_message or "too many requests" in error_message:
+                if (
+                    "rate limit" in error_message
+                    or "429" in error_message
+                    or "too many requests" in error_message
+                ):
                     logger.warning(f"Rate limit hit: {str(e)}")
-                    logger.info("Waiting 70 seconds before retrying (rate limit recovery)")
+                    logger.info(
+                        "Waiting 70 seconds before retrying (rate limit recovery)"
+                    )
                     sleep(70)  # Wait longer for rate limit to reset
-                    
+
                     # Retry the batch once
                     try:
-                        logger.info(f"Retrying batch of {len(texts)} articles after rate limit")
-                        result = embed.text(
-                            texts=texts, 
-                            model='nomic-embed-text-v1.5', 
-                            task_type='search_document',
-                            dimensionality=768
+                        logger.info(
+                            f"Retrying batch of {len(texts)} articles after rate limit"
                         )
-                        
+                        result = embed.text(
+                            texts=texts,
+                            model="nomic-embed-text-v1.5",
+                            task_type="search_document",
+                            dimensionality=768,
+                        )
+
                         # Update each article with its embedding
                         for idx, (article_id, embedding) in enumerate(
-                            zip(article_ids, result['embeddings'])
+                            zip(article_ids, result["embeddings"])
                         ):
                             try:
                                 collection.update_one(
@@ -219,11 +232,15 @@ def create_all_embeddings(
                                 )
                                 processed += 1
                             except Exception as update_e:
-                                logger.error(f"Failed to update article {article_id}: {str(update_e)}")
+                                logger.error(
+                                    f"Failed to update article {article_id}: {str(update_e)}"
+                                )
                                 failed += 1
-                        
-                        logger.info(f"✅ Retry successful: {len(texts)} articles processed")
-                        
+
+                        logger.info(
+                            f"✅ Retry successful: {len(texts)} articles processed"
+                        )
+
                     except Exception as retry_e:
                         logger.error(f"Retry also failed: {str(retry_e)}")
                         failed += len(texts)
@@ -264,70 +281,69 @@ def create_all_embeddings(
 def mark_old_articles_used(days_threshold=30):
     """
     Mark articles older than specified days as SENT (used in email).
-    
+
     Args:
         days_threshold (int): Number of days after which articles should be marked as SENT (default: 30)
-    
+
     Returns:
         dict: Status and count of updated articles
     """
     from articles.models import Article
-    
-    logger.info(f"Starting task to mark articles older than {days_threshold} days as SENT")
-    
+
+    logger.info(
+        f"Starting task to mark articles older than {days_threshold} days as SENT"
+    )
+
     # Calculate the cutoff date
     cutoff_date = timezone.now() - timedelta(days=days_threshold)
-    
+
     logger.info(f"Cutoff date: {cutoff_date.strftime('%Y-%m-%d %H:%M:%S')}")
-    
+
     try:
         # Find articles that are:
         # 1. Older than the threshold (based on article_date)
         # 2. Not already marked as SENT
         # 3. Have Italian content (to match the existing workflow)
-        old_articles = Article.objects.filter(
-            article_date__lt=cutoff_date,
-            title_it__isnull=False,
-            content_it__isnull=False
-        ).exclude(
-            status=Article.SENT
-        ).exclude(
-            title_it__exact="",
-            content_it__exact=""
+        old_articles = (
+            Article.objects.filter(
+                article_date__lt=cutoff_date,
+                title_it__isnull=False,
+                content_it__isnull=False,
+            )
+            .exclude(status=Article.SENT)
+            .exclude(title_it__exact="", content_it__exact="")
         )
-        
+
         count = old_articles.count()
-        
+
         if count == 0:
-            logger.info(f"No articles found older than {days_threshold} days that need to be marked as SENT")
+            logger.info(
+                f"No articles found older than {days_threshold} days that need to be marked as SENT"
+            )
             return {
                 "status": "success",
                 "message": f"No articles older than {days_threshold} days to mark as SENT",
-                "updated_count": 0
+                "updated_count": 0,
             }
-        
+
         logger.info(f"Found {count} articles to mark as SENT")
-        
+
         # Update the articles
         updated_count = 0
         for article in old_articles:
             article.status = Article.SENT
             article.save()
             updated_count += 1
-        
+
         logger.info(f"Successfully marked {updated_count} articles as SENT")
-        
+
         return {
             "status": "success",
             "message": f"Successfully marked {updated_count} articles as SENT",
             "updated_count": updated_count,
-            "cutoff_date": cutoff_date.strftime('%Y-%m-%d %H:%M:%S')
+            "cutoff_date": cutoff_date.strftime("%Y-%m-%d %H:%M:%S"),
         }
-        
+
     except Exception as e:
         logger.error(f"Error marking old articles as sent: {str(e)}")
-        return {
-            "status": "error",
-            "message": str(e),
-            "updated_count": 0
-        }
+        return {"status": "error", "message": str(e), "updated_count": 0}
