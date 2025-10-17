@@ -29,15 +29,14 @@ os.environ["NOMIC_API_KEY"] = settings.NOMIC_API_KEY
 
 def get_mongodb_connection():
     """Get MongoDB connection using settings from Django or environment variables."""
-    mongo_uri = getattr(
-        settings,
-        "MONGODB_URI",
-        os.getenv("MONGODB_URI", "mongodb://localhost:7587/?directConnection=true"),
-    )
-    mongo_db = getattr(settings, "MONGO_DB", os.getenv("MONGO_DB", "analyst"))
-    mongo_collection = getattr(
-        settings, "MONGO_COLLECTION", os.getenv("MONGO_COLLECTION", "articles")
-    )
+    mongo_uri = getattr(settings, "MONGODB_URI", None)
+    mongo_db = getattr(settings, "MONGO_DB", None)
+    mongo_collection = getattr(settings, "MONGO_COLLECTION", None)
+
+    if not mongo_uri or not mongo_db or not mongo_collection:
+        raise RuntimeError(
+            "MongoDB configuration missing. Ensure MONGODB_URI, MONGO_DB, and MONGO_COLLECTION are set in .env and loaded via settings."
+        )
 
     client = MongoClient(mongo_uri)
     db = client[mongo_db]

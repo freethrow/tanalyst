@@ -15,7 +15,7 @@ import os
 
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
 NOMIC_API_KEY = os.getenv("NOMIC_API_KEY")
 RESEND_API_KEY = os.getenv("RESEND_API_KEY")
@@ -24,6 +24,9 @@ REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 DB_HOST = os.getenv("DB_HOST")
 DB_PORT = os.getenv("DB_PORT")
 DB_NAME = os.getenv("DB_NAME")
+MONGODB_URI = os.getenv("MONGODB_URI") or os.getenv("MONGO_URI")
+MONGO_DB = os.getenv("MONGO_DB")
+MONGO_COLLECTION = os.getenv("MONGO_COLLECTION")
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -34,12 +37,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-y(&cyhtuzn9#=3^uv3(6+cso$0@nmbaaqfah!*fxs_bc7^u))3"
+SECRET_KEY = os.getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv("DEBUG", "false").lower() == "true"
 
-ALLOWED_HOSTS = ["*"]  # Allow all hosts for local LAN deployment
+ALLOWED_HOSTS = (
+    [h for h in os.getenv("ALLOWED_HOSTS", "").split(",") if h]
+    if os.getenv("ALLOWED_HOSTS")
+    else []
+)
 
 
 # Application definition
@@ -97,8 +104,17 @@ WSGI_APPLICATION = "analyst.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django_mongodb_backend",
-        "HOST": f"mongodb://{DB_HOST or 'localhost'}:{DB_PORT or '8818'}/?directConnection=true",
-        "NAME": DB_NAME or "analyst",
+        # Prefer full URI if provided; otherwise compose from DB_HOST/DB_PORT without hardcoded defaults
+        "HOST": (
+            MONGODB_URI
+            if MONGODB_URI
+            else (
+                f"mongodb://{DB_HOST}:{DB_PORT}/?directConnection=true"
+                if DB_HOST and DB_PORT
+                else None
+            )
+        ),
+        "NAME": DB_NAME or MONGO_DB,
     },
 }
 
@@ -172,7 +188,7 @@ LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/login/"
 
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "djangoagent.settings")
+
 
 TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
 

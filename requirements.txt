@@ -1,20 +1,42 @@
-django-mongodb-backend
+# Django Framework
+Django>=5.0.0,<5.1.0
+django-mongodb-backend>=5.1.0
 django-htmx
-pandas
-pydantic
-pydantic-ai
+django-celery-beat
+django-redis
+whitenoise
+
+# Database & Caching
+pymongo>=4.0.0
+redis
+
+# Task Queue
+celery
+vine<6.0.0
+
+# Web Scraping
 scrapy
 pytz
-celery
-django-celery-beat
-redis
-django-redis
-resend
-ruff
-python-dotenv
+
+# AI & ML
+pydantic>=2.0.0
+pydantic-ai
 nomic
+numpy
+
+# PDF Generation
 reportlab
-waitress
-whitenoise
+
+# Email
+resend
+
+# Utilities
+python-dotenv
+pandas
+
+# Development Tools
+ruff
+
+# Production Servers
 gunicorn
-vine<6.0.0
+waitress

@@ -1,30 +1,71 @@
+# IDE and Editor
 .vscode/
+.idea/
+*.swp
+*.swo
+
+# Python
 __pycache__/
 *.pyc
-.DS_Store
-db.sqlite3
-media/
-staticfiles/
-.env
-.env.*
-.idea/
-*.log
-*.sqlite3
-node_modules/
-coverage/
-htmlcov/
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
 *.egg-info/
 dist/
 build/
+pip-log.txt
+pip-delete-this-directory.txt
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+coverage/
+
+# Virtual Environment
 venv/
-.env
-.env.*
-*.bak
-*.swp
-*.swo
-*.tmp
+env/
+ENV/
+.venv
+
+# Django
 *.log
+db.sqlite3
+db.sqlite3-journal
+media/
+staticfiles/
 *.pot
 *.mo
-*.sqlite3
-.ruff_cache/
+celerybeat-schedule*
+*.dat
+*.dir
+*.bak
+
+# Environment Variables
+.env
+.env.*
+!env_template.txt
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Temporary files
+*.tmp
+*.temp
+*~
+
+# Database backups (optional - uncomment if you don't want to track backups)
+# *.archive
+# *.dump
+
+# Logs
+logs/
+*.log
