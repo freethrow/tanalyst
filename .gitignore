@@ -69,3 +69,7 @@ yarn-error.log
 # Logs
 logs/
 *.log
+
+
+env_template.txt
+exampleenv.txt
