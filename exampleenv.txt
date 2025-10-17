@@ -1,0 +1,27 @@
+# Core Django Settings
+SECRET_KEY=change_me_for_production
+DEBUG=false
+ALLOWED_HOSTS=localhost,127.0.0.1
+
+# API Keys
+
+# LLM / Model selection
+LLM_MODEL=qwen/qwen3-max
+
+# Database Configuration
+# Prefer a single URI
+MONGODB_URI=mongodb://localhost:7587/?directConnection=true
+# Legacy alias supported as fallback
+MONGO_URI=
+
+# Database and collection names
+MONGO_DB=analyst
+MONGO_COLLECTION=articles
+
+# Optional: host/port/name (only used if URI not provided)
+DB_HOST=localhost
+DB_PORT=7587
+DB_NAME=analyst
+
+# Redis
+REDIS_URL=redis://localhost:6379/0
