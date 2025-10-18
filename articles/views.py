@@ -511,7 +511,7 @@ def weekly_summary_detail(request, summary_id):
         mongo_uri = getattr(
             settings,
             "MONGODB_URI",
-            os.getenv("MONGODB_URI", "mongodb://localhost:8818/?directConnection=true"),
+            os.getenv("MONGODB_URI", "mongodb://localhost:7587/?directConnection=true"),
         )
         mongo_db = getattr(settings, "MONGO_DB", os.getenv("MONGO_DB", "analyst"))
 

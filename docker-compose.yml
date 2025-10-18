@@ -1,5 +1,37 @@
-
 services:
+  # MongoDB database
+  mongodb:
+    image: mongodb/mongodb-community-server:latest
+    container_name: ta_mongodb
+    ports:
+      - "7587:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      - MONGO_INITDB_DATABASE=analyst
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+
+  # Redis cache and message broker
+  redis:
+    image: redis:7-alpine
+    container_name: ta_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   # Django web application
   web:
     build: .
@@ -14,27 +46,42 @@ services:
     env_file:
       - .env
     environment:
-      # Use host-published ports for your existing containers
-      - REDIS_URL=redis://host.docker.internal:6379/0
-      - DB_HOST=host.docker.internal
-      - DB_PORT=7587
-      - MONGODB_URI=mongodb://host.docker.internal:7587/?directConnection=true
+      - REDIS_URL=redis://redis:6379/0
+      - DB_HOST=mongodb
+      - DB_PORT=27017
+      - MONGODB_URI=mongodb://mongodb:27017/?directConnection=true
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
 
   # Celery worker for background tasks
   celery_worker:
     build: .
     container_name: ta_celery_worker
-    command: celery -A analyst worker --loglevel=info --concurrency=4
+    command: celery -A analyst worker --loglevel=info --concurrency=1 --pool=solo
     volumes:
       - .:/app
     env_file:
       - .env
     environment:
-      - REDIS_URL=redis://host.docker.internal:6379/0
-      - DB_HOST=host.docker.internal
-      - DB_PORT=7587
-      - MONGODB_URI=mongodb://host.docker.internal:7587/?directConnection=true
+      - REDIS_URL=redis://redis:6379/0
+      - DB_HOST=mongodb
+      - DB_PORT=27017
+      - MONGODB_URI=mongodb://mongodb:27017/?directConnection=true
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     restart: unless-stopped
 
   # Celery beat for scheduled tasks
@@ -47,13 +94,22 @@ services:
     env_file:
       - .env
     environment:
-      - REDIS_URL=redis://host.docker.internal:6379/0
-      - DB_HOST=host.docker.internal
-      - DB_PORT=7587
-      - MONGODB_URI=mongodb://host.docker.internal:7587/?directConnection=true
+      - REDIS_URL=redis://redis:6379/0
+      - DB_HOST=mongodb
+      - DB_PORT=27017
+      - MONGODB_URI=mongodb://mongodb:27017/?directConnection=true
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      web:
+        condition: service_started
     restart: unless-stopped
 
 volumes:
+  mongodb_data:
+  redis_data:
   static_volume:
   media_volume:
 

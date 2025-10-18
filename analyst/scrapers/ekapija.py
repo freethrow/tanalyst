@@ -27,8 +27,8 @@ class MongoDBPipeline:
 
     def __init__(self):
         self.mongo_uri = os.getenv("MONGODB_URI")
-        self.db_name = os.getenv("DB_NAME")
-        self.collection_name = os.getenv("COLLECTION_NAME")
+        self.db_name = os.getenv("MONGO_DB")
+        self.collection_name = os.getenv("MONGO_COLLECTION")
         self.client = None
         self.db = None
         self.collection = None
@@ -284,7 +284,7 @@ def main():
     """Run the spider."""
     try:
         # Verify environment variables
-        required_vars = ["MONGODB_URI", "DB_NAME", "COLLECTION_NAME"]
+        required_vars = ["MONGODB_URI", "MONGO_DB", "MONGO_COLLECTION"]
         missing_vars = [var for var in required_vars if not os.getenv(var)]
         if missing_vars:
             raise ValueError(

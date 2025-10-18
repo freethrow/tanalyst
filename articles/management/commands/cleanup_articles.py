@@ -28,8 +28,8 @@ class Command(BaseCommand):
         # Get MongoDB connection
         mongo_uri = getattr(
             settings,
-            "MONGO_URI",
-            os.getenv("MONGO_URI", "mongodb://localhost:8818/?directConnection=true"),
+            "MONGODB_URI",
+            os.getenv("MONGODB_URI", "mongodb://localhost:7587/?directConnection=true"),
         )
         mongo_db = getattr(settings, "MONGO_DB", os.getenv("MONGO_DB", "analyst"))
 

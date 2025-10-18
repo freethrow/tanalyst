@@ -173,7 +173,7 @@ class Command(BaseCommand):
             if "HOST" in db_config:
                 mongo_uri = db_config["HOST"]
             else:
-                mongo_uri = os.getenv("MONGODB_URI", "mongodb://localhost:8818/")
+                mongo_uri = os.getenv("MONGODB_URI", "mongodb://localhost:7587/?directConnection=true")
 
             client = MongoClient(mongo_uri)
             db = client[db_config["NAME"]]

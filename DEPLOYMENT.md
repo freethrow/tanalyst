@@ -1,403 +1,242 @@
 # TA - Deployment Guide for Windows with Docker
 
-This guide will walk you through deploying the TA (Trade Analyst) application on a Windows machine using Docker, leveraging your existing MongoDB and Redis containers.
+This guide provides step-by-step instructions for deploying the TA (Trade Analyst) application on a new Windows machine using Docker Compose.
 
 ## Overview
 
-The deployment architecture consists of two layers:
+The deployment uses Docker Compose to orchestrate all services in a single stack:
 
-### Layer 1: Infrastructure (Must be set up on host machine)
-- **MongoDB Docker container** (port 7587) - Database server
-- **Redis Docker container** (port 6379) - Cache and message broker
+### Services Included:
+1. **MongoDB** (ta_mongodb) - Database server on port 7587
+2. **Redis** (ta_redis) - Cache and message broker on port 6379
+3. **Django Web** (ta_web) - Web application on port 8000
+4. **Celery Worker** (ta_celery_worker) - Background task processor
+5. **Celery Beat** (ta_celery_beat) - Scheduled task manager
 
-**These are NOT included in the GitHub repository** - they must be running on the deployment machine before starting the application.
+All services are defined in `docker-compose.yml` and will be created automatically.
 
-### Layer 2: Application (From GitHub repository)
-- **TA application containers** via Docker Compose:
-  - `ta_web` - Django web application
-  - `ta_celery_worker` - Background task processor
-  - `ta_celery_beat` - Scheduled task manager
+## What's Included in GitHub
 
-The application containers connect to MongoDB and Redis using `host.docker.internal`.
-
-## Important: What's in GitHub vs What's Not
-
-### ✅ Included in GitHub Repository:
-- Application source code (Django, Celery, etc.)
-- `Dockerfile` - Instructions to build application container
-- `docker-compose.yml` - Configuration for application containers
+### ✅ In Repository:
+- Application source code (Django, Celery, agents, scrapers)
+- `Dockerfile` - Container build instructions
+- `docker-compose.yml` - Complete service orchestration (MongoDB, Redis, Web, Celery)
 - `requirements.txt` - Python dependencies
-- Templates, static files, etc.
+- `env_template.txt` - Environment variable template
+- Templates, static files, migrations
 
-### ❌ NOT Included in GitHub Repository:
-- MongoDB container (infrastructure dependency)
-- Redis container (infrastructure dependency)
-- Database data (must be restored from backup)
-- `.env` file with secrets (must be created manually)
-
-**Why?** MongoDB and Redis are infrastructure services that should already exist on the deployment machine. They're not part of the application code - they're services the application connects to.
+### ❌ NOT in Repository (Transfer via USB):
+- `.env` file with your actual API keys and secrets
+- `mongodb_backup.archive` - Your database backup
+- Any custom configuration files
 
 ## Prerequisites
 
-### On the Deployment Machine (Fresh Setup)
-
-If deploying to a new machine, you need:
+### Required Software on New Windows Machine:
 
 1. **Docker Desktop for Windows**
-   - Download from: https://www.docker.com/products/docker-desktop
-   - Verify: `docker --version` and `docker-compose --version`
-   - Ensure WSL 2 backend is enabled
+   - Download: https://www.docker.com/products/docker-desktop
+   - Install with WSL 2 backend enabled
+   - Verify after installation:
+     ```powershell
+     docker --version
+     docker-compose --version
+     ```
 
 2. **Git for Windows**
-   - Download from: https://git-scm.com/download/win
-   - Verify installation: `git --version`
+   - Download: https://git-scm.com/download/win
+   - Verify: `git --version`
 
-3. **MongoDB Docker Container** (Must be set up separately)
-   ```powershell
-   # Start MongoDB container
-   docker run -d --name mongodb-ta -p 7587:27017 mongodb/mongodb-atlas-local:8.0
-   ```
+3. **MongoDB Database Tools** (for restoring backup)
+   - Download: https://www.mongodb.com/try/download/database-tools
+   - Extract to a folder (e.g., `C:\mongodb-tools`)
+   - Add to PATH or use full path to `mongorestore.exe`
 
-4. **Redis Docker Container** (Must be set up separately)
-   ```powershell
-   # Start Redis container
-   docker run -d --name redis-ta -p 6379:6379 redis:alpine
-   ```
+### USB Flash Drive Contents:
 
-5. **MongoDB Tools** (for backup restoration)
-   - Download MongoDB Shell: https://www.mongodb.com/try/download/shell
-   - Download MongoDB Database Tools: https://www.mongodb.com/try/download/database-tools
-   - These provide `mongosh` and `mongorestore` commands
+Prepare a USB drive with these files from your development machine:
 
-### On Your Development Machine (Already Have These)
+1. **`.env`** - Your environment configuration with API keys
+2. **`mongodb_backup.archive`** - Your MongoDB database backup
 
-You already have:
-- ✅ Docker Desktop
-- ✅ MongoDB container (local6195) on port 7587
-- ✅ Redis container on port 6379
-- ✅ MongoDB tools installed
+To create the backup on your development machine:
+```powershell
+# Navigate to your project directory
+cd C:\Users\DELL\Desktop\TA
 
-## Quick Start
+# Create MongoDB backup
+mongodump --host=localhost --port=7587 --db=analyst --archive=mongodb_backup.archive
 
-### For Fresh Deployment (New Machine)
+# Copy .env and backup to USB
+Copy-Item .env E:\deployment\
+Copy-Item mongodb_backup.archive E:\deployment\
+```
+(Replace `E:\` with your USB drive letter)
+
+## Quick Start - Complete Deployment
+
+On the new Windows machine with Docker Desktop and Git installed:
 
 ```powershell
-# 1. Set up infrastructure containers (one-time setup)
-docker run -d --name mongodb-ta -p 7587:27017 mongodb/mongodb-atlas-local:8.0
-docker run -d --name redis-ta -p 6379:6379 redis:alpine
-
-# 2. Clone and navigate
+# 1. Clone repository
 git clone https://github.com/yourusername/TA.git
 cd TA
 
-# 3. Restore database backup
-mongorestore --host=localhost --port=7587 --archive=mongodb_backup.archive --db=analyst
+# 2. Copy .env from USB drive
+Copy-Item E:\deployment\.env .env
 
-# 4. Configure environment
-Copy-Item env_template.txt .env
-# Edit .env with your settings (SECRET_KEY, API keys, etc.)
-
-# 5. Build and start application
-docker-compose build
+# 3. Build and start all services (MongoDB, Redis, Web, Celery)
 docker-compose up -d
 
-# 6. Initialize application
+# 4. Wait for services to be healthy (about 60 seconds)
+docker-compose ps
+
+# 5. Restore database from USB backup
+docker exec -i ta_mongodb mongorestore --archive < E:\deployment\mongodb_backup.archive
+
+# 6. Run Django setup
 docker exec ta_web python manage.py migrate
 docker exec -it ta_web python manage.py createsuperuser
 docker exec ta_web python manage.py collectstatic --noinput
 docker exec ta_web python manage.py compilemessages
 
-# 7. Access at http://localhost:8000
+# 7. Access application at http://localhost:8000
 ```
 
-### For Existing Setup (Your Development Machine)
-
-```powershell
-# 1. Clone and navigate
-git clone https://github.com/yourusername/TA.git
-cd TA
-
-# 2. Ensure MongoDB and Redis are running
-docker start local6195  # Your MongoDB container
-docker start redis      # Your Redis container
-
-# 3. Configure environment
-Copy-Item env_template.txt .env
-# Edit .env with your settings
-
-# 4. Restore database (if needed)
-mongorestore --host=localhost --port=7587 --archive=mongodb_backup.archive --db=analyst
-
-# 5. Build and start
-docker-compose build
-docker-compose up -d
-
-# 6. Initialize
-docker exec ta_web python manage.py migrate
-docker exec -it ta_web python manage.py createsuperuser
-docker exec ta_web python manage.py collectstatic --noinput
-docker exec ta_web python manage.py compilemessages
-
-# 7. Access at http://localhost:8000
-```
+That's it! All services (MongoDB, Redis, Django, Celery) are now running.
 
 ## Detailed Step-by-Step Guide
 
-## Step 1: Clone the Repository
+### Step 1: Prepare on Development Machine
 
-Open PowerShell or Command Prompt and navigate to your desired directory:
+Before going to the new machine, prepare your USB drive:
 
 ```powershell
+# On your development machine
+cd C:\Users\DELL\Desktop\TA
+
+# Create MongoDB backup
+mongodump --host=localhost --port=7587 --db=analyst --archive=mongodb_backup.archive
+
+# Create deployment folder on USB (replace E: with your USB drive)
+New-Item -Path "E:\deployment" -ItemType Directory -Force
+
+# Copy files to USB
+Copy-Item .env E:\deployment\.env
+Copy-Item mongodb_backup.archive E:\deployment\mongodb_backup.archive
+```
+
+### Step 2: Install Prerequisites on New Machine
+
+On the new Windows machine:
+
+1. **Install Docker Desktop:**
+   - Download and install from https://www.docker.com/products/docker-desktop
+   - Enable WSL 2 backend during installation
+   - Restart computer if prompted
+   - Verify installation:
+     ```powershell
+     docker --version
+     docker-compose --version
+     ```
+
+2. **Install Git:**
+   - Download from https://git-scm.com/download/win
+   - Use default settings during installation
+   - Verify: `git --version`
+
+### Step 3: Clone Repository
+
+```powershell
+# Navigate to desired location
 cd C:\Users\YourUsername\Projects
+
+# Clone the repository (replace with your GitHub URL)
 git clone https://github.com/yourusername/TA.git
+
+# Navigate into project
 cd TA
 ```
 
-## Step 2: Use Existing MongoDB Docker Container
-
-If you already have MongoDB running in Docker (recommended approach):
-
-1. **Check if MongoDB container is running:**
-   ```powershell
-   docker ps | Select-String mongodb
-   ```
-
-2. **If not running, start it:**
-   ```powershell
-   # Find your MongoDB container name
-   docker ps -a | Select-String mongodb
-   
-   # Start the container (replace 'local6195' with your container name)
-   docker start local6195
-   ```
-
-3. **Verify it's accessible:**
-   ```powershell
-   # Test connection (adjust port if different)
-   mongosh "mongodb://localhost:7587" --eval "db.adminCommand('ping')"
-   ```
-
-4. **Note your MongoDB connection details:**
-   - Host: `localhost`
-   - Port: Usually `7587` or `27017` (check with `docker ps`)
-   - Connection string: `mongodb://localhost:7587/?directConnection=true`
-
-### Alternative: Set Up New MongoDB (Only if needed)
-
-<details>
-<summary>Click to expand if you need to install MongoDB from scratch</summary>
-
-#### Option A: Using MongoDB Atlas Local
-
-1. **Start MongoDB Atlas Local:**
-   ```powershell
-   atlas deployments setup local
-   ```
-
-2. **Start the local deployment:**
-   ```powershell
-   atlas deployments start local
-   ```
-
-3. **Note the connection string** (usually `mongodb://localhost:27017`)
-
-#### Option B: Using Docker (New Container)
+### Step 4: Transfer Files from USB
 
 ```powershell
-docker run -d --name mongodb-ta -p 7587:27017 mongodb/mongodb-atlas-local:8.0
+# Copy .env from USB to project root (replace E: with your USB drive)
+Copy-Item E:\deployment\.env .env
+
+# Verify .env exists
+Test-Path .env
+# Should return: True
 ```
 
-</details>
-
-## Step 3: Restore MongoDB Database from Backup
-
-If you have a `mongodb_backup.archive` file:
-
-1. **Place the backup file** in your project directory or a known location
-
-2. **Restore using mongorestore:**
-   ```powershell
-   # If using MongoDB Atlas Local (default port 27017)
-   mongorestore --archive=mongodb_backup.archive --nsInclude="analyst.*"
-
-   # If using custom port (e.g., 7587)
-   mongorestore --host=localhost --port=7587 --archive=mongodb_backup.archive --nsInclude="analyst.*"
-
-   # If the archive includes specific database
-   mongorestore --host=localhost --port=7587 --archive=mongodb_backup.archive --db=analyst
-   ```
-
-3. **Verify the restore:**
-   ```powershell
-   # Connect to MongoDB
-   mongosh "mongodb://localhost:7587"
-
-   # Check databases
-   show dbs
-
-   # Use the analyst database
-   use analyst
-
-   # Check collections
-   show collections
-
-   # Count articles
-   db.articles.countDocuments()
-   ```
-
-## Step 4: Configure Environment Variables
-
-1. **Copy the environment template:**
-   ```powershell
-   Copy-Item env_template.txt .env
-   ```
-
-2. **Edit the `.env` file** with your configuration:
-   ```env
-   # Django Settings
-   SECRET_KEY=your-secret-key-here-generate-a-new-one
-   DEBUG=False
-   ALLOWED_HOSTS=localhost,127.0.0.1,your-domain.com
-
-   # MongoDB Configuration
-   DB_HOST=localhost
-   DB_PORT=7587
-   DB_NAME=analyst
-   COLLECTION_NAME=articles
-   MONGODB_URI=mongodb://localhost:7587/?directConnection=true
-
-   # Redis Configuration
-   REDIS_URL=redis://localhost:6379/0
-
-   # API Keys
-   OPENROUTER_API_KEY=your-openrouter-api-key
-   NOMIC_API_KEY=your-nomic-api-key
-   RESEND_API_KEY=your-resend-api-key
-
-   # LLM Configuration
-   LLM_MODEL=meta-llama/llama-3.1-70b-instruct
-
-   # Email Configuration
-   DEFAULT_FROM_EMAIL=noreply@yourdomain.com
-   RECIPIENT_EMAIL=recipient@example.com
-
-   # Celery Configuration
-   CELERY_BROKER_URL=redis://localhost:6379/0
-   CELERY_RESULT_BACKEND=redis://localhost:6379/0
-   ```
-
-3. **Generate a new SECRET_KEY:**
-   ```powershell
-   python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
-   ```
-
-## Step 5: Ensure Required Services are Running
-
-### Use Existing Redis Docker Container
-
-If you already have Redis running in Docker:
-
-1. **Check if Redis container is running:**
-   ```powershell
-   docker ps | Select-String redis
-   ```
-
-2. **If not running, start it:**
-   ```powershell
-   # Find your Redis container name
-   docker ps -a | Select-String redis
-   
-   # Start the container (replace with your container name)
-   docker start redis
-   ```
-
-3. **Verify Redis is accessible:**
-   ```powershell
-   # Test connection
-   docker exec redis redis-cli ping
-   # Should return: PONG
-   ```
-
-### Alternative: Start New Redis Container (Only if needed)
-
-<details>
-<summary>Click to expand if you need to create a new Redis container</summary>
+### Step 5: Start All Services with Docker Compose
 
 ```powershell
-# Start a new Redis container
-docker run -d --name redis-ta -p 6379:6379 redis:alpine
+# Build and start all containers (MongoDB, Redis, Web, Celery Worker, Celery Beat)
+docker-compose up -d --build
 
-# Verify it's running
-docker ps | Select-String redis
+# This will:
+# 1. Pull MongoDB and Redis images
+# 2. Build the Django application image
+# 3. Create all 5 containers
+# 4. Start them with proper dependencies
 ```
 
-</details>
-
-### Verify All Services are Running
+### Step 6: Wait for Services to be Healthy
 
 ```powershell
-# Check MongoDB is accessible
-mongosh "mongodb://localhost:7587" --eval "db.adminCommand('ping')"
+# Check status (wait until all show "healthy" or "running")
+docker-compose ps
 
-# Check Redis is accessible
-docker exec redis redis-cli ping
+# Watch logs to see startup progress
+docker-compose logs -f
 
-# List all running containers
-docker ps
+# Press Ctrl+C to stop watching logs
 ```
 
-You should see both MongoDB and Redis containers running.
+Expected output after ~60 seconds:
+```
+NAME               STATUS
+ta_mongodb         Up (healthy)
+ta_redis           Up (healthy)
+ta_web             Up (healthy)
+ta_celery_worker   Up
+ta_celery_beat     Up
+```
 
-## Step 6: Build and Run with Docker Compose
+### Step 7: Restore Database from USB Backup
 
-1. **Update docker-compose.yml** (if needed):
-   - The file is already configured to use `host.docker.internal` for MongoDB and Redis
-   - Verify ports match your local services
+```powershell
+# Restore MongoDB backup into the running container
+# Method 1: Using docker exec with input redirection
+Get-Content E:\deployment\mongodb_backup.archive | docker exec -i ta_mongodb mongorestore --archive
 
-2. **Build the Docker images:**
-   ```powershell
-   docker-compose build
-   ```
+# Method 2: Copy file into container first, then restore
+docker cp E:\deployment\mongodb_backup.archive ta_mongodb:/tmp/backup.archive
+docker exec ta_mongodb mongorestore --archive=/tmp/backup.archive
 
-3. **Start all services:**
-   ```powershell
-   docker-compose up -d
-   ```
+# Verify restoration
+docker exec ta_mongodb mongosh --eval "use analyst; db.articles.countDocuments()"
+```
 
-4. **Check container status:**
-   ```powershell
-   docker-compose ps
-   ```
+### Step 8: Initialize Django Application
 
-   You should see three containers running:
-   - `ta_web` (Django application)
-   - `ta_celery_worker` (Background tasks)
-   - `ta_celery_beat` (Scheduled tasks)
+```powershell
+# Run database migrations
+docker exec ta_web python manage.py migrate
 
-## Step 7: Initialize the Application
+# Create superuser account (interactive)
+docker exec -it ta_web python manage.py createsuperuser
+# Follow prompts to create admin user
 
-1. **Run Django migrations:**
-   ```powershell
-   docker exec ta_web python manage.py migrate
-   ```
+# Collect static files
+docker exec ta_web python manage.py collectstatic --noinput
 
-2. **Create a superuser:**
-   ```powershell
-   docker exec -it ta_web python manage.py createsuperuser
-   ```
-   Follow the prompts to create your admin account.
+# Compile translation messages
+docker exec ta_web python manage.py compilemessages
+```
 
-3. **Collect static files:**
-   ```powershell
-   docker exec ta_web python manage.py collectstatic --noinput
-   ```
-
-4. **Compile translation messages:**
-   ```powershell
-   docker exec ta_web python manage.py compilemessages
-   ```
-
-## Step 8: Verify the Deployment
+### Step 9: Verify the Deployment
 
 1. **Access the application:**
    - Open your browser and navigate to: http://localhost:8000
@@ -419,7 +258,7 @@ You should see both MongoDB and Redis containers running.
    - Navigate to: http://localhost:8000/articles/
    - You should see your restored articles
 
-## Step 9: Configure Scheduled Tasks (Optional)
+### Step 10: Configure Scheduled Tasks (Optional)
 
 The application uses Celery Beat for scheduled tasks. To configure:
 
@@ -434,35 +273,87 @@ The application uses Celery Beat for scheduled tasks. To configure:
 
 ## Troubleshooting
 
-### MongoDB Connection Issues
+### All Services Not Starting
 
-If containers can't connect to MongoDB:
+If `docker-compose up -d` fails:
 
-1. **Check MongoDB is running:**
+1. **Check Docker Desktop is running:**
+   - Look for Docker icon in system tray
+   - Should show "Docker Desktop is running"
+
+2. **View error logs:**
    ```powershell
-   mongosh "mongodb://localhost:7587" --eval "db.adminCommand('ping')"
+   docker-compose logs
    ```
 
-2. **Verify `.env` file:**
-   - Ensure `MONGODB_URI=mongodb://localhost:7587/?directConnection=true`
-   - For local development: use `localhost`
-   - Docker handles the translation to `host.docker.internal`
-
-3. **Check Docker network:**
+3. **Check for port conflicts:**
    ```powershell
-   docker network inspect ta_network
+   # Check if ports 7587, 6379, or 8000 are in use
+   netstat -ano | findstr "7587 6379 8000"
+   ```
+
+### MongoDB Connection Issues
+
+1. **Check MongoDB container is healthy:**
+   ```powershell
+   docker-compose ps mongodb
+   # Should show "Up (healthy)"
+   ```
+
+2. **View MongoDB logs:**
+   ```powershell
+   docker-compose logs mongodb
+   ```
+
+3. **Test MongoDB connection from host:**
+   ```powershell
+   docker exec ta_mongodb mongosh --eval "db.adminCommand('ping')"
+   ```
+
+4. **Test MongoDB connection from web container:**
+   ```powershell
+   docker exec ta_web python -c "from pymongo import MongoClient; client = MongoClient('mongodb://mongodb:27017/'); print(client.admin.command('ping'))"
    ```
 
 ### Redis Connection Issues
 
-1. **Verify Redis is running:**
+1. **Check Redis container is healthy:**
    ```powershell
-   docker ps | Select-String redis
+   docker-compose ps redis
    ```
 
 2. **Test Redis connection:**
    ```powershell
-   docker exec ta_web python -c "import redis; r = redis.from_url('redis://host.docker.internal:6379/0'); print(r.ping())"
+   docker exec ta_redis redis-cli ping
+   # Should return: PONG
+   ```
+
+3. **Test from web container:**
+   ```powershell
+   docker exec ta_web python -c "import redis; r = redis.from_url('redis://redis:6379/0'); print(r.ping())"
+   ```
+
+### Database Restore Issues
+
+If mongorestore fails:
+
+1. **Verify backup file exists:**
+   ```powershell
+   Test-Path E:\deployment\mongodb_backup.archive
+   ```
+
+2. **Try alternative restore method:**
+   ```powershell
+   # Copy file into container
+   docker cp E:\deployment\mongodb_backup.archive ta_mongodb:/tmp/backup.archive
+   
+   # Restore from inside container
+   docker exec ta_mongodb mongorestore --archive=/tmp/backup.archive --verbose
+   ```
+
+3. **Check MongoDB logs during restore:**
+   ```powershell
+   docker logs -f ta_mongodb
    ```
 
 ### Container Logs
@@ -498,14 +389,18 @@ If ports are already in use:
 
 ### Backup MongoDB
 
-Create regular backups:
+Create regular backups from the running container:
 
 ```powershell
-# Create backup
-mongodump --host=localhost --port=7587 --db=analyst --archive=mongodb_backup_$(Get-Date -Format "yyyyMMdd").archive
+# Create backup with timestamp
+$timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
+docker exec ta_mongodb mongodump --db=analyst --archive > "mongodb_backup_$timestamp.archive"
 
-# With compression
-mongodump --host=localhost --port=7587 --db=analyst --archive=mongodb_backup_$(Get-Date -Format "yyyyMMdd").archive --gzip
+# Or with compression
+docker exec ta_mongodb mongodump --db=analyst --archive --gzip > "mongodb_backup_$timestamp.archive.gz"
+
+# Backup to specific location
+docker exec ta_mongodb mongodump --db=analyst --archive > "C:\Backups\mongodb_backup_$timestamp.archive"
 ```
 
 ### Update the Application
@@ -596,7 +491,56 @@ For issues or questions:
 3. Check GitHub issues
 4. Contact the development team
 
+## Summary - Complete Deployment Checklist
+
+### On Development Machine (Before Transfer):
+- [ ] Create MongoDB backup: `mongodump --host=localhost --port=7587 --db=analyst --archive=mongodb_backup.archive`
+- [ ] Copy `.env` and `mongodb_backup.archive` to USB drive
+- [ ] Push latest code to GitHub: `git push origin main`
+
+### On New Windows Machine:
+- [ ] Install Docker Desktop (with WSL 2)
+- [ ] Install Git for Windows
+- [ ] Clone repository: `git clone https://github.com/yourusername/TA.git`
+- [ ] Copy `.env` from USB to project root
+- [ ] Start all services: `docker-compose up -d --build`
+- [ ] Wait for healthy status: `docker-compose ps`
+- [ ] Restore database: `docker cp E:\deployment\mongodb_backup.archive ta_mongodb:/tmp/backup.archive && docker exec ta_mongodb mongorestore --archive=/tmp/backup.archive`
+- [ ] Run migrations: `docker exec ta_web python manage.py migrate`
+- [ ] Create superuser: `docker exec -it ta_web python manage.py createsuperuser`
+- [ ] Collect static: `docker exec ta_web python manage.py collectstatic --noinput`
+- [ ] Compile messages: `docker exec ta_web python manage.py compilemessages`
+- [ ] Access application: http://localhost:8000
+
+### Services Running:
+- **ta_mongodb** - MongoDB database (port 7587)
+- **ta_redis** - Redis cache/broker (port 6379)
+- **ta_web** - Django web app (port 8000)
+- **ta_celery_worker** - Background tasks
+- **ta_celery_beat** - Scheduled tasks
+
+### Key Commands:
+```powershell
+# View all services
+docker-compose ps
+
+# View logs
+docker-compose logs -f
+
+# Restart services
+docker-compose restart
+
+# Stop all services
+docker-compose down
+
+# Start services
+docker-compose up -d
+
+# Backup database
+docker exec ta_mongodb mongodump --db=analyst --archive > backup.archive
+```
+
 ---
 
 **Last Updated**: October 2025
-**Version**: 1.0
+**Version**: 2.0 - Complete Docker Compose Stack
