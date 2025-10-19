@@ -1,18 +1,9 @@
 
 import os
 from django.conf import settings
-from nomic import embed
-# hardcode to troubleshoot
-NOMIC_API_KEY = settings.NOMIC_API_KEY
-
-print(NOMIC_API_KEY)
-
-
-
-# Set Nomic API key
-os.environ["NOMIC_API_KEY"] = NOMIC_API_KEY
 
 from .models import Article
+from .utils import perform_vector_search, generate_query_embedding
 from django.views.generic import ListView, DetailView, UpdateView, FormView
 from django.db import models
 from django import forms
@@ -672,6 +663,7 @@ def vector_search(request):
             request.headers.get("HX-Request") == "true"
             or request.headers.get("Hx-Request") == "true"
         )
+        
         if not query:
             if is_htmx:
                 return render(
@@ -680,104 +672,17 @@ def vector_search(request):
             return render(
                 request, "vector_search.html", {"results": [], "query": query}
             )
-        if query:
-
-  
-            try:
-                # Generate query embedding using Nomic
-                result = embed.text(
-                    texts=[query],
-                    model="nomic-embed-text-v1.5",
-                    task_type="search_query",
-                    dimensionality=768,
-                )
-                query_embedding = result["embeddings"][0]
-            except Exception as e:
-                print(f"Error generating query embedding: {e}")
-                if is_htmx:
-                    # Return an empty results grid; page will still show the error if needed in full render
-                    return render(
-                        request, "partials/vector_search_results.html", {"results": []}
-                    )
-                return render(
-                    request,
-                    "vector_search.html",
-                    {"results": [], "query": query, "error": str(e)},
-                )
-
-            # MongoDB Atlas Vector Search aggregation
-            pipeline = [
-                {
-                    "$vectorSearch": {
-                        "index": "article_vector_index",  # Make sure this index exists
-                        "path": "embedding",
-                        "queryVector": query_embedding,
-                        "numCandidates": 50,
-                        "limit": 18,
-                    }
-                },
-                {
-                    "$project": {
-                        "_id": 1,
-                        "score": {"$meta": "vectorSearchScore"},
-                        "title_en": 1,
-                        "title_it": 1,
-                        "content_en": 1,
-                        "content_it": 1,
-                        "sector": 1,
-                        "source": 1,
-                        "date": 1,
-                        "url": 1,
-                        "status": 1,
-                        "score": {"$meta": "vectorSearchScore"},
-                    }
-                },
-            ]
-
-            # Execute aggregation without view-level caching
-            results = list(Article.objects.raw_aggregate(pipeline))
-
-            print("Raw results:", results)
-
-            # Normalize results: handle both dicts and Article instances
-            processed_results = []
-            for result in results:
-                if isinstance(result, dict):
-                    item = dict(result)
-                    # Convert score to percentage (0-100)
-                    try:
-                        item["score"] = float(item.get("score", 0)) * 100
-                    except (TypeError, ValueError):
-                        item["score"] = 0
-                    # Convert ObjectId to string for template
-                    if "_id" in item:
-                        item["_id"] = str(item["_id"])
-                        # Also provide a generic 'id' for URL reversing
-                        item["id"] = item["_id"]
-                    processed_results.append(item)
-                else:
-                    # It's likely an Article instance; map needed fields into a dict
-                    item = {
-                        "_id": str(getattr(result, "_id", getattr(result, "id", ""))),
-                        "title_en": getattr(result, "title_en", None),
-                        "title_it": getattr(result, "title_it", None),
-                        "content_en": getattr(result, "content_en", None),
-                        "content_it": getattr(result, "content_it", None),
-                        "sector": getattr(result, "sector", None),
-                        "source": getattr(result, "source", None),
-                        "date": getattr(result, "date", None),
-                        "url": getattr(result, "url", None),
-                    }
-                    # Provide 'id' for URL reversing
-                    item["id"] = getattr(result, "id", item["_id"]) or item["_id"]
-                    # Score might be present as an annotated attribute
-                    try:
-                        item["score"] = float(getattr(result, "score", 0)) * 100
-                    except (TypeError, ValueError):
-                        item["score"] = 0
-                    processed_results.append(item)
-            print(processed_results)
-
+        
+        try:
+            # Perform vector search using utility function
+            processed_results = perform_vector_search(
+                query=query,
+                article_model=Article,
+                index_name="article_vector_index",
+                num_candidates=50,
+                limit=18,
+            )
+            
             if is_htmx:
                 return render(
                     request,
@@ -788,6 +693,18 @@ def vector_search(request):
                 request,
                 "vector_search.html",
                 {"results": processed_results, "query": query},
+            )
+            
+        except Exception as e:
+            print(f"Error performing vector search: {e}")
+            if is_htmx:
+                return render(
+                    request, "partials/vector_search_results.html", {"results": []}
+                )
+            return render(
+                request,
+                "vector_search.html",
+                {"results": [], "query": query, "error": str(e)},
             )
 
     return render(request, "vector_search.html")

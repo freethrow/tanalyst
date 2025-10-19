@@ -180,11 +180,11 @@ msgstr "Embeddings"
 
 #: .\templates\base.html:188 .\templates\scrapers.html:4
 msgid "Scrapers"
-msgstr ""
+msgstr "Scraper"
 
 #: .\templates\base.html:191
 msgid "Translation"
-msgstr ""
+msgstr "Traduzione"
 
 #: .\templates\base.html:198 .\templates\base.html:292
 msgid "Summaries"
@@ -778,6 +778,7 @@ msgid "This action can only be performed by an administrator"
 msgstr "Questa azione richiede un amministratore"
 
 # Navigation
+#: .\templates\base.html:236
 msgid "About"
 msgstr "Chi Siamo"
 
