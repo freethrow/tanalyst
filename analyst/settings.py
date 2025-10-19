@@ -15,7 +15,11 @@ import os
 
 from dotenv import load_dotenv
 
-load_dotenv(Path(__file__).resolve().parent.parent / ".env")
+# Load .env file only if it exists (for local development)
+# In Docker, environment variables are injected by docker-compose
+env_path = Path(__file__).resolve().parent.parent / ".env"
+if env_path.exists():
+    load_dotenv(env_path)
 
 NOMIC_API_KEY = os.getenv("NOMIC_API_KEY")
 RESEND_API_KEY = os.getenv("RESEND_API_KEY")
