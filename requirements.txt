@@ -1,6 +1,6 @@
 # Django Framework
-Django>=5.0.0,<5.1.0
-django-mongodb-backend>=5.1.0
+Django
+django-mongodb-backend>=5.1.2
 django-htmx
 django-celery-beat
 django-redis

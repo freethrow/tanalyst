@@ -1,3 +1,17 @@
+
+import os
+from django.conf import settings
+from nomic import embed
+# hardcode to troubleshoot
+NOMIC_API_KEY = settings.NOMIC_API_KEY
+
+print(NOMIC_API_KEY)
+
+
+
+# Set Nomic API key
+os.environ["NOMIC_API_KEY"] = NOMIC_API_KEY
+
 from .models import Article
 from django.views.generic import ListView, DetailView, UpdateView, FormView
 from django.db import models
@@ -11,6 +25,10 @@ from django.contrib.auth import authenticate, login as auth_login, logout as aut
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.decorators.http import require_POST
+
+
+
+
 
 
 from analyst.emails.notifications import send_latest_articles_email
@@ -43,7 +61,8 @@ from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 
-NOMIC_API_KEY = settings.NOMIC_API_KEY
+
+
 
 
 # Helper function to check if user is staff/admin
@@ -649,7 +668,6 @@ def embedding_management(request):
 def vector_search(request):
     if request.method == "POST":
         query = request.POST.get("query", "").strip()
-        # If query is empty, return empty results quickly
         is_htmx = (
             request.headers.get("HX-Request") == "true"
             or request.headers.get("Hx-Request") == "true"
@@ -663,18 +681,14 @@ def vector_search(request):
                 request, "vector_search.html", {"results": [], "query": query}
             )
         if query:
-            from nomic import embed
-            import os
 
-            # Set Nomic API key
-            os.environ["NOMIC_API_KEY"] = NOMIC_API_KEY
-
+  
             try:
                 # Generate query embedding using Nomic
                 result = embed.text(
                     texts=[query],
                     model="nomic-embed-text-v1.5",
-                    task_type="search_query",  # Use search_query for queries
+                    task_type="search_query",
                     dimensionality=768,
                 )
                 query_embedding = result["embeddings"][0]
