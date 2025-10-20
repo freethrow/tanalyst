@@ -15,9 +15,15 @@ logger = logging.getLogger(__name__)
 # Initialize Resend API key
 RESEND_API_KEY = settings.RESEND_API_KEY
 if RESEND_API_KEY:
+    logger.info("Initializing Resend with API key")
     resend.api_key = RESEND_API_KEY
+    # Test if the API key appears valid (just checking format)
+    if RESEND_API_KEY.startswith('re_') and len(RESEND_API_KEY) > 20:
+        logger.info("Resend API key format appears valid")
+    else:
+        logger.warning("Resend API key format may be invalid - doesn't start with 're_' or is too short")
 else:
-    logger.error("RESEND_API_KEY not set in environment variables")
+    logger.error("RESEND_API_KEY not set in environment variables or settings")
 
 # Email configuration
 
@@ -176,8 +182,11 @@ def send_latest_articles_email(
         text_content = strip_tags(html_content)
 
         # Prepare email parameters
-        default_sender_email = "onboarding@resend.dev"
+        default_sender_email = sender_email or os.getenv("DEFAULT_FROM_EMAIL", "onboarding@resend.dev")
         default_sender_name = sender_name or os.getenv("DEFAULT_FROM_NAME", "Marko")
+        
+        # Log sender info for troubleshooting
+        logger.info(f"Using sender: {default_sender_name} <{default_sender_email}>")
 
         # Generate default subject if not provided
         if not subject:
@@ -198,9 +207,15 @@ def send_latest_articles_email(
 
         # Send email via Resend
         logger.info(f"Sending email to {recipient_email}")
-        email_result = resend.Emails.send(email_params)
-
-        logger.info(f"✅ Email sent successfully. ID: {email_result.get('id')}")
+        try:
+            email_result = resend.Emails.send(email_params)
+            logger.info(f"✅ Email sent successfully. ID: {email_result.get('id')}")
+        except Exception as resend_error:
+            logger.error(f"Resend API error: {str(resend_error)}")
+            # Log the response details if available
+            if hasattr(resend_error, 'response') and resend_error.response:
+                logger.error(f"Response: {resend_error.response.text}")
+            raise
 
         # Return success result
         return {
@@ -214,6 +229,19 @@ def send_latest_articles_email(
 
     except Exception as e:
         logger.error(f"❌ Failed to send email to {recipient_email}: {str(e)}")
+        logger.error(f"Error type: {type(e).__name__}")
+        logger.error(f"Error details: {repr(e)}")
+        
+        # Check if there are issues with the template data
+        if articles and 'template' in str(e).lower():
+            try:
+                # Log info about articles that might cause template issues
+                logger.error("Possible template data issue, checking articles:")
+                for idx, article in enumerate(articles[:3]):
+                    logger.error(f"Article {idx}: title_it={bool(article.title_it)}, content_it={bool(article.content_it)}, ")
+                    logger.error(f"          has url: {hasattr(article, 'url') and bool(article.url)}")
+            except Exception as article_error:
+                logger.error(f"Error checking articles: {article_error}")
 
         # Retry with exponential backoff
         if self.request.retries < self.max_retries:

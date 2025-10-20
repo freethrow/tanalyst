@@ -6,7 +6,6 @@ DEBUG=false
 ALLOWED_HOSTS=localhost,127.0.0.1
 
 # API Keys
-NOMIC_API_KEY=your_nomic_api_key
 RESEND_API_KEY=your_resend_api_key
 OPENAI_API_KEY=your_openai_api_key
 VOYAGEAI_API_KEY=your_voyageai_api_key

@@ -65,7 +65,14 @@ To create the backup on your development machine:
 cd C:\Users\DELL\Desktop\TA
 
 # Create MongoDB backup
+# Option 1: Standard backup with embeddings
 mongodump --host=localhost --port=7587 --db=analyst --archive=mongodb_backup.archive
+
+# Option 2: For migration to a system without Nomic embeddings
+# First remove embedding fields (temporary)
+mongosh --host=localhost --port=7587 --eval "db.getSiblingDB('analyst').articles.updateMany({}, {$unset: {embedding: '', embedding_model: '', embedding_created_at: '', embedding_dimensions: '', embedding_error: ''}})" 
+# Then export
+mongodump --host=localhost --port=7587 --db=analyst --archive=mongodb_backup_clean.archive
 
 # Copy .env and backup to USB
 Copy-Item .env E:\deployment\
@@ -116,14 +123,24 @@ Before going to the new machine, prepare your USB drive:
 cd C:\Users\DELL\Desktop\TA
 
 # Create MongoDB backup
+# Option 1: Standard backup with embeddings
 mongodump --host=localhost --port=7587 --db=analyst --archive=mongodb_backup.archive
+
+# Option 2: For migration to a system without Nomic embeddings
+# First remove embedding fields (temporary)
+mongosh --host=localhost --port=7587 --eval "db.getSiblingDB('analyst').articles.updateMany({}, {$unset: {embedding: '', embedding_model: '', embedding_created_at: '', embedding_dimensions: '', embedding_error: ''}})" 
+# Then export
+mongodump --host=localhost --port=7587 --db=analyst --archive=mongodb_backup_clean.archive
 
 # Create deployment folder on USB (replace E: with your USB drive)
 New-Item -Path "E:\deployment" -ItemType Directory -Force
 
 # Copy files to USB
 Copy-Item .env E:\deployment\.env
+# Copy either the standard backup or the clean backup (without embeddings)
 Copy-Item mongodb_backup.archive E:\deployment\mongodb_backup.archive
+# Or if using clean backup without embeddings:
+# Copy-Item mongodb_backup_clean.archive E:\deployment\mongodb_backup_clean.archive
 ```
 
 ### Step 2: Install Prerequisites on New Machine
@@ -403,6 +420,59 @@ docker exec ta_mongodb mongodump --db=analyst --archive --gzip > "mongodb_backup
 docker exec ta_mongodb mongodump --db=analyst --archive > "C:\Backups\mongodb_backup_$timestamp.archive"
 ```
 
+### Export MongoDB without Embeddings
+
+To create a clean export without Nomic or other embedding data (useful when migrating to different embedding models):
+
+```powershell
+# 1. Create a full backup first (always have a complete backup)
+$timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
+docker exec ta_mongodb mongodump --db=analyst --archive > "mongodb_backup_full_$timestamp.archive"
+
+# 2. Remove embedding fields from all articles (temporary modification)
+docker exec ta_mongodb mongosh --eval "db.getSiblingDB('analyst').articles.updateMany(
+  {}, 
+  {$unset: {
+    embedding: '',
+    embedding_model: '',
+    embedding_created_at: '',
+    embedding_dimensions: '',
+    embedding_error: '',
+    embedding_failed_at: ''
+  }}
+)"
+
+# 3. Create the clean export without embeddings
+docker exec ta_mongodb mongodump --db=analyst --archive > "mongodb_backup_no_embeddings_$timestamp.archive"
+
+# 4. Mark all articles for re-embedding on the source system (only if continuing to use this system)
+docker exec ta_mongodb mongosh --eval "db.getSiblingDB('analyst').articles.updateMany(
+  {embedding: {$exists: false}},
+  {$set: {status: 'PENDING'}}
+)"
+```
+
+### Restore and Setup for New Embeddings
+
+When restoring a backup that didn't have embeddings or when switching embedding models:
+
+```powershell
+# 1. Restore the database
+docker cp mongodb_backup_no_embeddings.archive ta_mongodb:/tmp/backup.archive
+docker exec ta_mongodb mongorestore --archive=/tmp/backup.archive
+
+# 2. Drop old vector index if it exists
+docker exec ta_mongodb mongosh --eval "db.getSiblingDB('analyst').articles.dropIndex('article_vector_index')"
+
+# 3. Create new vector index for embeddings
+docker exec ta_mongodb mongosh --eval "db.getSiblingDB('analyst').articles.createIndex(
+  {embedding: 'vector'}, 
+  {name: 'article_vector_index', dimensions: 768, vectorSearchOptions: {similarity: 'cosine'}}
+)"
+
+# 4. The embedding task will automatically process articles without embeddings
+```
+
 ### Update the Application
 
 ```powershell
@@ -494,7 +564,15 @@ For issues or questions:
 ## Summary - Complete Deployment Checklist
 
 ### On Development Machine (Before Transfer):
-- [ ] Create MongoDB backup: `mongodump --host=localhost --port=7587 --db=analyst --archive=mongodb_backup.archive`
+- [ ] Create MongoDB backup:
+  - Standard backup: `mongodump --host=localhost --port=7587 --db=analyst --archive=mongodb_backup.archive`
+  - Or clean export without embeddings (recommended when changing embedding models):
+    ```powershell
+    # First remove embedding fields
+    mongosh --host=localhost --port=7587 --eval "db.getSiblingDB('analyst').articles.updateMany({}, {$unset: {embedding: '', embedding_model: '', embedding_created_at: '', embedding_dimensions: '', embedding_error: ''}})" 
+    # Then export
+    mongodump --host=localhost --port=7587 --db=analyst --archive=mongodb_backup_clean.archive
+    ```
 - [ ] Copy `.env` and `mongodb_backup.archive` to USB drive
 - [ ] Push latest code to GitHub: `git push origin main`
 

@@ -250,6 +250,9 @@
             <a href="{% url 'articles:discarded' %}" class="px-3 py-2 rounded-md text-sm font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary transition-colors">
               {% trans "Discarded" %}
             </a>
+            <a href="{% url 'articles:sent' %}" class="px-3 py-2 rounded-md text-sm font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary transition-colors">
+              {% trans "Sent" %}
+            </a>
             <a href="{% url 'articles:sectors' %}" class="px-3 py-2 rounded-md text-sm font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary transition-colors">
               {% trans "Sectors" %}
             </a>
@@ -393,6 +396,9 @@
             <a href="{% url 'articles:discarded' %}" class="block px-3 py-2 rounded-md text-base font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary">
               {% trans "Discarded" %}
             </a>
+            <a href="{% url 'articles:sent' %}" class="block px-3 py-2 rounded-md text-base font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary">
+              {% trans "Sent" %}
+            </a>
             <a href="{% url 'articles:sectors' %}" class="block px-3 py-2 rounded-md text-base font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary">
               {% trans "Sectors" %}
             </a>
@@ -460,6 +466,7 @@
               <li><a href="/" class="text-white/80 hover:text-white text-sm transition-colors">{% trans "Home" %}</a></li>
               <li><a href="{% url 'articles:approved' %}" class="text-white/80 hover:text-white text-sm transition-colors">{% trans "Approved" %}</a></li>
               <li><a href="{% url 'articles:discarded' %}" class="text-white/80 hover:text-white text-sm transition-colors">{% trans "Discarded" %}</a></li>
+              <li><a href="{% url 'articles:sent' %}" class="text-white/80 hover:text-white text-sm transition-colors">{% trans "Sent" %}</a></li>
               <li><a href="/vector-search/" class="text-white/80 hover:text-white text-sm transition-colors">{% trans "Vector Search" %}</a></li>
             </ul>
           </div>

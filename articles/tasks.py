@@ -4,10 +4,10 @@ from time import sleep
 from django.conf import settings
 
 import os
-
-from nomic import embed
 import numpy as np
 from datetime import datetime, timedelta
+
+from articles.utils import get_e5_model
 
 from analyst.emails.notifications import send_latest_articles_email
 from pymongo import MongoClient
@@ -22,9 +22,6 @@ EMBEDDING_BATCH_SIZE = 10
 
 
 logger = get_task_logger(__name__)
-
-# Initialize Nomic client
-os.environ["NOMIC_API_KEY"] = settings.NOMIC_API_KEY
 
 
 def get_mongodb_connection():
@@ -153,25 +150,26 @@ def create_all_embeddings(
                 logger.info(f"Waiting {rate_limit_sleep} seconds between requests")
                 sleep(rate_limit_sleep)
 
-                # Use Nomic embed API
-                result = embed.text(
-                    texts=texts,
-                    model="nomic-embed-text-v1.5",
-                    task_type="search_document",
-                    dimensionality=768,  # Full dimensionality for best performance
-                )
-
+                # Use E5 model for embeddings
+                model = get_e5_model()
+                
+                # E5 models work best with passage prefix for documents
+                prefixed_texts = [f"passage: {text}" for text in texts]
+                
+                # Generate embeddings for batch
+                embeddings = model.encode(prefixed_texts)
+                
                 # Update each article with its embedding
                 for idx, (article_id, embedding) in enumerate(
-                    zip(article_ids, result["embeddings"])
+                    zip(article_ids, embeddings)
                 ):
                     try:
                         collection.update_one(
                             {"_id": article_id},
                             {
                                 "$set": {
-                                    "embedding": embedding,
-                                    "embedding_model": "nomic-embed-text-v1.5",
+                                    "embedding": embedding.tolist(),
+                                    "embedding_model": "multilingual-e5-base",
                                     "embedding_created_at": datetime.utcnow(),
                                     "embedding_dimensions": len(embedding),
                                 }
@@ -206,24 +204,26 @@ def create_all_embeddings(
                         logger.info(
                             f"Retrying batch of {len(texts)} articles after rate limit"
                         )
-                        result = embed.text(
-                            texts=texts,
-                            model="nomic-embed-text-v1.5",
-                            task_type="search_document",
-                            dimensionality=768,
-                        )
+                        # Use E5 model for embeddings
+                        model = get_e5_model()
+                        
+                        # E5 models work best with passage prefix for documents
+                        prefixed_texts = [f"passage: {text}" for text in texts]
+                        
+                        # Generate embeddings for batch
+                        embeddings = model.encode(prefixed_texts)
 
                         # Update each article with its embedding
                         for idx, (article_id, embedding) in enumerate(
-                            zip(article_ids, result["embeddings"])
+                            zip(article_ids, embeddings)
                         ):
                             try:
                                 collection.update_one(
                                     {"_id": article_id},
                                     {
                                         "$set": {
-                                            "embedding": embedding,
-                                            "embedding_model": "nomic-embed-text-v1.5",
+                                            "embedding": embedding.tolist(),
+                                            "embedding_model": "multilingual-e5-base",
                                             "embedding_created_at": datetime.utcnow(),
                                             "embedding_dimensions": len(embedding),
                                         }

@@ -161,7 +161,7 @@
                     {% trans "Generate New Embeddings" %}
                 </h3>
                 <p class="text-sm text-gray-700 mb-4">
-                    {% trans "Start generating embeddings for articles that don't have them using Nomic API." %}
+                    {% trans "Start generating embeddings for articles that don't have them using multilingual-e5-base model." %}
                 </p>
                 <a 
                     href="{% url 'articles:test_tasks' %}" 
@@ -184,9 +184,9 @@
                     </svg>
                 </div>
                 <div>
-                    <h3 class="text-sm font-semibold font-display text-blue-900 mb-1">{% trans "Migration to Nomic Embeddings" %}</h3>
+                    <h3 class="text-sm font-semibold font-display text-blue-900 mb-1">{% trans "Migration to multilingual-e5-base Embeddings" %}</h3>
                     <p class="text-xs text-blue-800 leading-relaxed">
-                        {% trans "Your system is now configured to use Nomic embeddings (nomic-embed-text-v1.5) instead of VoyageAI. Remove old embeddings first, then generate new ones for better performance." %}
+                        {% trans "Your system is now configured to use multilingual-e5-base embeddings instead of Nomic. Remove old embeddings first, then generate new ones for better performance." %}
                     </p>
                 </div>
             </div>

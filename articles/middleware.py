@@ -18,10 +18,6 @@ class LanguageMiddleware:
         if not language:
             language = "en"
 
-        # Debug: Print what language we're activating
-        print(
-            f"[LanguageMiddleware] Session: {language_session}, Cookie: {language_cookie}, Using: {language}"
-        )
 
         # Activate the language if valid
         if language in ["en", "it"]:
@@ -32,9 +28,7 @@ class LanguageMiddleware:
 
             test_approved = gettext("Approved")
             test_discard = gettext("Discard")
-            print(
-                f"[LanguageMiddleware] Test: 'Approved'='{test_approved}', 'Discard'='{test_discard}'"
-            )
+
         else:
             # Fallback to English
             translation.activate("en")

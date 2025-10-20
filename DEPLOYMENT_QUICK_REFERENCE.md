@@ -10,13 +10,24 @@ docker-compose up -d --build
 ## 📋 Pre-Deployment Checklist (Development Machine)
 
 ```powershell
-# 1. Create MongoDB backup
+# 1. Create MongoDB backup (choose one option)
+
+# Option A: Standard backup with embeddings
 mongodump --host=localhost --port=7587 --db=analyst --archive=mongodb_backup.archive
+
+# Option B: Clean backup without Nomic embeddings (for migration)
+# Remove embedding fields
+mongosh --host=localhost --port=7587 --eval "db.getSiblingDB('analyst').articles.updateMany({}, {$unset: {embedding: '', embedding_model: '', embedding_created_at: '', embedding_dimensions: '', embedding_error: ''}})" 
+# Export clean database
+mongodump --host=localhost --port=7587 --db=analyst --archive=mongodb_backup_clean.archive
 
 # 2. Prepare USB drive
 New-Item -Path "E:\deployment" -ItemType Directory -Force
 Copy-Item .env E:\deployment\.env
+# Copy whichever backup you created
 Copy-Item mongodb_backup.archive E:\deployment\mongodb_backup.archive
+# Or for clean backup:
+# Copy-Item mongodb_backup_clean.archive E:\deployment\mongodb_backup_clean.archive
 
 # 3. Push to GitHub
 git add .
@@ -44,8 +55,17 @@ docker-compose up -d --build
 
 ### 4. Restore Database
 ```powershell
+# Copy backup to container (use the appropriate backup file name)
 docker cp E:\deployment\mongodb_backup.archive ta_mongodb:/tmp/backup.archive
+# OR for clean backup:
+# docker cp E:\deployment\mongodb_backup_clean.archive ta_mongodb:/tmp/backup.archive
+
+# Restore database
 docker exec ta_mongodb mongorestore --archive=/tmp/backup.archive
+
+# If using clean backup (without embeddings), rebuild the vector index
+docker exec ta_mongodb mongosh --eval "db.getSiblingDB('analyst').articles.dropIndex('article_vector_index')" || echo "No index to drop"
+docker exec ta_mongodb mongosh --eval "db.getSiblingDB('analyst').articles.createIndex({embedding: 'vector'}, {name: 'article_vector_index', dimensions: 768, vectorSearchOptions: {similarity: 'cosine'}})"  
 ```
 
 ### 5. Initialize Django
@@ -116,14 +136,29 @@ docker exec ta_mongodb mongosh --eval "use analyst; db.articles.countDocuments()
 
 ### Create Backup
 ```powershell
+# Full backup with timestamp
 $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
 docker exec ta_mongodb mongodump --db=analyst --archive > "mongodb_backup_$timestamp.archive"
+
+# Backup WITHOUT Nomic embeddings (clean export)
+docker exec ta_mongodb mongosh --eval "db.getSiblingDB('analyst').articles.updateMany({}, {$unset: {embedding: '', embedding_model: '', embedding_created_at: '', embedding_dimensions: ''}})"
+docker exec ta_mongodb mongodump --db=analyst --archive > "mongodb_backup_no_embeddings_$timestamp.archive"
+
+# Restore embeddings after clean export (in case you're keeping the original system running)
+docker exec ta_mongodb mongosh --eval "db.getSiblingDB('analyst').articles.updateMany({embedding: {$exists: false}}, {$set: {status: 'PENDING'}})"
 ```
 
 ### Restore Backup
 ```powershell
+# Standard restore
 docker cp backup.archive ta_mongodb:/tmp/backup.archive
 docker exec ta_mongodb mongorestore --archive=/tmp/backup.archive
+
+# Restore and rebuild vector index for new embeddings
+docker cp backup.archive ta_mongodb:/tmp/backup.archive
+docker exec ta_mongodb mongorestore --archive=/tmp/backup.archive
+docker exec ta_mongodb mongosh --eval "db.getSiblingDB('analyst').articles.dropIndex('article_vector_index')"
+docker exec ta_mongodb mongosh --eval "db.getSiblingDB('analyst').articles.createIndex({embedding: 'vector'}, {name: 'article_vector_index', dimensions: 768, vectorSearchOptions: {similarity: 'cosine'}})"
 ```
 
 ## 🆘 Troubleshooting
@@ -192,10 +227,10 @@ Key variables in `.env`:
 - `DEBUG` - true/false
 - `MONGODB_URI` - mongodb://mongodb:27017/...
 - `REDIS_URL` - redis://redis:6379/0
-- `NOMIC_API_KEY` - For embeddings
 - `RESEND_API_KEY` - For emails
 - `OPENROUTER_API_KEY` - For LLM
 - `GROQ_API_KEY` - For LLM
+- `LLM_MODEL` - Set model name for translations
 
 ## 📞 Support
 

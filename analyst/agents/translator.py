@@ -155,7 +155,7 @@ TRANSLATION GUIDELINES:
 - Emphasize at the end what is the opportunity for italian companies if any but only as part of a general comment
 - Do not attribute this opportunity comment to any specific company or person or institution
 - If the article is about a specific company, do not mention the company name in the title unless it is crucial for understanding
-- If the article is not in any way useful for Italian companies, do not translate it and leave the italian content empty and the title NOT PERTINENT
+- If the article is not in any way useful for Italian companies, or relates to Montenegro, just respond with "NON PERTINENT" as the title and leave the content empty
 - For the sector field, choose the most relevant sector from the following list: {sectors_list}
 - Make the title short and concise, ideally under 6 words: if the title is longer, shorten it while keeping the main point
 - Example of a good title: "Crescita del 10% nel settore energetico", "Nuove opportunità per le imprese edili"
@@ -305,15 +305,20 @@ def translate_untranslated_articles(self, limit: int = None):
         # Get MongoDB connection
         client, collection = get_mongodb_connection()
 
-        # Find untranslated articles (missing title_it OR content_it)
+        # Find untranslated articles (missing title_it OR content_it) AND exclude NON PERTINENT articles
         query = {
-            "$or": [
-                {"title_it": {"$exists": False}},
-                {"title_it": None},
-                {"title_it": ""},
-                {"content_it": {"$exists": False}},
-                {"content_it": None},
-                {"content_it": ""},
+            "$and": [
+                # Regular untranslated criteria
+                {"$or": [
+                    {"title_it": {"$exists": False}},
+                    {"title_it": None},
+                    {"title_it": ""},
+                    {"content_it": {"$exists": False}},
+                    {"content_it": None},
+                    {"content_it": ""},
+                ]},
+                # Exclude articles already marked as NON PERTINENT
+                {"title_it": {"$ne": "NON PERTINENT"}}
             ]
         }
 
@@ -399,6 +404,25 @@ def translate_untranslated_articles(self, limit: int = None):
                     )
 
                     if translation_result["translation_success"]:
+                        # Check if the article was marked as NON PERTINENT by the LLM
+                        if translation_result["title_it"] == "NON PERTINENT":
+                            logger.info(f"⏭️ Skipping NON PERTINENT article: {title[:50]}...")
+                            
+                            # Mark as NON PERTINENT and skip further processing
+                            collection.update_one(
+                                {"_id": article["_id"]},
+                                {"$set": {
+                                    "title_it": "NON PERTINENT",
+                                    "content_it": "",  # Empty content as per instructions
+                                    "time_translated": translation_result["time_translated"],
+                                    "llm_model": translation_result["llm_model"],
+                                    "status": "DISCARDED",  # Mark as discarded
+                                }}
+                            )
+                            
+                            translated_count += 1  # Count as processed
+                            continue
+                            
                         # Update MongoDB with translated content
                         update_data = {
                             "title_it": translation_result["title_it"],

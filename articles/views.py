@@ -257,6 +257,27 @@ class DiscardedArticleListView(LoginRequiredMixin, ListView):
         return queryset.order_by("-time_translated")
 
 
+class SentArticleListView(LoginRequiredMixin, ListView):
+    model = Article
+    template_name = "index.html"
+    context_object_name = "articles"
+    login_url = "/login/"
+    
+    def get_queryset(self):
+        """
+        Get the queryset for sent articles (articles that have been included in emails).
+        """
+        queryset = Article.objects.filter(
+            title_it__isnull=False,
+            content_it__isnull=False,
+            status=Article.SENT,
+        ).exclude(
+            title_it__exact="",
+            content_it__exact="",
+        )
+        return queryset.order_by("-time_translated")
+
+
 @require_POST
 @login_required
 def validate_article(request, article_id):

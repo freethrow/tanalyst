@@ -7,7 +7,8 @@
 {% block content %}
 <!-- Background Image Section -->
 <div class="relative -mx-4 sm:-mx-6 lg:-mx-8 mb-12 overflow-hidden">
-  <div class="absolute inset-0 bg-cover bg-center bg-no-repeat" style="background-image: url('{% static 'images/about.png' %}');"></div>
+  <div class="absolute inset-0 bg-cover bg-center bg-no-repeat about-bg"></div>
+  <style>.about-bg { background-image: url({% static 'images/about.png' %}); }</style>
   <div class="absolute inset-0 bg-gradient-to-b from-white/80 via-white/75 to-white/90"></div>
   <div class="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
       <!-- Hero Section -->
@@ -53,6 +54,7 @@
         <ul class="space-y-2 text-gray-700 mb-6">
           <li><strong>MongoDB</strong> serves as the database solution, providing flexible and scalable data storage</li>
           <li><strong>Django with MongoDB Backend</strong> powers the application framework</li>
+          <li><strong>multilingual-e5-base</strong> provides multilingual embedding capabilities for semantic search</li>
           <li><strong>Pydantic AI</strong> manages intelligent AI agents for data processing</li>
           <li><strong>OpenRouter</strong> enables access to multiple LLM models for optimal performance</li>
           <li><strong>ReportLab</strong> generates professional PDF reports</li>
@@ -89,6 +91,7 @@
         <ul class="space-y-2 text-gray-700 mb-6">
           <li><strong>MongoDB</strong> funge da soluzione database, fornendo un'archiviazione dati flessibile e scalabile</li>
           <li><strong>Django con MongoDB Backend</strong> alimenta il framework dell'applicazione</li>
+          <li><strong>multilingual-e5-base</strong> fornisce capacità di embedding multilingue per la ricerca semantica</li>
           <li><strong>Pydantic AI</strong> gestisce agenti AI intelligenti per l'elaborazione dei dati</li>
           <li><strong>OpenRouter</strong> consente l'accesso a molteplici modelli LLM per prestazioni ottimali</li>
           <li><strong>ReportLab</strong> genera report PDF professionali</li>

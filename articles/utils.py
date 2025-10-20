@@ -5,40 +5,53 @@ Utility functions for the articles app.
 import os
 from typing import List, Dict, Any, Optional
 from django.conf import settings
-from nomic import embed
+from sentence_transformers import SentenceTransformer
 
-# Initialize Nomic API key
-os.environ["NOMIC_API_KEY"] = settings.NOMIC_API_KEY
+# Initialize E5 model globally for reuse
+_e5_model = None
+
+def get_e5_model():
+    """Get or initialize the E5 model."""
+    global _e5_model
+    if _e5_model is None:
+        _e5_model = SentenceTransformer('intfloat/multilingual-e5-base')
+    return _e5_model
 
 
 def generate_query_embedding(
     query: str,
-    model: str = "nomic-embed-text-v1.5",
-    task_type: str = "search_query",
-    dimensionality: int = 768,
+    model_name: str = "multilingual-e5-base",
+    prefix: str = "query: ",
 ) -> Optional[List[float]]:
     """
-    Generate an embedding vector for a search query using Nomic API.
+    Generate an embedding vector for a search query using multilingual-e5-base model.
 
     Args:
         query: The search query text
-        model: The Nomic model to use (default: nomic-embed-text-v1.5)
-        task_type: The task type for embedding (default: search_query)
-        dimensionality: The dimensionality of the embedding (default: 768)
+        model_name: The model name identifier (default: multilingual-e5-base)
+        prefix: The prefix to add to the query for E5 models (default: "query: ")
 
     Returns:
         List of floats representing the embedding vector, or None if error occurs
 
     Raises:
-        Exception: If the Nomic API call fails
+        Exception: If embedding generation fails
     """
-    result = embed.text(
-        texts=[query],
-        model=model,
-        task_type=task_type,
-        dimensionality=dimensionality,
-    )
-    return result["embeddings"][0]
+    try:
+        # Get or initialize the model
+        model = get_e5_model()
+        
+        # E5 models work best with prefixes
+        prefixed_query = f"{prefix}{query}"
+        
+        # Generate embedding
+        embedding = model.encode(prefixed_query)
+        
+        # Convert to list of floats (from numpy array)
+        return embedding.tolist()
+    except Exception as e:
+        print(f"Error generating embedding: {str(e)}")
+        raise
 
 
 def build_vector_search_pipeline(
