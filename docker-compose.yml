@@ -1,22 +1,4 @@
 services:
-  # MongoDB database (your current version is fine)
-  mongodb:
-    image: mongodb/mongodb-community-server:latest
-    container_name: ta_mongodb
-    ports:
-      - "7587:27017"
-    volumes:
-      - mongodb_data:/data/db
-    environment:
-      - MONGO_INITDB_DATABASE=analyst
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 40s
-
   # Redis cache and message broker
   redis:
     image: redis:7-alpine
@@ -54,12 +36,11 @@ services:
       - .env
     environment:
       - REDIS_URL=redis://redis:6379/0
-      - DB_HOST=mongodb
-      - DB_PORT=27017
-      - MONGODB_URI=mongodb://mongodb:27017/?directConnection=true
+      # Use host.docker.internal to access services on Windows host
+      - MONGODB_URI=mongodb://host.docker.internal:27017/analyst?directConnection=true
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
-      mongodb:
-        condition: service_healthy
       redis:
         condition: service_healthy
     restart: unless-stopped
@@ -88,12 +69,10 @@ services:
       - .env
     environment:
       - REDIS_URL=redis://redis:6379/0
-      - DB_HOST=mongodb
-      - DB_PORT=27017
-      - MONGODB_URI=mongodb://mongodb:27017/?directConnection=true
+      - MONGODB_URI=mongodb://host.docker.internal:27017/analyst?directConnection=true
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
-      mongodb:
-        condition: service_healthy
       redis:
         condition: service_healthy
     restart: unless-stopped
@@ -114,12 +93,10 @@ services:
       - .env
     environment:
       - REDIS_URL=redis://redis:6379/0
-      - DB_HOST=mongodb
-      - DB_PORT=27017
-      - MONGODB_URI=mongodb://mongodb:27017/?directConnection=true
+      - MONGODB_URI=mongodb://host.docker.internal:27017/analyst?directConnection=true
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
-      mongodb:
-        condition: service_healthy
       redis:
         condition: service_healthy
       web:
@@ -127,7 +104,6 @@ services:
     restart: unless-stopped
 
 volumes:
-  mongodb_data:
   redis_data:
   static_volume:
   media_volume:
