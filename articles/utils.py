@@ -140,7 +140,9 @@ def perform_vector_search(
         # Return top N results
         top_results = results[:limit]
         
-        logger.info(f"Returning {len(top_results)} results (scores: {[f'{r['score']:.1f}' for r in top_results[:5]]})")
+        # Log results with simplified syntax
+        scores_preview = [round(r['score'], 1) for r in top_results[:5]]
+        logger.info(f"Returning {len(top_results)} results (scores: {scores_preview})")
         
         return top_results
         

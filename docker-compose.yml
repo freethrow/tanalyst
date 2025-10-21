@@ -1,7 +1,7 @@
 services:
-  # MongoDB database with vector search support (8.2+)
+  # MongoDB database (your current version is fine)
   mongodb:
-    image: mongodb/mongodb-community-server:8.2-ubuntu2404
+    image: mongodb/mongodb-community-server:latest
     container_name: ta_mongodb
     ports:
       - "7587:27017"
@@ -16,19 +16,6 @@ services:
       timeout: 5s
       retries: 5
       start_period: 40s
-
-  # MongoDB Search Service (mongot)
-  mongot:
-    image: mongodb/mongodb-atlas-search:8.2.0
-    container_name: ta_mongot
-    ports:
-      - "27027:27027"
-    environment:
-      - MONGOT_MONGOD_HOST_AND_PORT=mongodb:27017
-    depends_on:
-      mongodb:
-        condition: service_healthy
-    restart: unless-stopped
 
   # Redis cache and message broker
   redis:
@@ -73,8 +60,6 @@ services:
     depends_on:
       mongodb:
         condition: service_healthy
-      mongot:
-        condition: service_started
       redis:
         condition: service_healthy
     restart: unless-stopped
@@ -109,8 +94,6 @@ services:
     depends_on:
       mongodb:
         condition: service_healthy
-      mongot:
-        condition: service_started
       redis:
         condition: service_healthy
     restart: unless-stopped
@@ -137,8 +120,6 @@ services:
     depends_on:
       mongodb:
         condition: service_healthy
-      mongot:
-        condition: service_started
       redis:
         condition: service_healthy
       web:
