@@ -36,11 +36,18 @@ services:
   web:
     build: .
     container_name: ta_web
-    command: gunicorn analyst.wsgi:application --bind 0.0.0.0:8000 --workers 4 --timeout 120
+    command: >
+      sh -c "python manage.py download_models &&
+             gunicorn analyst.wsgi:application --bind 0.0.0.0:8000 --workers 4 --timeout 120"
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
     volumes:
       - .:/app
       - static_volume:/app/staticfiles
       - media_volume:/app/media
+      - sentence_transformers_cache:/root/.cache/torch/sentence_transformers
+      - huggingface_cache:/root/.cache/huggingface
     ports:
       - "8000:8000"
     env_file:
@@ -67,9 +74,16 @@ services:
   celery_worker:
     build: .
     container_name: ta_celery_worker
-    command: celery -A analyst worker --loglevel=info --concurrency=1 --pool=solo
+    command: >
+      sh -c "python manage.py download_models &&
+             celery -A analyst worker --loglevel=info --concurrency=1 --pool=solo"
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
     volumes:
       - .:/app
+      - sentence_transformers_cache:/root/.cache/torch/sentence_transformers
+      - huggingface_cache:/root/.cache/huggingface
     env_file:
       - .env
     environment:
@@ -88,9 +102,14 @@ services:
   celery_beat:
     build: .
     container_name: ta_celery_beat
-    command: celery -A analyst beat --loglevel=info django_celery_beat.schedulers:DatabaseScheduler
+    command: celery -A analyst beat --loglevel=info
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
     volumes:
       - .:/app
+      - sentence_transformers_cache:/root/.cache/torch/sentence_transformers
+      - huggingface_cache:/root/.cache/huggingface
     env_file:
       - .env
     environment:
@@ -112,6 +131,8 @@ volumes:
   redis_data:
   static_volume:
   media_volume:
+  sentence_transformers_cache:
+  huggingface_cache:
 
 networks:
   default:

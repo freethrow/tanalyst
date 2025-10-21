@@ -18,10 +18,16 @@ vine<6.0.0
 scrapy
 pytz
 
-# AI & ML
+# PyTorch CPU-only (MUCH faster download - ~200MB instead of ~1.5GB)
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.2.0+cpu
+torchaudio==2.2.0+cpu
+torchvision==0.17.0+cpu
+
+# AI & ML (after PyTorch to use CPU version)
 pydantic>=2.0.0
 pydantic-ai
-sentence-transformers
+sentence-transformers>=2.3.0
 numpy
 
 # PDF Generation
@@ -39,4 +45,3 @@ ruff
 
 # Production Servers
 gunicorn
-waitress
