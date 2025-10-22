@@ -170,7 +170,7 @@ TRANSLATION GUIDELINES:
 - Do not use any business jargon or business language that is not common in Italian business language
 - Use a bit higher level of language
 - Shorten long articles to about 2000 characters but keep the facts precise
-- DO not add anz additional information not present in the original article
+- DO not add any additional information not present in the original article
 - DO not add any additional comments not present in the original article
 - Keep a serious and official style and insert "as stated by the source media - {source}" if needed
 

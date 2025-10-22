@@ -182,8 +182,8 @@ def send_latest_articles_email(
         text_content = strip_tags(html_content)
 
         # Prepare email parameters
-        default_sender_email = sender_email or os.getenv("DEFAULT_FROM_EMAIL", "onboarding@resend.dev")
-        default_sender_name = sender_name or os.getenv("DEFAULT_FROM_NAME", "Marko")
+        default_sender_email = sender_email or os.getenv("DEFAULT_FROM_EMAIL", "tradeAInalist@itabeograd.rs")
+        default_sender_name = sender_name or os.getenv("DEFAULT_FROM_NAME", "Trade AI Analyst")
         
         # Log sender info for troubleshooting
         logger.info(f"Using sender: {default_sender_name} <{default_sender_email}>")

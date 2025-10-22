@@ -903,6 +903,25 @@ class SendArticlesEmailView(StaffRequiredMixin, FormView):
         num_articles = form.cleaned_data["num_articles"]
         subject = form.cleaned_data.get("subject") or None
 
+        # Check if there are any approved articles ready to be sent
+        approved_articles = (
+            Article.objects.filter(
+                status=Article.APPROVED,
+                title_it__isnull=False,
+                content_it__isnull=False,
+            )
+            .exclude(title_it__exact="", content_it__exact="")
+            .count()
+        )
+
+        # If no approved articles, redirect back to home with a message
+        if approved_articles == 0:
+            messages.warning(
+                self.request,
+                "Non ci sono articoli approvati da inviare. Per favore seleziona alcune notizie per approvazione."
+            )
+            return redirect('articles:home')
+
         # Start the email task asynchronously
         try:
             send_latest_articles_email.delay(
