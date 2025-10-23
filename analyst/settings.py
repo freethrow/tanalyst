@@ -238,6 +238,10 @@ CELERY_BEAT_SCHEDULE = {
     #     "task": "scrape_biznisrs",
     #     "schedule": 60 * 3,  # Every 3 minutes
     # },
+    # "scrape_novaekonomija_scheduled": {
+    #     "task": "scrape_novaekonomija",
+    #     "schedule": 60 * 5,  # Every 5 minutes
+    # },
     # "send_latest_articles_scheduled": {
     #     "task": "send_latest_articles_email",
     #     "schedule": 90,  # Every 90 seconds

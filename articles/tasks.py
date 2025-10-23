@@ -13,7 +13,7 @@ from analyst.emails.notifications import send_latest_articles_email
 from pymongo import MongoClient
 from django.utils import timezone
 
-from analyst.scrapers import ekapija, biznisrs
+from analyst.scrapers import ekapija, biznisrs, novaekonomija
 
 # Import the summarizer module to register the task
 from analyst.agents import summarizer
@@ -59,6 +59,12 @@ def scrape_ekapija():
 def scrape_biznisrs():
     biznisrs.main()
     return "Scraping Biznisrs started"
+
+
+@shared_task(max_retries=3, name="scrape_novaekonomija")
+def scrape_novaekonomija():
+    novaekonomija.main()
+    return "Scraping Nova Ekonomija started"
 
 
 @shared_task(bind=True, max_retries=3, name="create_all_embeddings")

@@ -225,13 +225,47 @@ def generate_weekly_summary_task(self, weeks_back: int = 2):
         # Get MongoDB connection
         client, collection = get_mongodb_connection()
 
-        # Calculate date range (last N weeks)
+        # Calculate date range (last N weeks) - ensure we're using UTC timezone
         end_date = datetime.utcnow()
         start_date = end_date - timedelta(weeks=weeks_back)
+        
+        # Log the exact date objects for debugging
+        logger.info(f"Using start_date: {start_date} ({type(start_date)}), end_date: {end_date} ({type(end_date)})")
+        
+        # If the dates in MongoDB have timezone info, we should make our comparison dates timezone-aware
+        try:
+            import pytz
+            # Create timezone-aware versions of our dates
+            utc_tz = pytz.UTC
+            start_date_tz = pytz.utc.localize(start_date) if start_date.tzinfo is None else start_date
+            end_date_tz = pytz.utc.localize(end_date) if end_date.tzinfo is None else end_date
+            
+            # Use these timezone-aware dates instead
+            start_date = start_date_tz
+            end_date = end_date_tz
+            
+            logger.info(f"Adjusted to timezone-aware dates: start_date: {start_date}, end_date: {end_date}")
+        except ImportError:
+            logger.warning("pytz not available, continuing with naive datetimes")
+        except Exception as e:
+            logger.warning(f"Error adjusting timezones: {str(e)}, continuing with original dates")
 
         logger.info(
             f"Generating weekly summary for articles from {start_date.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')}"
         )
+        
+        # Check for articles without dates (this may be a source of the problem)
+        no_date_count = collection.count_documents({"article_date": {"$exists": False}})
+        null_date_count = collection.count_documents({"article_date": None})
+        logger.info(f"Articles with no article_date field: {no_date_count}")
+        logger.info(f"Articles with null article_date: {null_date_count}")
+        
+        # Check article statuses
+        status_counts = {}
+        for status_type in ["PENDING", "APPROVED", "SENT", "DISCARDED"]:
+            count = collection.count_documents({"status": status_type})
+            status_counts[status_type] = count
+        logger.info(f"Article status counts: {status_counts}")
 
         # Query for articles from the last N weeks with Italian content
         query = {
@@ -245,12 +279,100 @@ def generate_weekly_summary_task(self, weeks_back: int = 2):
                 {"status": {"$in": ["APPROVED", "SENT"]}},
             ]
         }
+        
+        # Log the exact query for debugging
+        logger.info(f"MongoDB query: {query}")
+        
+        # As a test, try running just the date part of the query to see if we get any results
+        date_only_query = {"article_date": {"$gte": start_date, "$lte": end_date}}
+        date_only_count = collection.count_documents(date_only_query)
+        logger.info(f"Articles in date range (any status/content): {date_only_count}")
+        
+        # Check if there are ANY articles with dates in the system
+        any_date_count = collection.count_documents({"article_date": {"$exists": True, "$ne": None}})
+        logger.info(f"Total articles with valid dates: {any_date_count}")
+        
+        # Check a wider date range to see if there might be a date format issue
+        wider_start = end_date - timedelta(weeks=12)  # 3 months back
+        wider_query = {"article_date": {"$gte": wider_start, "$lte": end_date}}
+        wider_count = collection.count_documents(wider_query)
+        logger.info(f"Articles in wider 3-month range: {wider_count}")
+        
+        # Test with exact date from the database
+        # Try a direct lookup with a sample date format from the database
+        try:
+            from dateutil import parser
+            
+            # Parse a sample date in the format we've seen
+            sample_date_str = "2025-10-21T09:14:00.000+00:00"  # Format seen in the database
+            sample_date = parser.parse(sample_date_str)
+            logger.info(f"Sample date parsed as: {sample_date} ({type(sample_date)})")
+            
+            # Try a query with this exact date format
+            recent_date = datetime.utcnow() - timedelta(days=2)  # 2 days ago
+            test_query = {"article_date": {"$gte": recent_date}}
+            test_count = collection.count_documents(test_query)
+            logger.info(f"Articles in the last 2 days: {test_count}")
+        except Exception as e:
+            logger.warning(f"Error during date format testing: {str(e)}")
 
         # Get articles
         articles = list(collection.find(query).sort("article_date", -1))
-
+        
+        # Add more detailed logging
         logger.info(f"Found {len(articles)} articles for summary generation")
+        logger.info(f"Date range: {start_date.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')}")
+        
+        # Log article dates for debugging
+        if articles:
+            oldest_date = min([a.get('article_date') for a in articles if a.get('article_date')])  
+            newest_date = max([a.get('article_date') for a in articles if a.get('article_date')])
+            logger.info(f"Oldest article date: {oldest_date}")
+            logger.info(f"Newest article date: {newest_date}")
+            
+            # Check date distribution 
+            date_counts = {}
+            for article in articles:
+                article_date = article.get('article_date')
+                if article_date:
+                    date_str = article_date.strftime('%Y-%m-%d')
+                    date_counts[date_str] = date_counts.get(date_str, 0) + 1
+            logger.info(f"Article date distribution: {date_counts}")
 
+        # If not enough articles found, try with a wider date range
+        if len(articles) < 5:
+            logger.warning(f"Only {len(articles)} articles found in {weeks_back} weeks - trying wider range")
+            
+            # Double the date range
+            extended_start = end_date - timedelta(weeks=weeks_back * 2)
+            extended_query = query.copy()
+            extended_query["$and"][2] = {"article_date": {"$gte": extended_start, "$lte": end_date}}
+            
+            logger.info(f"Extended date range to {extended_start.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')}")
+            
+            # Try with extended date range
+            extended_articles = list(collection.find(extended_query).sort("article_date", -1))
+            logger.info(f"Found {len(extended_articles)} articles with extended date range")
+            
+            # Use the extended articles if we found more
+            if len(extended_articles) > len(articles):
+                articles = extended_articles
+                logger.info(f"Using extended date range with {len(articles)} articles")
+                
+            # Try even wider if still not enough
+            if len(articles) < 5:
+                logger.warning(f"Still only {len(articles)} articles - trying maximum range of 3 months")
+                max_start = end_date - timedelta(weeks=12)  # 3 months
+                max_query = query.copy()
+                max_query["$and"][2] = {"article_date": {"$gte": max_start, "$lte": end_date}}
+                
+                max_articles = list(collection.find(max_query).sort("article_date", -1))
+                logger.info(f"Found {len(max_articles)} articles with maximum 3-month range")
+                
+                if len(max_articles) > len(articles):
+                    articles = max_articles
+                    logger.info(f"Using maximum date range with {len(articles)} articles")            
+        
         if len(articles) == 0:
             return {
                 "status": "success",
@@ -274,6 +396,27 @@ def generate_weekly_summary_task(self, weeks_back: int = 2):
                 "weekly_summaries"
             ]
 
+            # Find actual date range of included articles
+            if articles:
+                actual_dates = [a.get('article_date') for a in articles if a.get('article_date')]
+                if actual_dates:
+                    actual_start = min(actual_dates)
+                    actual_end = max(actual_dates)
+                    logger.info(f"Actual article date range: {actual_start.strftime('%Y-%m-%d')} to {actual_end.strftime('%Y-%m-%d')}")
+                else:
+                    actual_start = start_date
+                    actual_end = end_date
+            else:
+                actual_start = start_date
+                actual_end = end_date
+                
+            # Calculate actual weeks covered
+            if actual_start and actual_end:
+                actual_weeks = (actual_end - actual_start).days / 7
+                actual_weeks = round(actual_weeks, 1)
+            else:
+                actual_weeks = weeks_back
+                
             summary_doc = {
                 "title": summary_result["title"],
                 "executive_summary": summary_result["executive_summary"],
@@ -281,12 +424,13 @@ def generate_weekly_summary_task(self, weeks_back: int = 2):
                 "featured_sectors": summary_result["featured_sectors"],
                 "opportunities_italy": summary_result["opportunities_italy"],
                 "full_content": summary_result["full_content"],
-                "period_start": start_date,
-                "period_end": end_date,
+                "period_start": actual_start,
+                "period_end": actual_end,
                 "articles_analyzed": summary_result["articles_analyzed"],
                 "llm_model": summary_result["llm_model"],
                 "generated_at": summary_result["generated_at"],
-                "weeks_analyzed": weeks_back,
+                "weeks_analyzed": actual_weeks,
+                "original_weeks_requested": weeks_back,
             }
 
             # Insert the summary

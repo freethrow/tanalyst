@@ -26,7 +26,7 @@ from analyst.emails.notifications import send_latest_articles_email
 from analyst.agents.translator import translate_untranslated_articles
 from .forms import EmailArticlesForm
 from django.conf import settings
-from .tasks import scrape_ekapija, scrape_biznisrs, create_all_embeddings
+from .tasks import scrape_ekapija, scrape_biznisrs, scrape_novaekonomija, create_all_embeddings
 from analyst.agents.summarizer import get_latest_weekly_summary, get_weekly_summaries
 from django.utils.translation import gettext as _
 from django.utils.html import escape
@@ -1029,6 +1029,8 @@ def trigger_translation(request):
 @require_POST
 def trigger_scraper(request, scraper_name):
     """Trigger a specific scraper task"""
+    print(f"DEBUG: trigger_scraper called with scraper_name: '{scraper_name}'")
+    print(f"DEBUG: scraper_name type: {type(scraper_name)}")
     scraper_tasks = {
         "ekapija": (
             scrape_ekapija,
@@ -1040,6 +1042,12 @@ def trigger_scraper(request, scraper_name):
             scrape_biznisrs,
             _(
                 "BiznisRS scraper started successfully. New articles will appear shortly."
+            ),
+        ),
+        "novaekonomija": (
+            scrape_novaekonomija,
+            _(
+                "Nova Ekonomija scraper started successfully. New articles will appear shortly."
             ),
         ),
     }
