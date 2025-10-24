@@ -241,18 +241,35 @@
           <!-- Desktop Navigation -->
           {% if user.is_authenticated %}
           <nav class="hidden md:flex items-center space-x-1">
-            <a href="/" class="px-3 py-2 rounded-md text-sm font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary transition-colors">
-              {% trans "Home" %}
-            </a>
-            <a href="{% url 'articles:approved' %}" class="px-3 py-2 rounded-md text-sm font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary transition-colors">
-              {% trans "Approved" %}
-            </a>
-            <a href="{% url 'articles:discarded' %}" class="px-3 py-2 rounded-md text-sm font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary transition-colors">
-              {% trans "Discarded" %}
-            </a>
-            <a href="{% url 'articles:sent' %}" class="px-3 py-2 rounded-md text-sm font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary transition-colors">
-              {% trans "Sent" %}
-            </a>
+            <!-- Articles Dropdown -->
+            <div class="relative group">
+              <button class="px-3 py-2 rounded-md text-sm font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary transition-colors flex items-center gap-1">
+                {% trans "Articles" %}
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                </svg>
+              </button>
+              <div class="absolute left-0 mt-1 w-48 bg-white rounded-md shadow-lg border border-secondary opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                <div class="py-1">
+                  <a href="/" class="block px-4 py-2 text-sm text-gray-700 hover:bg-secondary hover:text-primary">
+                    📥 {% trans "Inbox" %}
+                  </a>
+                  <a href="{% url 'articles:approved' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-secondary hover:text-primary">
+                    ✅ {% trans "Approved" %}
+                  </a>
+                  <a href="{% url 'articles:discarded' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-secondary hover:text-primary">
+                    🗑️ {% trans "Discarded" %}
+                  </a>
+                  <a href="{% url 'articles:sent' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-secondary hover:text-primary">
+                    📤 {% trans "Sent" %}
+                  </a>
+                  <a href="{% url 'articles:all' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-secondary hover:text-primary">
+                    📋 {% trans "All Articles" %}
+                  </a>
+                </div>
+              </div>
+            </div>
+            
             <a href="{% url 'articles:sectors' %}" class="px-3 py-2 rounded-md text-sm font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary transition-colors">
               {% trans "Sectors" %}
             </a>
@@ -387,18 +404,25 @@
           
           {% if user.is_authenticated %}
           <div class="px-2 pt-2 pb-3 space-y-1">
+            <!-- Articles Section in Mobile Menu -->
+            <div class="px-3 py-2 text-xs font-semibold font-display text-gray-500 uppercase">{% trans "Articles" %}</div>
             <a href="/" class="block px-3 py-2 rounded-md text-base font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary">
-              {% trans "Home" %}
+              📥 {% trans "Inbox" %}
             </a>
             <a href="{% url 'articles:approved' %}" class="block px-3 py-2 rounded-md text-base font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary">
-              {% trans "Approved" %}
+              ✅ {% trans "Approved" %}
             </a>
             <a href="{% url 'articles:discarded' %}" class="block px-3 py-2 rounded-md text-base font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary">
-              {% trans "Discarded" %}
+              🗑️ {% trans "Discarded" %}
             </a>
             <a href="{% url 'articles:sent' %}" class="block px-3 py-2 rounded-md text-base font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary">
-              {% trans "Sent" %}
+              📤 {% trans "Sent" %}
             </a>
+            <a href="{% url 'articles:all' %}" class="block px-3 py-2 rounded-md text-base font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary">
+              📋 {% trans "All Articles" %}
+            </a>
+
+            <div class="border-t border-secondary my-2"></div>
             <a href="{% url 'articles:sectors' %}" class="block px-3 py-2 rounded-md text-base font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary">
               {% trans "Sectors" %}
             </a>
@@ -461,13 +485,23 @@
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
-            <h3 class="text-sm font-semibold font-display text-white uppercase tracking-wider mb-4">{% trans "Navigation" %}</h3>
+            <h3 class="text-sm font-semibold font-display text-white uppercase tracking-wider mb-4">{% trans "Articles" %}</h3>
             <ul class="space-y-2">
-              <li><a href="/" class="text-white/80 hover:text-white text-sm transition-colors">{% trans "Home" %}</a></li>
+              <li><a href="/" class="text-white/80 hover:text-white text-sm transition-colors">{% trans "Inbox" %}</a></li>
               <li><a href="{% url 'articles:approved' %}" class="text-white/80 hover:text-white text-sm transition-colors">{% trans "Approved" %}</a></li>
               <li><a href="{% url 'articles:discarded' %}" class="text-white/80 hover:text-white text-sm transition-colors">{% trans "Discarded" %}</a></li>
               <li><a href="{% url 'articles:sent' %}" class="text-white/80 hover:text-white text-sm transition-colors">{% trans "Sent" %}</a></li>
+              <li><a href="{% url 'articles:all' %}" class="text-white/80 hover:text-white text-sm transition-colors">{% trans "All Articles" %}</a></li>
+            </ul>
+          </div>
+          <div>
+            <h3 class="text-sm font-semibold font-display text-white uppercase tracking-wider mb-4">{% trans "Tools" %}</h3>
+            <ul class="space-y-2">
               <li><a href="/vector-search/" class="text-white/80 hover:text-white text-sm transition-colors">{% trans "Vector Search" %}</a></li>
+              <li><a href="{% url 'articles:sectors' %}" class="text-white/80 hover:text-white text-sm transition-colors">{% trans "Sectors" %}</a></li>
+              {% if user.is_staff %}
+              <li><a href="{% url 'articles:weekly_summaries' %}" class="text-white/80 hover:text-white text-sm transition-colors">{% trans "Summaries" %}</a></li>
+              {% endif %}
             </ul>
           </div>
           <div>

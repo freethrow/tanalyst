@@ -13,6 +13,8 @@ urlpatterns = [
     path("discarded/", views.DiscardedArticleListView.as_view(), name="discarded"),
     # Sent articles page - shows sent articles with option to restore as pending
     path("sent/", views.SentArticleListView.as_view(), name="sent"),
+    # All articles page - shows all articles regardless of status
+    path("all/", views.AllArticlesListView.as_view(), name="all"),
     # About page - static template view
     path("about/", TemplateView.as_view(template_name="about.html"), name="about"),
     # Article detail page

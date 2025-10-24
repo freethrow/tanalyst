@@ -146,6 +146,7 @@ Your task is to translate English or Serbian business articles into Italian with
 
 TRANSLATION GUIDELINES:
 - Keep the title concise and short with the sector and the main takeaway present, shorten if needed
+- Translate the title to Italian and make it informative, do not leave words in Serbian or English
 - Maintain professional business terminology and accuracy of financial/economic terms
 - Use formal Italian suitable for business publications
 - Keep a clear and engaging style

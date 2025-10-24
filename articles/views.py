@@ -213,6 +213,11 @@ class ArticleListView(LoginRequiredMixin, ListView):
             content_it__exact="",
         )
         return queryset.order_by("-scraped_at")
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['view_title'] = _('Inbox')
+        return context
 
 
 class ApprovedArticleListView(LoginRequiredMixin, ListView):
@@ -234,6 +239,11 @@ class ApprovedArticleListView(LoginRequiredMixin, ListView):
             content_it__exact="",
         )
         return queryset.order_by("-time_translated")
+        
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['view_title'] = _('Approved Articles')
+        return context
 
 
 class DiscardedArticleListView(LoginRequiredMixin, ListView):
@@ -255,6 +265,11 @@ class DiscardedArticleListView(LoginRequiredMixin, ListView):
             content_it__exact="",
         )
         return queryset.order_by("-time_translated")
+        
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['view_title'] = _('Discarded Articles')
+        return context
 
 
 class SentArticleListView(LoginRequiredMixin, ListView):
@@ -276,6 +291,36 @@ class SentArticleListView(LoginRequiredMixin, ListView):
             content_it__exact="",
         )
         return queryset.order_by("-time_translated")
+        
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['view_title'] = _('Sent Articles')
+        return context
+
+
+class AllArticlesListView(LoginRequiredMixin, ListView):
+    model = Article
+    template_name = "index.html"
+    context_object_name = "articles"
+    login_url = "/login/"
+    
+    def get_queryset(self):
+        """
+        Get the queryset for all articles with Italian translation regardless of status.
+        """
+        queryset = Article.objects.filter(
+            title_it__isnull=False,
+            content_it__isnull=False,
+        ).exclude(
+            title_it__exact="",
+            content_it__exact="",
+        )
+        return queryset.order_by("-scraped_at")
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['view_title'] = _('All Articles')
+        return context
 
 
 @require_POST

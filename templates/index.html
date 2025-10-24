@@ -5,7 +5,7 @@
   <!-- Page Header -->
   <div class="flex items-center justify-between mb-8">
     <div>
-      <h1 class="text-3xl font-bold font-display text-gray-700">{% trans "Articles" %}</h1>
+      <h1 class="text-3xl font-bold font-display text-gray-700">{{ view_title|default:_('Articles') }}</h1>
       <p class="text-sm text-gray-600 mt-1">{% blocktrans count counter=articles.count %}{{ counter }} total article{% plural %}{{ counter }} total articles{% endblocktrans %}</p>
     </div>
   </div>
