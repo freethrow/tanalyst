@@ -944,7 +944,8 @@ class SendArticlesEmailView(StaffRequiredMixin, FormView):
 
     def form_valid(self, form):
         """Process the form and start the email task."""
-        email = form.cleaned_data["email"]
+        email = form.cleaned_data.get("email")
+        send_to_all_users = form.cleaned_data.get("send_to_all_users", False)
         num_articles = form.cleaned_data["num_articles"]
         subject = form.cleaned_data.get("subject") or None
 
@@ -966,22 +967,44 @@ class SendArticlesEmailView(StaffRequiredMixin, FormView):
                 "Non ci sono articoli approvati da inviare. Per favore seleziona alcune notizie per approvazione."
             )
             return redirect('articles:home')
+            
+        # Check if we're sending to all users
+        if send_to_all_users:
+            # Count users with email addresses
+            from django.contrib.auth.models import User
+            user_count = User.objects.exclude(email__isnull=True).exclude(email="").count()
+            if user_count == 0:
+                messages.warning(
+                    self.request,
+                    "Non ci sono utenti con indirizzi email nel sistema."
+                )
+                return redirect('articles:send_email')
 
         # Start the email task asynchronously
         try:
             send_latest_articles_email.delay(
-                recipient_email=email, subject=subject, num_articles=num_articles
+                recipient_email=email if not send_to_all_users else None,
+                subject=subject,
+                num_articles=num_articles,
+                send_to_all_users=send_to_all_users
             )
 
             # Success message
-            messages.success(
-                self.request,
-                f"Email will be sent to {email} with {num_articles} articles",
-            )
+            if send_to_all_users:
+                messages.success(
+                    self.request,
+                    f"Email will be sent to all users with email addresses, containing {num_articles} articles",
+                )
+            else:
+                messages.success(
+                    self.request,
+                    f"Email will be sent to {email} with {num_articles} articles",
+                )
 
         except Exception as e:
             # Error message
             messages.error(self.request, f"Error scheduling email: {str(e)}")
+
 
         return super().form_valid(form)
 

@@ -1,13 +1,17 @@
 import os
 import logging
+import io
+import base64
 from datetime import datetime
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List, Union
 from celery import shared_task
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from django.conf import settings
+from django.contrib.auth.models import User
 import resend
 from articles.models import Article
+from articles.pdf_generators import ArticlesPDFGenerator
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -31,22 +35,23 @@ else:
 @shared_task(bind=True, max_retries=3, name="send_latest_articles_email")
 def send_latest_articles_email(
     self,
-    recipient_email: str,
+    recipient_email: Optional[str] = None,
     subject: Optional[str] = None,
     num_articles: int = 10,
     sender_email: Optional[str] = None,
     sender_name: Optional[str] = None,
+    send_to_all_users: bool = False
 ) -> Dict[str, Any]:
     """
-    Send an email with the latest articles to a recipient.
+    Send an email with the latest articles to recipients, including PDF attachments.
 
     Args:
-        recipient_email: The email address to send to
+        recipient_email: The email address to send to (ignored if send_to_all_users is True)
         subject: Email subject (optional, will use default if not provided)
         num_articles: Number of latest articles to include (default: 10)
-        language: Language for articles - 'it' for Italian, 'en' for English (default: 'it')
         sender_email: Sender email address (optional, uses env variable if not provided)
         sender_name: Sender name (optional, uses env variable if not provided)
+        send_to_all_users: If True, send to all users with email addresses (default: False)
 
     Returns:
         Dict with status and details of the email sending operation
@@ -55,6 +60,26 @@ def send_latest_articles_email(
         # Validate Resend API key
         if not RESEND_API_KEY:
             raise ValueError("RESEND_API_KEY is not configured")
+            
+        # Determine recipients
+        recipients = []
+        if send_to_all_users:
+            # Get all users with valid email addresses
+            users = User.objects.exclude(email__isnull=True).exclude(email="")
+            recipients = [user.email for user in users]
+            logger.info(f"Found {len(recipients)} users with email addresses")
+        elif recipient_email:
+            recipients = [recipient_email]
+        else:
+            raise ValueError("Either recipient_email or send_to_all_users must be specified")
+        
+        if not recipients:
+            logger.warning("No recipients found to send email to")
+            return {
+                "status": "skipped",
+                "reason": "No recipients found",
+                "timestamp": datetime.utcnow().isoformat(),
+            }
 
         # Fetch articles using Django ORM
         logger.info(f"Fetching {num_articles} latest validated unused articles")
@@ -147,7 +172,7 @@ def send_latest_articles_email(
             logger.warning("No articles found - not sending email")
             return {
                 "status": "skipped",
-                "recipient": recipient_email,
+                "recipients": recipients,
                 "reason": "No approved articles found",
                 "articles_sent": 0,
                 "timestamp": datetime.utcnow().isoformat(),
@@ -160,7 +185,7 @@ def send_latest_articles_email(
         context = {
             "articles": articles,
             "article_count": len(articles),
-            "recipient_email": recipient_email,
+            "recipient_emails": recipients,
             "current_date": datetime.now(),
             "year": datetime.now().year,
         }
@@ -191,11 +216,27 @@ def send_latest_articles_email(
         # Generate default subject if not provided
         if not subject:
             subject = f"Le tue {len(articles)} notizie di business - {datetime.now().strftime('%d %B %Y')}"
+            
+        # Generate PDF attachment
+        logger.info("Generating PDF attachment of articles")
+        pdf_buffer = io.BytesIO()
+        try:
+            pdf_generator = ArticlesPDFGenerator()
+            # Convert the article query set to a list for the PDF generator
+            pdf_content = pdf_generator.generate_articles_pdf_bytes(articles)
+            pdf_buffer.write(pdf_content)
+            pdf_buffer.seek(0)
+            logger.info(f"PDF generated successfully, size: {len(pdf_content)} bytes")
+            has_attachment = True
+        except Exception as pdf_error:
+            logger.error(f"Failed to generate PDF: {str(pdf_error)}")
+            pdf_buffer = None
+            has_attachment = False
 
         # Prepare Resend email parameters
         email_params = {
             "from": f"{default_sender_name} <{default_sender_email}>",
-            "to": [recipient_email],
+            "to": recipients,
             "subject": subject,
             "html": html_content,
             "text": text_content,
@@ -204,31 +245,52 @@ def send_latest_articles_email(
                 {"name": "article_count", "value": str(len(articles))},
             ],
         }
+        
+        # Add PDF attachment if available
+        if has_attachment and pdf_buffer:
+            attachment_filename = f"articoli_{datetime.now().strftime('%Y%m%d')}.pdf"
+            
+            # Base64 encode the PDF content for JSON serialization
+            pdf_base64 = base64.b64encode(pdf_buffer.getvalue()).decode('utf-8')
+            
+            email_params["attachments"] = [
+                {
+                    "filename": attachment_filename,
+                    "content": pdf_base64,
+                    "content_type": "application/pdf",
+                }
+            ]
 
         # Send email via Resend
-        logger.info(f"Sending email to {recipient_email}")
+        logger.info(f"Sending email to {len(recipients)} recipients")
         try:
             email_result = resend.Emails.send(email_params)
             logger.info(f"✅ Email sent successfully. ID: {email_result.get('id')}")
+            if pdf_buffer:
+                pdf_buffer.close()
         except Exception as resend_error:
             logger.error(f"Resend API error: {str(resend_error)}")
             # Log the response details if available
             if hasattr(resend_error, 'response') and resend_error.response:
                 logger.error(f"Response: {resend_error.response.text}")
+            if pdf_buffer:
+                pdf_buffer.close()
             raise
 
         # Return success result
         return {
             "status": "success",
             "email_id": email_result.get("id"),
-            "recipient": recipient_email,
+            "recipients": recipients,
+            "recipient_count": len(recipients),
             "subject": subject,
             "articles_sent": len(articles),
+            "has_attachment": has_attachment,
             "timestamp": datetime.utcnow().isoformat(),
         }
 
     except Exception as e:
-        logger.error(f"❌ Failed to send email to {recipient_email}: {str(e)}")
+        logger.error(f"❌ Failed to send email to {len(recipients) if recipients else 'recipients'}: {str(e)}")
         logger.error(f"Error type: {type(e).__name__}")
         logger.error(f"Error details: {repr(e)}")
         
@@ -252,7 +314,8 @@ def send_latest_articles_email(
         # Return failure result after all retries exhausted
         return {
             "status": "failed",
-            "recipient": recipient_email,
+            "recipients": recipients,
+            "recipient_count": len(recipients) if recipients else 0,
             "error": str(e),
             "timestamp": datetime.utcnow().isoformat(),
         }
@@ -261,7 +324,8 @@ def send_latest_articles_email(
         logger.error(f"Unexpected error in email task: {e}")
         return {
             "status": "failed",
-            "recipient": recipient_email,
+            "recipients": recipients if 'recipients' in locals() else [],
+            "recipient_count": len(recipients) if 'recipients' in locals() and recipients else 0,
             "error": str(e),
             "timestamp": datetime.utcnow().isoformat(),
         }

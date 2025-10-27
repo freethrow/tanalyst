@@ -184,11 +184,11 @@ class ArticlesPDFGenerator:
         self.style_manager = PDFStyleManager()
         self.styles = self.style_manager.get_styles()
 
-    def generate_articles_pdf(self, articles: List[Article]) -> HttpResponse:
-        """Generate PDF report of approved articles."""
+    def generate_articles_pdf_bytes(self, articles: List[Article]) -> bytes:
+        """Generate PDF report of approved articles and return as bytes."""
         # Create PDF buffer
         buffer = io.BytesIO()
-
+        
         # Define page dimensions
         page_width, page_height = A4
         left_margin = 2 * cm
@@ -258,10 +258,18 @@ class ArticlesPDFGenerator:
         # Build PDF
         doc.build(elements)
 
-        # Create response
+        # Get PDF value
         pdf_value = buffer.getvalue()
         buffer.close()
+        
+        return pdf_value
+    
+    def generate_articles_pdf(self, articles: List[Article]) -> HttpResponse:
+        """Generate PDF report of approved articles."""
+        # Generate PDF content
+        pdf_value = self.generate_articles_pdf_bytes(articles)
 
+        # Create response
         response = HttpResponse(pdf_value, content_type="application/pdf")
         filename = f"report_articoli_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
         response["Content-Disposition"] = f'attachment; filename="{filename}"'

@@ -13,13 +13,26 @@ class EmailArticlesForm(forms.Form):
             attrs={
                 "class": "input input-bordered w-full",
                 "placeholder": "esempio@email.com",
-                "required": True,
+                "required": False,
             }
         ),
-        help_text="Inserisci l'indirizzo email dove inviare gli articoli",
+        help_text="Inserisci l'indirizzo email dove inviare gli articoli (ignorato se invii a tutti gli utenti)",
         initial="aleksendric@gmail.com",
+        required=False,
     )
 
+    send_to_all_users = forms.BooleanField(
+        label="Invia a tutti gli utenti con email",
+        required=False,
+        initial=False,
+        widget=forms.CheckboxInput(
+            attrs={
+                "class": "checkbox checkbox-primary",
+            }
+        ),
+        help_text="Seleziona questa opzione per inviare l'email a tutti gli utenti registrati con indirizzo email",
+    )
+    
     num_articles = forms.IntegerField(
         label="Numero di Articoli",
         min_value=1,
@@ -48,3 +61,14 @@ class EmailArticlesForm(forms.Form):
         ),
         help_text="Oggetto personalizzato per l'email (opzionale)",
     )
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        email = cleaned_data.get("email")
+        send_to_all_users = cleaned_data.get("send_to_all_users")
+        
+        # Validate that either an email is provided or send_to_all_users is selected
+        if not send_to_all_users and not email:
+            self.add_error("email", "Devi inserire un indirizzo email o selezionare 'Invia a tutti gli utenti'")
+        
+        return cleaned_data

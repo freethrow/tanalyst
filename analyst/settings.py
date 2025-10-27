@@ -21,7 +21,7 @@ env_path = Path(__file__).resolve().parent.parent / ".env"
 if env_path.exists():
     load_dotenv(env_path)
 
-NOMIC_API_KEY = os.getenv("NOMIC_API_KEY")
+
 RESEND_API_KEY = os.getenv("RESEND_API_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")

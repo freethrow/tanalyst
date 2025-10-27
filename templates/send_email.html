@@ -49,7 +49,6 @@
         <div>
           <label class="block text-xs font-medium font-display text-gray-600 mb-2" for="{{ form.email.id_for_label }}">
             {{ form.email.label }}
-            <span class="text-red-500 ml-1">*</span>
           </label>
           {{ form.email }}
           {% if form.email.help_text %}
@@ -59,6 +58,19 @@
             <p class="mt-1 text-xs text-red-600">{{ form.email.errors.0 }}</p>
           {% endif %}
         </div>
+        
+        <!-- Send to All Users Checkbox -->
+        <div class="flex items-center gap-2">
+          <div class="flex items-center">
+            {{ form.send_to_all_users }}
+          </div>
+          <label class="text-sm font-medium font-display text-gray-700" for="{{ form.send_to_all_users.id_for_label }}">
+            {{ form.send_to_all_users.label }}
+          </label>
+        </div>
+        {% if form.send_to_all_users.help_text %}
+          <p class="mt-1 text-xs text-gray-500">{{ form.send_to_all_users.help_text }}</p>
+        {% endif %}
 
         <!-- Number of Articles -->
         <div>
@@ -148,5 +160,32 @@ input[type="number"] {
 input::placeholder {
   @apply text-gray-400 text-sm p-2;
 }
+
+.disabled-field {
+  @apply bg-gray-100 text-gray-400 cursor-not-allowed;
+}
 </style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const emailField = document.getElementById('{{ form.email.id_for_label }}');
+    const sendToAllUsersCheckbox = document.getElementById('{{ form.send_to_all_users.id_for_label }}');
+    
+    function toggleEmailField() {
+      if (sendToAllUsersCheckbox.checked) {
+        emailField.setAttribute('disabled', 'disabled');
+        emailField.classList.add('disabled-field');
+      } else {
+        emailField.removeAttribute('disabled');
+        emailField.classList.remove('disabled-field');
+      }
+    }
+    
+    // Initial state
+    toggleEmailField();
+    
+    // Listen for changes
+    sendToAllUsersCheckbox.addEventListener('change', toggleEmailField);
+  });
+</script>
 {% endblock %}
