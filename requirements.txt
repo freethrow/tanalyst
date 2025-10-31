@@ -17,6 +17,7 @@ vine<6.0.0
 # Web Scraping
 scrapy
 pytz
+crochet
 
 # PyTorch CPU-only (MUCH faster download - ~200MB instead of ~1.5GB)
 --extra-index-url https://download.pytorch.org/whl/cpu

@@ -1,0 +1,41 @@
+User-agent: GPTBot
+Disallow: /
+
+User-agent: AhrefsBot
+Disallow: / 
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: Qwantify
+Disallow: / 
+
+User-agent: Yandex
+Disallow: / 
+
+User-agent: Baiduspider
+User-agent: Baiduspider-video
+User-agent: Baiduspider-image
+Disallow: /
+
+User-agent: 360Spider
+User-agent: Yisouspider
+User-agent: PetalBot
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
+
+User-agent: Sogou web spider
+Disallow: /
+
+User-agent: Sogou inst spider
+Disallow: /
+
+User-agent: Amazonbot
+Disallow: /
+
+
+User-agent: *
+Disallow: /dokumenti/
+Disallow: /tenderi/

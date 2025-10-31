@@ -51,20 +51,38 @@ def test_task():
 
 @shared_task(max_retries=3, name="scrape_ekapija")
 def scrape_ekapija():
-    ekapija.main()
-    return "Scraping Ekapija started"
+    from analyst.scrapers.crochet_utils import crochet_spider_task
+    
+    @crochet_spider_task
+    def run_ekapija_spider():
+        return ekapija.main()
+    
+    result = run_ekapija_spider()
+    return "Scraping Ekapija completed successfully"
 
 
 @shared_task(max_retries=3, name="scrape_biznisrs")
 def scrape_biznisrs():
-    biznisrs.main()
-    return "Scraping Biznisrs started"
+    from analyst.scrapers.crochet_utils import crochet_spider_task
+    
+    @crochet_spider_task
+    def run_biznisrs_spider():
+        return biznisrs.main()
+    
+    result = run_biznisrs_spider()
+    return "Scraping Biznisrs completed successfully"
 
 
 @shared_task(max_retries=3, name="scrape_novaekonomija")
 def scrape_novaekonomija():
-    novaekonomija.main()
-    return "Scraping Nova Ekonomija started"
+    from analyst.scrapers.crochet_utils import crochet_spider_task
+    
+    @crochet_spider_task
+    def run_novaekonomija_spider():
+        return novaekonomija.main()
+    
+    result = run_novaekonomija_spider()
+    return "Scraping Nova Ekonomija completed successfully"
 
 
 @shared_task(bind=True, max_retries=3, name="create_all_embeddings")

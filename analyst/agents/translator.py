@@ -1,7 +1,10 @@
 # articles/translator.py
+# Set up the Twisted reactor BEFORE any async imports
+import os
+os.environ['TWISTED_REACTOR'] = 'twisted.internet.selectreactor.SelectReactor'
+
 import asyncio
 from datetime import datetime
-import os
 from time import sleep
 from typing import Dict, Any
 import logging
@@ -279,14 +282,14 @@ def translate_article(
     """
     Synchronous wrapper for translate_article_async.
     """
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    try:
-        return loop.run_until_complete(
-            translate_article_async(title, content, source, source_language, wait_time)
-        )
-    finally:
-        loop.close()
+    # Import the crochet utility here to avoid circular imports
+    from analyst.agents.crochet_utils import crochet_async_task
+    
+    @crochet_async_task(timeout=60)  # 60 second timeout should be enough for translation
+    def translate_with_crochet():
+        return translate_article_async(title, content, source, source_language, wait_time)
+    
+    return translate_with_crochet()
 
 
 @shared_task(bind=True, max_retries=3, name="translate_untranslated_articles")

@@ -56,6 +56,7 @@ ALLOWED_HOSTS = (
 # Application definition
 
 INSTALLED_APPS = [
+    "analyst.crochet_setup.CrochetAppConfig",  # Must be first to initialize Crochet
     "articles.apps.ArticlesConfig",
     "analyst.agents",
     "analyst.apps.MongoAdminConfig",

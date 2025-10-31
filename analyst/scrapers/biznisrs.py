@@ -10,7 +10,7 @@ from pymongo import MongoClient
 from pymongo.errors import DuplicateKeyError
 from scrapy.spiders import CrawlSpider, Rule
 from scrapy.linkextractors import LinkExtractor
-from scrapy.crawler import CrawlerProcess
+from scrapy.crawler import CrawlerRunner
 from scrapy.exceptions import DropItem
 from scrapy import signals
 import pytz
@@ -251,16 +251,11 @@ def main():
                 f"Missing required environment variables: {', '.join(missing_vars)}"
             )
 
-        process = CrawlerProcess(
-            {
-                "USER_AGENT": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-                "LOG_LEVEL": "INFO",
-            }
-        )
-
+        # Import run_spider from crochet_utils to avoid circular imports
+        from analyst.scrapers.crochet_utils import run_spider
+        
         logger.info("Starting Biznis.rs spider...")
-        process.crawl(BiznisRsSpider)
-        process.start()
+        return run_spider(BiznisRsSpider)
 
     except Exception as e:
         logger.error(f"Error running spider: {str(e)}")
