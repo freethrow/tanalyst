@@ -108,6 +108,7 @@ def normalize_search_results(results: List[Any]) -> List[Dict[str, Any]]:
 
     Handles both dictionary results and Article model instances.
     Converts scores to percentages and ObjectIds to strings.
+    Adds rank field for position in search results.
 
     Args:
         results: Raw results from MongoDB aggregation
@@ -153,6 +154,10 @@ def normalize_search_results(results: List[Any]) -> List[Dict[str, Any]]:
                 item["score"] = 0
             processed_results.append(item)
 
+    # Add rank field (1-based index) to each result
+    for i, item in enumerate(processed_results, 1):
+        item['rank'] = i
+        
     return processed_results
 
 
@@ -162,6 +167,7 @@ def perform_vector_search(
     index_name: str = "article_vector_index",
     num_candidates: int = 50,
     limit: int = 18,
+    apply_reranking: bool = True,
 ) -> List[Dict[str, Any]]:
     """
     Perform a complete vector search operation.
@@ -175,6 +181,7 @@ def perform_vector_search(
         index_name: The name of the vector search index
         num_candidates: Number of candidates to consider
         limit: Maximum number of results to return
+        apply_reranking: Whether to apply reranking to improve results (default: True)
 
     Returns:
         List of normalized search results
@@ -185,16 +192,36 @@ def perform_vector_search(
     # Generate query embedding
     query_embedding = generate_query_embedding(query)
 
+    # For reranking, fetch more candidates than needed for better results
+    fetch_limit = num_candidates if apply_reranking else limit
+
     # Build search pipeline
     pipeline = build_vector_search_pipeline(
         query_embedding=query_embedding,
         index_name=index_name,
         num_candidates=num_candidates,
-        limit=limit,
+        limit=fetch_limit,
     )
 
     # Execute aggregation
     results = list(article_model.objects.raw_aggregate(pipeline))
 
-    # Normalize and return results
-    return normalize_search_results(results)
+    # Normalize results
+    normalized_results = normalize_search_results(results)
+    
+    # Apply reranking if enabled and at least a few results available
+    if apply_reranking and len(normalized_results) > 1:
+        try:
+            # Use our consolidated reranking implementation
+            from articles.reranker import rerank_search_results
+            return rerank_search_results(
+                query=query,
+                vector_search_results=normalized_results,
+                limit=limit
+            )
+        except Exception as e:
+            print(f"Reranking failed: {str(e)}")
+            # If there's an error, simply use the original vector search results
+    
+    # Return normalized results (either without reranking or if reranking failed)
+    return normalized_results[:limit]

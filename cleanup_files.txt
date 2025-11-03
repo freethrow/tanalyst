@@ -1,0 +1,24 @@
+# Files to remove for project cleanup
+
+# Main reranking implementation files that have been consolidated
+c:\Users\DELL\Desktop\TA\articles\reranking.py  # Depends on external 'rerankers' library
+c:\Users\DELL\Desktop\TA\articles\direct_reranking.py
+c:\Users\DELL\Desktop\TA\articles\simple_reranking.py
+c:\Users\DELL\Desktop\TA\articles\huggingface_reranking.py
+c:\Users\DELL\Desktop\TA\huggingface_token_setup.py
+c:\Users\DELL\Desktop\TA\simple_reranker_test.py
+
+# Installation scripts that are no longer needed
+c:\Users\DELL\Desktop\TA\install_lightweight_reranker.py
+c:\Users\DELL\Desktop\TA\install_reranker.py
+c:\Users\DELL\Desktop\TA\setup_reranker.py
+
+# Test files that are no longer relevant
+c:\Users\DELL\Desktop\TA\test_reranking.py
+c:\Users\DELL\Desktop\TA\test_huggingface_reranker.py
+c:\Users\DELL\Desktop\TA\test_public_reranker.py
+c:\Users\DELL\Desktop\TA\use_direct_reranker.py
+
+# Note: Please manually delete these files as needed
+# All the functionality has been consolidated into:
+# c:\Users\DELL\Desktop\TA\articles\reranker.py
