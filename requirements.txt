@@ -41,6 +41,7 @@ resend
 # Utilities
 python-dotenv
 pandas
+numpy==1.26.0
 
 # Development Tools
 ruff
