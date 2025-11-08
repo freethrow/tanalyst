@@ -33,7 +33,7 @@ transformers>=4.35.0  # For reranking
 huggingface-hub>=0.20.0  # For downloading models
 
 # PDF Generation
-reportlab
+WeasyPrint>=54.3
 
 # Email
 resend

@@ -7,11 +7,19 @@ WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-# Install system dependencies
+# Install system dependencies including WeasyPrint requirements
 RUN apt-get update && apt-get install -y \
     gcc \
     g++ \
     curl \
+    libpango-1.0-0 \
+    libpangoft2-1.0-0 \
+    libcairo2 \
+    libpq-dev \
+    libffi-dev \
+    shared-mime-info \
+    libxml2-dev \
+    libxslt-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements and install Python packages

@@ -11,7 +11,7 @@ from django.conf import settings
 from django.contrib.auth.models import User
 import resend
 from articles.models import Article
-from articles.pdf_generators import ArticlesPDFGenerator
+from articles.weasyprint_generators import ArticlesPDFGenerator
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -89,11 +89,7 @@ def send_latest_articles_email(
         logger.info(f"Total articles in database: {total_articles}")
 
         # Debug: Check articles with Italian content
-        italian_articles = (
-            Article.objects.filter(title_it__isnull=False, content_it__isnull=False)
-            .exclude(title_it__exact="", content_it__exact="")
-            .count()
-        )
+        italian_articles = Article.objects.with_italian_translations().count()
         logger.info(f"Articles with Italian content: {italian_articles}")
 
         # Debug: Check status field values
@@ -108,24 +104,16 @@ def send_latest_articles_email(
 
         # Debug: Check how many approved articles have Italian content
         matching_count = (
-            Article.objects.filter(
-                status=Article.APPROVED,
-                title_it__isnull=False,
-                content_it__isnull=False,
-            )
-            .exclude(title_it__exact="", content_it__exact="")
+            Article.objects.with_italian_translations()
+            .filter(status=Article.APPROVED)
             .count()
         )
         logger.info(f"Approved articles with Italian content: {matching_count}")
 
         # Get approved articles that haven't been sent yet
         articles_queryset = (
-            Article.objects.filter(
-                status=Article.APPROVED,
-                title_it__isnull=False,
-                content_it__isnull=False,
-            )
-            .exclude(title_it__exact="", content_it__exact="")
+            Article.objects.with_italian_translations()
+            .filter(status=Article.APPROVED)
             .order_by("-time_translated")[:num_articles]
         )
 

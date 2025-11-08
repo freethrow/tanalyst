@@ -5,6 +5,17 @@ from django.utils import timezone
 from django_mongodb_backend.managers import MongoManager
 
 
+class ArticleManager(MongoManager):
+    """Custom manager for Article model with helper methods."""
+    
+    def with_italian_translations(self):
+        """Return articles with valid Italian translations (non-null, non-empty)."""
+        return self.filter(
+            title_it__isnull=False,
+            content_it__isnull=False,
+        ).exclude(title_it="").exclude(content_it="")
+
+
 class Article(models.Model):
     """
     Article model for storing multilingual article content
@@ -132,7 +143,7 @@ class Article(models.Model):
 
     # Custom manager for MongoDB
     # https://django-mongodb-backend.readthedocs.io/en/latest/ref/models/querysets/
-    objects = MongoManager()
+    objects = ArticleManager()
 
     class Meta:
         # MongoDB collection name

@@ -32,28 +32,8 @@ from django.utils.translation import gettext as _
 from django.utils.html import escape
 from datetime import datetime
 import io
-from reportlab.lib.pagesizes import A4
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.units import cm
-from reportlab.platypus import (
-    SimpleDocTemplate,
-    Paragraph,
-    Spacer,
-    PageBreak,
-    Table,
-    TableStyle,
-    BaseDocTemplate,
-    PageTemplate,
-    Frame,
-    KeepTogether,
-)
-from reportlab.lib import colors
-from reportlab.lib.enums import TA_CENTER, TA_JUSTIFY
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
 
-
-
+# PDF imports removed - now using WeasyPrint in weasyprint_generators.py
 
 
 # Helper function to check if user is staff/admin
@@ -204,15 +184,9 @@ class ArticleListView(LoginRequiredMixin, ListView):
         """
         Get the queryset for pending articles (not yet approved/discarded).
         """
-        queryset = Article.objects.filter(
-            title_it__isnull=False,
-            content_it__isnull=False,
-            status=Article.PENDING,
-        ).exclude(
-            title_it__exact="",
-            content_it__exact="",
-        )
-        return queryset.order_by("-scraped_at")
+        return Article.objects.with_italian_translations()\
+            .filter(status=Article.PENDING)\
+            .order_by("-scraped_at")
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -230,15 +204,9 @@ class ApprovedArticleListView(LoginRequiredMixin, ListView):
         """
         Get the queryset for approved articles that haven't been sent yet.
         """
-        queryset = Article.objects.filter(
-            title_it__isnull=False,
-            content_it__isnull=False,
-            status=Article.APPROVED,
-        ).exclude(
-            title_it__exact="",
-            content_it__exact="",
-        )
-        return queryset.order_by("-time_translated")
+        return Article.objects.with_italian_translations()\
+            .filter(status=Article.APPROVED)\
+            .order_by("-time_translated")
         
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -256,15 +224,9 @@ class DiscardedArticleListView(LoginRequiredMixin, ListView):
         """
         Get the queryset for discarded articles.
         """
-        queryset = Article.objects.filter(
-            title_it__isnull=False,
-            content_it__isnull=False,
-            status=Article.DISCARDED,
-        ).exclude(
-            title_it__exact="",
-            content_it__exact="",
-        )
-        return queryset.order_by("-time_translated")
+        return Article.objects.with_italian_translations()\
+            .filter(status=Article.DISCARDED)\
+            .order_by("-time_translated")
         
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -282,15 +244,9 @@ class SentArticleListView(LoginRequiredMixin, ListView):
         """
         Get the queryset for sent articles (articles that have been included in emails).
         """
-        queryset = Article.objects.filter(
-            title_it__isnull=False,
-            content_it__isnull=False,
-            status=Article.SENT,
-        ).exclude(
-            title_it__exact="",
-            content_it__exact="",
-        )
-        return queryset.order_by("-time_translated")
+        return Article.objects.with_italian_translations()\
+            .filter(status=Article.SENT)\
+            .order_by("-time_translated")
         
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -308,14 +264,7 @@ class AllArticlesListView(LoginRequiredMixin, ListView):
         """
         Get the queryset for all articles with Italian translation regardless of status.
         """
-        queryset = Article.objects.filter(
-            title_it__isnull=False,
-            content_it__isnull=False,
-        ).exclude(
-            title_it__exact="",
-            content_it__exact="",
-        )
-        return queryset.order_by("-scraped_at")
+        return Article.objects.with_italian_translations().order_by("-scraped_at")
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -745,8 +694,8 @@ def vector_search(request):
                 query=query,
                 article_model=Article,
                 index_name="article_vector_index",
-                num_candidates=50,
-                limit=18,
+                num_candidates=100,
+                limit=50,
             )
             
             if is_htmx:
@@ -891,11 +840,7 @@ class SectorListView(LoginRequiredMixin, ListView):
         """Return the list of sectors with article counts, sorted by count descending."""
         sectors_with_counts = []
         for sector in SECTORS:
-            count = (
-                Article.objects.filter(sector=sector, content_it__isnull=False)
-                .exclude(content_it__exact="")
-                .count()
-            )
+            count = Article.objects.with_italian_translations().filter(sector=sector).count()
             sectors_with_counts.append({"name": sector, "count": count})
         # Sort by count in descending order
         return sorted(sectors_with_counts, key=lambda x: x["count"], reverse=True)
@@ -917,8 +862,8 @@ class SectorDetailView(LoginRequiredMixin, ListView):
         """Get articles for the specified sector."""
         sector = self.kwargs["sector"]
         return (
-            Article.objects.filter(sector=sector, content_it__isnull=False)
-            .exclude(content_it__exact="")
+            Article.objects.with_italian_translations()
+            .filter(sector=sector)
             .order_by("-time_translated")
         )
 
@@ -950,15 +895,7 @@ class SendArticlesEmailView(StaffRequiredMixin, FormView):
         subject = form.cleaned_data.get("subject") or None
 
         # Check if there are any approved articles ready to be sent
-        approved_articles = (
-            Article.objects.filter(
-                status=Article.APPROVED,
-                title_it__isnull=False,
-                content_it__isnull=False,
-            )
-            .exclude(title_it__exact="", content_it__exact="")
-            .count()
-        )
+        approved_articles = Article.objects.with_italian_translations().filter(status=Article.APPROVED).count()
 
         # If no approved articles, redirect back to home with a message
         if approved_articles == 0:
@@ -1140,17 +1077,15 @@ def trigger_scraper(request, scraper_name):
 
 @staff_required
 def generate_pdf_report(request):
-    """Generate PDF report of approved articles using ReportLab"""
+    """Generate PDF report of approved articles using WeasyPrint"""
     # Get approved articles with Italian translations
     articles = (
-        Article.objects.filter(
-            status=Article.APPROVED, title_it__isnull=False, content_it__isnull=False
-        )
-        .exclude(title_it__exact="", content_it__exact="")
-        .order_by("-scraped_at")[:50]
+        Article.objects.with_italian_translations()
+        .filter(status=Article.APPROVED)
+        .order_by("-article_date")
+
     )
 
-    # Check if there are any approved articles
     if not articles.exists():
         messages.error(
             request,
@@ -1158,545 +1093,28 @@ def generate_pdf_report(request):
             "Approva alcuni articoli prima di generare il report.",
         )
         return redirect("articles:approved")
-
-    # Create PDF buffer with two-column layout
-    buffer = io.BytesIO()
-
-    # Define page dimensions
-    page_width, page_height = A4
-    left_margin = 2 * cm
-    right_margin = 2 * cm
-    top_margin = 2 * cm
-    bottom_margin = 2 * cm
-
-    # Calculate column dimensions
-    column_width = (
-        page_width - left_margin - right_margin - 0.5 * cm
-    ) / 2  # 0.5cm gap between columns
-    column_height = page_height - top_margin - bottom_margin
-
-    # Create document with custom page template
-    doc = BaseDocTemplate(buffer, pagesize=A4)
-
-    # Container for PDF elements
-    elements = []
-
-    # Define styles
-    styles = getSampleStyleSheet()
-
-    # Register fonts for full Unicode support
-    try:
-        import os
-
-        roboto_light_path = os.path.join(
-            settings.BASE_DIR, "static", "fonts", "Roboto-Light.ttf"
-        )
-        manrope_bold_path = os.path.join(
-            settings.BASE_DIR, "static", "fonts", "Manrope-Bold.ttf"
-        )
-
-        pdfmetrics.registerFont(TTFont("Roboto-Light", roboto_light_path))
-        pdfmetrics.registerFont(TTFont("Manrope-Bold", manrope_bold_path))
-
-        font_name = "Roboto-Light"
-        title_font_name = "Manrope-Bold"
-    except Exception as e:
-        # Fallback to standard fonts if custom fonts not found
-        print(f"Could not load custom fonts: {e}")
-        font_name = "Times-Roman"
-        title_font_name = "Times-Bold"
-
-    # Custom styles with consistent color theme (#991b1b)
-    brand_color = colors.HexColor("#991b1b")
-
-    title_style = ParagraphStyle(
-        "CustomTitle",
-        parent=styles["Heading1"],
-        fontName=title_font_name,
-        fontSize=24,
-        textColor=brand_color,
-        alignment=TA_CENTER,
-        spaceAfter=12,
-    )
-
-    subtitle_style = ParagraphStyle(
-        "CustomSubtitle",
-        parent=styles["Normal"],
-        fontName=font_name,
-        fontSize=12,
-        textColor=colors.grey,
-        alignment=TA_CENTER,
-        spaceAfter=20,
-    )
-
-    article_title_style = ParagraphStyle(
-        "ArticleTitle",
-        parent=styles["Heading2"],
-        fontName=title_font_name,
-        fontSize=14,
-        textColor=brand_color,
-        spaceAfter=6,
-    )
-
-    meta_style = ParagraphStyle(
-        "Meta",
-        parent=styles["Normal"],
-        fontName=font_name,
-        fontSize=9,
-        textColor=colors.grey,
-        spaceAfter=10,
-    )
-
-    content_style = ParagraphStyle(
-        "Content",
-        parent=styles["Normal"],
-        fontName=font_name,
-        fontSize=10,
-        alignment=TA_JUSTIFY,
-        spaceAfter=20,
-    )
-
-    source_link_style = ParagraphStyle(
-        "SourceLink",
-        parent=styles["Normal"],
-        fontName=font_name,
-        fontSize=8,
-        textColor=colors.grey,
-        alignment=TA_CENTER,
-        spaceAfter=10,
-    )
-
-    # Add articles (no header here - it's drawn on canvas)
-    for idx, article in enumerate(articles, 1):
-        # Create article elements list
-        article_elements = []
-
-        # Article title - use raw Unicode text
-        title_text = f"{idx}. {article.title_it or article.title_en or ''}"
-        try:
-            article_elements.append(Paragraph(title_text, article_title_style))
-        except:
-            # If Unicode fails, try with escaped version
-            article_elements.append(Paragraph(escape(title_text), article_title_style))
-
-        # Article metadata
-        source_text = article.source or "N/A"
-        sector_text = article.sector or "Generale"
-        meta_text = f"""
-        <b><font color='#991b1b'>Data:</font></b> {article.article_date.strftime("%d/%m/%Y") if article.article_date else "N/A"} | 
-        <b><font color='#991b1b'>Fonte:</font></b> {source_text} | 
-        <b><font color='#991b1b'>Settore:</font></b> {sector_text}
-        """
-        try:
-            article_elements.append(Paragraph(meta_text, meta_style))
-        except:
-            article_elements.append(Paragraph(escape(meta_text), meta_style))
-
-        # Article content - use raw Unicode
-        content = article.content_it or article.content_en or ""
-        # Clean HTML tags if any
-        content = content.replace("<p>", "").replace("</p>", " ").replace("<br/>", " ")
-        # content = content[:2000]  # Limit content length
-        try:
-            article_elements.append(Paragraph(content, content_style))
-        except:
-            article_elements.append(Paragraph(escape(content), content_style))
-
-        # Add source link
-        if article.url:
-            source_link = (
-                f'<i>Fonte: <a href="{article.url}" color="grey">{article.url}</a></i>'
-            )
-            try:
-                article_elements.append(Paragraph(source_link, source_link_style))
-            except:
-                article_elements.append(
-                    Paragraph(f"<i>Fonte: {article.url}</i>", source_link_style)
-                )
-
-        article_elements.append(Spacer(1, 0.5 * cm))
-
-        # Keep article together to prevent ugly breaks
-        elements.append(KeepTogether(article_elements))
-
-    # Add final contact footer at the end
-    elements.append(Spacer(1, 2 * cm))
-
-    contact_footer_style = ParagraphStyle(
-        "ContactFooter",
-        parent=styles["Normal"],
-        fontName=font_name,
-        fontSize=9,
-        textColor=colors.grey,
-        alignment=TA_CENTER,
-        spaceAfter=5,
-    )
-
-    contact_info = """
-    <b>TA - Trade AI Analyst</b><br/>
-    Email: info@technicalanalyst.com | Tel: +39 123 456 7890<br/>
-    Web: www.technicalanalyst.com | Via Example 123, Milano, Italia<br/>
-    <i>© 2025 Technical Analyst. Tutti i diritti riservati.</i>
-    """
-
-    elements.append(Paragraph(contact_info, contact_footer_style))
-
-    # Define header and footer function
-    def add_header_footer(canvas, doc):
-        canvas.saveState()
-        # Draw header background
-        canvas.setFillColor(colors.HexColor("#991b1b"))
-        canvas.rect(
-            0, page_height - 3 * cm, page_width, 3 * cm, fill=True, stroke=False
-        )
-        # Header text in white
-        canvas.setFont("Helvetica-Bold", 20)
-        canvas.setFillColor(colors.white)
-        canvas.drawCentredString(
-            page_width / 2, page_height - 1.5 * cm, "Business News Report"
-        )
-        # Metadata in white
-        canvas.setFont("Helvetica", 9)
-        metadata_text = f"Data: {datetime.now().strftime('%d/%m/%Y %H:%M')} | Articoli: {articles.count()}"
-        canvas.drawCentredString(page_width / 2, page_height - 2.2 * cm, metadata_text)
-
-        # Draw footer background
-        canvas.setFillColor(colors.HexColor("#991b1b"))
-        canvas.rect(0, 0, page_width, 1 * cm, fill=True, stroke=False)
-        # Footer text in white
-        footer_text = f"TA - Technical Analyst | Report generato il {datetime.now().strftime('%d/%m/%Y')}"
-        canvas.setFont("Helvetica", 8)
-        canvas.setFillColor(colors.white)
-        canvas.drawCentredString(page_width / 2, 0.4 * cm, footer_text)
-        # Page number in white
-        page_num = f"Pagina {canvas.getPageNumber()}"
-        canvas.drawRightString(page_width - right_margin, 0.4 * cm, page_num)
-        canvas.restoreState()
-
-    # Create single-column frame with space for header
-    frame = Frame(
-        left_margin,
-        bottom_margin,
-        page_width - left_margin - right_margin,
-        page_height - top_margin - bottom_margin - 3 * cm,  # Subtract header height
-        id="normal",
-    )
-
-    # Create page template with single column
-    page_template = PageTemplate(
-        id="OneColumn", frames=[frame], onPage=add_header_footer
-    )
-    doc.addPageTemplates([page_template])
-
-    # Build PDF
-    doc.build(elements)
-
-    # Get PDF value and create response
-    pdf_value = buffer.getvalue()
-    buffer.close()
-
-    response = HttpResponse(pdf_value, content_type="application/pdf")
-    filename = f"report_articoli_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
-    response["Content-Disposition"] = f'attachment; filename="{filename}"'
-
-    return response
+    
+    # Use the WeasyPrint PDF generator
+    from .weasyprint_generators import ArticlesPDFGenerator
+    generator = ArticlesPDFGenerator()
+    return generator.generate_articles_pdf(articles)
 
 
 @login_required
 def generate_weekly_summary_pdf(request, summary_id):
-    """Generate PDF report for a specific weekly summary using ReportLab"""
+    """Generate PDF report for a specific weekly summary using WeasyPrint"""
     from .models import WeeklySummary
     from django.shortcuts import get_object_or_404
 
     try:
         # Get the specific summary using Django ORM
         summary = get_object_or_404(WeeklySummary, pk=summary_id)
-
-        # Create PDF buffer
-        buffer = io.BytesIO()
-
-        # Define page dimensions
-        page_width, page_height = A4
-        left_margin = 2.5 * cm
-        right_margin = 2.5 * cm
-        top_margin = 2 * cm
-        bottom_margin = 2 * cm
-
-        # Create document
-        doc = BaseDocTemplate(buffer, pagesize=A4)
-
-        # Container for PDF elements
-        elements = []
-
-        # Define styles
-        styles = getSampleStyleSheet()
-
-        # Register fonts for full Unicode support
-        try:
-            roboto_light_path = os.path.join(
-                settings.BASE_DIR, "static", "fonts", "Roboto-Light.ttf"
-            )
-            manrope_bold_path = os.path.join(
-                settings.BASE_DIR, "static", "fonts", "Manrope-Bold.ttf"
-            )
-
-            pdfmetrics.registerFont(TTFont("Roboto-Light", roboto_light_path))
-            pdfmetrics.registerFont(TTFont("Manrope-Bold", manrope_bold_path))
-
-            font_name = "Roboto-Light"
-            title_font_name = "Manrope-Bold"
-        except Exception as e:
-            # Fallback to standard fonts if custom fonts not found
-            print(f"Could not load custom fonts: {e}")
-            font_name = "Times-Roman"
-            title_font_name = "Times-Bold"
-
-        # Custom styles with consistent color theme (#991b1b)
-        brand_color = colors.HexColor("#991b1b")
-
-        main_title_style = ParagraphStyle(
-            "MainTitle",
-            parent=styles["Heading1"],
-            fontName=title_font_name,
-            fontSize=22,
-            textColor=brand_color,
-            alignment=TA_CENTER,
-            spaceAfter=8,
-        )
-
-        subtitle_style = ParagraphStyle(
-            "Subtitle",
-            parent=styles["Normal"],
-            fontName=font_name,
-            fontSize=11,
-            textColor=colors.grey,
-            alignment=TA_CENTER,
-            spaceAfter=20,
-        )
-
-        section_title_style = ParagraphStyle(
-            "SectionTitle",
-            parent=styles["Heading2"],
-            fontName=title_font_name,
-            fontSize=16,
-            textColor=brand_color,
-            spaceAfter=10,
-            spaceBefore=15,
-        )
-
-        subsection_title_style = ParagraphStyle(
-            "SubsectionTitle",
-            parent=styles["Heading3"],
-            fontName=title_font_name,
-            fontSize=13,
-            textColor=brand_color,
-            spaceAfter=8,
-            spaceBefore=12,
-        )
-
-        content_style = ParagraphStyle(
-            "Content",
-            parent=styles["Normal"],
-            fontName=font_name,
-            fontSize=10,
-            alignment=TA_JUSTIFY,
-            spaceAfter=12,
-            leading=14,
-        )
-
-        bullet_style = ParagraphStyle(
-            "Bullet",
-            parent=styles["Normal"],
-            fontName=font_name,
-            fontSize=10,
-            leftIndent=20,
-            spaceAfter=8,
-            leading=13,
-        )
-
-        highlight_box_style = ParagraphStyle(
-            "HighlightBox",
-            parent=styles["Normal"],
-            fontName=font_name,
-            fontSize=11,
-            alignment=TA_JUSTIFY,
-            spaceAfter=15,
-            leading=15,
-            leftIndent=15,
-            rightIndent=15,
-        )
-
-        # Add title
-        title_text = summary.title or "Weekly Business Summary"
-        elements.append(Paragraph(title_text, main_title_style))
-
-        # Add metadata
-        period_start = summary.period_start
-        period_end = summary.period_end
-        generated_at = summary.generated_at
-
-        if period_start and period_end:
-            period_text = f"Periodo: {period_start.strftime('%d %b')} - {period_end.strftime('%d %b %Y')}"
-        else:
-            period_text = "Periodo: N/A"
-
-        metadata_text = f"{period_text} | Articoli analizzati: {summary.articles_analyzed or 0} | Generato: {generated_at.strftime('%d/%m/%Y') if generated_at else 'N/A'}"
-        elements.append(Paragraph(metadata_text, subtitle_style))
-        elements.append(Spacer(1, 0.3 * cm))
-
-        # Executive Summary in a highlighted box
-        elements.append(Paragraph("Sintesi Esecutiva", section_title_style))
-
-        # Create a table for the highlighted box effect
-        exec_summary_text = summary.executive_summary or ""
-        exec_data = [[Paragraph(exec_summary_text, highlight_box_style)]]
-        exec_table = Table(
-            exec_data, colWidths=[page_width - left_margin - right_margin - 1 * cm]
-        )
-        exec_table.setStyle(
-            TableStyle(
-                [
-                    ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#FEF2F2")),
-                    ("BOX", (0, 0), (-1, -1), 1, brand_color),
-                    ("TOPPADDING", (0, 0), (-1, -1), 12),
-                    ("BOTTOMPADDING", (0, 0), (-1, -1), 12),
-                    ("LEFTPADDING", (0, 0), (-1, -1), 15),
-                    ("RIGHTPADDING", (0, 0), (-1, -1), 15),
-                ]
-            )
-        )
-        elements.append(exec_table)
-        elements.append(Spacer(1, 0.5 * cm))
-
-        # Main Trends
-        main_trends = summary.main_trends or []
-        if main_trends:
-            elements.append(Paragraph("Tendenze Principali", section_title_style))
-            for idx, trend in enumerate(main_trends, 1):
-                bullet_text = f"<b>{idx}.</b> {trend}"
-                elements.append(Paragraph(bullet_text, bullet_style))
-            elements.append(Spacer(1, 0.3 * cm))
-
-        # Featured Sectors
-        featured_sectors = summary.featured_sectors or []
-        if featured_sectors:
-            elements.append(Paragraph("Settori in Evidenza", subsection_title_style))
-            sectors_text = " • ".join(featured_sectors)
-            elements.append(Paragraph(sectors_text, content_style))
-            elements.append(Spacer(1, 0.3 * cm))
-
-        # Opportunities for Italy
-        opportunities = summary.opportunities_italy or ""
-        if opportunities:
-            elements.append(
-                Paragraph("Opportunità per le Aziende Italiane", section_title_style)
-            )
-
-            # Create highlighted box for opportunities
-            opp_data = [[Paragraph(opportunities, highlight_box_style)]]
-            opp_table = Table(
-                opp_data, colWidths=[page_width - left_margin - right_margin - 1 * cm]
-            )
-            opp_table.setStyle(
-                TableStyle(
-                    [
-                        ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#F0FDF4")),
-                        ("BOX", (0, 0), (-1, -1), 1, colors.HexColor("#16A34A")),
-                        ("TOPPADDING", (0, 0), (-1, -1), 12),
-                        ("BOTTOMPADDING", (0, 0), (-1, -1), 12),
-                        ("LEFTPADDING", (0, 0), (-1, -1), 15),
-                        ("RIGHTPADDING", (0, 0), (-1, -1), 15),
-                    ]
-                )
-            )
-            elements.append(opp_table)
-            elements.append(Spacer(1, 0.5 * cm))
-
-        # Full Content/Analysis
-        full_content = summary.full_content or ""
-        if full_content:
-            elements.append(Paragraph("Analisi Completa", section_title_style))
-            # Split content into paragraphs for better formatting
-            paragraphs = full_content.split("\n")
-            for para in paragraphs:
-                if para.strip():
-                    elements.append(Paragraph(para.strip(), content_style))
-
-        # Add footer info
-        elements.append(Spacer(1, 1 * cm))
-        llm_model = summary.llm_model or "AI Assistant"
-        footer_info = f"<i>Generato da {llm_model}</i>"
-        footer_style = ParagraphStyle(
-            "Footer",
-            parent=styles["Normal"],
-            fontName=font_name,
-            fontSize=8,
-            textColor=colors.grey,
-            alignment=TA_CENTER,
-        )
-        elements.append(Paragraph(footer_info, footer_style))
-
-        # Define header and footer function
-        def add_header_footer(canvas, doc):
-            canvas.saveState()
-            # Draw header background
-            canvas.setFillColor(brand_color)
-            canvas.rect(
-                0, page_height - 2.5 * cm, page_width, 2.5 * cm, fill=True, stroke=False
-            )
-            # Header text in white
-            canvas.setFont("Helvetica-Bold", 18)
-            canvas.setFillColor(colors.white)
-            canvas.drawCentredString(
-                page_width / 2, page_height - 1.3 * cm, "Weekly Business Summary"
-            )
-
-            # Draw footer background
-            canvas.setFillColor(brand_color)
-            canvas.rect(0, 0, page_width, 1 * cm, fill=True, stroke=False)
-            # Footer text in white
-            footer_text = f"TA - Technical Analyst | Generato il {datetime.now().strftime('%d/%m/%Y')}"
-            canvas.setFont("Helvetica", 8)
-            canvas.setFillColor(colors.white)
-            canvas.drawCentredString(page_width / 2, 0.4 * cm, footer_text)
-            # Page number in white
-            page_num = f"Pagina {canvas.getPageNumber()}"
-            canvas.drawRightString(page_width - right_margin, 0.4 * cm, page_num)
-            canvas.restoreState()
-
-        # Create frame with space for header
-        frame = Frame(
-            left_margin,
-            bottom_margin,
-            page_width - left_margin - right_margin,
-            page_height
-            - top_margin
-            - bottom_margin
-            - 2.5 * cm,  # Subtract header height
-            id="normal",
-        )
-
-        # Create page template
-        page_template = PageTemplate(
-            id="OneColumn", frames=[frame], onPage=add_header_footer
-        )
-        doc.addPageTemplates([page_template])
-
-        # Build PDF
-        doc.build(elements)
-
-        # Get PDF value and create response
-        pdf_value = buffer.getvalue()
-        buffer.close()
-
-        response = HttpResponse(pdf_value, content_type="application/pdf")
-        filename = (
-            f"weekly_summary_{summary_id}_{datetime.now().strftime('%Y%m%d')}.pdf"
-        )
-        response["Content-Disposition"] = f'attachment; filename="{filename}"'
-
-        return response
-
+        
+        # Use the WeasyPrint PDF generator
+        from .weasyprint_generators import WeeklySummaryPDFGenerator
+        generator = WeeklySummaryPDFGenerator()
+        return generator.generate_weekly_summary_pdf(summary)
+        
     except Exception as e:
         error_message = f"❌ Error generating PDF: {str(e)}"
         return HttpResponse(error_message, status=500)

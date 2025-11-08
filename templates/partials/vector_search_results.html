@@ -1,6 +1,10 @@
 {# templates/partials/vector_search_results.html #}
 {# Expects: results (iterable of article-like objects) with an 'id' field #}
 {% load custom_i18n %}
+
+<!-- Include Alpine.js directly in this partial -->
+<script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
   {% for result in results %}
     {% include "partials/card.html" with article=result %}
@@ -8,3 +12,73 @@
     <div class="col-span-full alert">{{ "No results found"|translate }}.</div>
   {% endfor %}
 </div>
+
+{% if results %}
+<div id="raw-content-section" class="mt-12">
+  <!-- Show Raw Data Button -->
+  <div class="mb-6 flex justify-center">
+    <button 
+      id="toggle-raw-content-btn"
+      class="px-5 py-2 bg-primary hover:bg-primary/90 text-white font-medium rounded-md shadow-sm transition-all flex items-center gap-2"
+      onclick="toggleRawContent()"
+    >
+      <svg id="down-arrow" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+      </svg>
+      <svg id="up-arrow" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+      </svg>
+      <span id="toggle-text">{{ "Show raw data"|translate }}</span>
+    </button>
+  </div>
+  
+  <!-- Raw Content Container -->
+  <div 
+    id="raw-content-container"
+    class="bg-white border border-secondary rounded-lg p-6 hidden"
+  >
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-2xl font-bold font-display text-gray-700">{{ "Full Search Results"|translate }}</h2>
+    </div>
+    <div class="space-y-8">
+      {% for result in results %}
+        <div class="p-4 border-b border-gray-200 last:border-b-0">
+          <h3 class="text-xl font-bold text-primary mb-1">{{ result.title_it|default:result.title_en }}</h3>
+          <div class="prose prose-sm max-w-none text-gray-400">
+            {{ result.content_it|default:result.content_en|safe }}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<script>
+  // Simple vanilla JavaScript toggle function
+  function toggleRawContent() {
+    const container = document.getElementById('raw-content-container');
+    const downArrow = document.getElementById('down-arrow');
+    const upArrow = document.getElementById('up-arrow');
+    const toggleText = document.getElementById('toggle-text');
+    
+    if (container.classList.contains('hidden')) {
+      // Show content
+      container.classList.remove('hidden');
+      downArrow.classList.add('hidden');
+      upArrow.classList.remove('hidden');
+      toggleText.innerText = '{{ "Hide raw data"|translate }}';
+      
+      // Scroll to make visible if needed
+      setTimeout(() => {
+        container.scrollIntoView({behavior: 'smooth', block: 'nearest'});
+      }, 100);
+    } else {
+      // Hide content
+      container.classList.add('hidden');
+      downArrow.classList.remove('hidden');
+      upArrow.classList.add('hidden');
+      toggleText.innerText = '{{ "Show raw data"|translate }}';
+    }
+  }
+</script>
+{% endif %}

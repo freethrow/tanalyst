@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>Trade AI Analyst - {{ summary.title }}</title>
+    <style>
+        @page {
+            size: a4;
+            margin: 2cm;
+            @top-center {
+                content: '';
+                height: 2.5cm;
+                background-color: #991b1b;
+            }
+            @bottom-center {
+                content: '';
+                height: 1cm;
+                background-color: #991b1b;
+            }
+        }
+        
+        @font-face {
+            font-family: 'Roboto';
+            src: url('{{ STATIC_URL }}fonts/Roboto-Light.ttf');
+            font-weight: normal;
+            font-style: normal;
+        }
+        
+        @font-face {
+            font-family: 'Manrope';
+            src: url('{{ STATIC_URL }}fonts/Manrope-Bold.ttf');
+            font-weight: bold;
+            font-style: normal;
+        }
+        
+        body {
+            font-family: 'Roboto', Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin-top: 3cm;  /* Leave space for the header */
+            margin-bottom: 1.5cm;  /* Leave space for the footer */
+        }
+        
+        .header-content {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2.5cm;
+            padding: 0.5cm;
+            text-align: center;
+            color: white;
+        }
+        
+        .header-content h1 {
+            margin: 0;
+            font-family: 'Manrope', Helvetica, Arial, sans-serif;
+            font-size: 24pt;
+        }
+        
+        .header-content .subtitle {
+            font-size: 10pt;
+        }
+        
+        .footer-content {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 1cm;
+            padding: 0.2cm;
+            text-align: center;
+            color: white;
+            font-size: 8pt;
+        }
+        
+        .page-number:after {
+            content: counter(page);
+        }
+        
+        .main-title {
+            font-family: 'Manrope', Helvetica, Arial, sans-serif;
+            font-size: 22pt;
+            color: #991b1b;
+            text-align: center;
+            margin-bottom: 8pt;
+        }
+        
+        .subtitle {
+            font-size: 11pt;
+            color: #666;
+            text-align: center;
+            margin-bottom: 20pt;
+        }
+        
+        .section-title {
+            font-family: 'Manrope', Helvetica, Arial, sans-serif;
+            font-size: 16pt;
+            color: #991b1b;
+            margin-top: 15pt;
+            margin-bottom: 10pt;
+        }
+        
+        .subsection-title {
+            font-family: 'Manrope', Helvetica, Arial, sans-serif;
+            font-size: 13pt;
+            color: #991b1b;
+            margin-top: 12pt;
+            margin-bottom: 8pt;
+        }
+        
+        .content {
+            font-size: 10pt;
+            text-align: justify;
+            margin-bottom: 12pt;
+            line-height: 14pt;
+        }
+        
+        .bullet {
+            font-size: 10pt;
+            margin-left: 20pt;
+            margin-bottom: 8pt;
+            line-height: 13pt;
+        }
+        
+        .highlight-box {
+            background-color: #FEF2F2;
+            border: 1px solid #991b1b;
+            padding: 15pt;
+            margin-bottom: 15pt;
+            font-size: 11pt;
+            line-height: 15pt;
+        }
+        
+        .opportunity-box {
+            background-color: #F0FDF4;
+            border: 1px solid #16A34A;
+            padding: 15pt;
+            margin-bottom: 15pt;
+            font-size: 11pt;
+            line-height: 15pt;
+        }
+        
+        .footer {
+            font-size: 8pt;
+            color: #666;
+            text-align: center;
+            margin-top: 30pt;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header-content">
+        <h1>Trade AI Analyst</h1>
+        <div class="subtitle">Weekly Summary | {{ summary.period_start|date:"d b" }} - {{ summary.period_end|date:"d b Y" }}</div>
+    </div>
+    
+    <!-- Main Content -->
+    <h1 class="main-title">{{ summary.title|default:"Weekly Business Summary" }}</h1>
+    
+    <div class="subtitle">
+        Periodo: {% if summary.period_start and summary.period_end %}
+                    {{ summary.period_start|date:"d b" }} - {{ summary.period_end|date:"d b Y" }}
+                {% else %}
+                    N/A
+                {% endif %} | 
+        Articoli analizzati: {{ summary.articles_analyzed|default:"0" }} | 
+        Generato: {% if summary.generated_at %}{{ summary.generated_at|date:"d/m/Y" }}{% else %}N/A{% endif %}
+    </div>
+    
+    <!-- Executive Summary -->
+    <h2 class="section-title">Sintesi Esecutiva</h2>
+    <div class="highlight-box">
+        {{ summary.executive_summary|default:""|linebreaks }}
+    </div>
+    
+    <!-- Main Trends -->
+    {% if summary.main_trends %}
+    <h2 class="section-title">Tendenze Principali</h2>
+    {% for trend in summary.main_trends %}
+        <div class="bullet"><strong>{{ forloop.counter }}.</strong> {{ trend }}</div>
+    {% endfor %}
+    {% endif %}
+    
+    <!-- Featured Sectors -->
+    {% if summary.featured_sectors %}
+    <h3 class="subsection-title">Settori in Evidenza</h3>
+    <div class="content">
+        {% for sector in summary.featured_sectors %}
+            {% if not forloop.first %} • {% endif %}{{ sector }}
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <!-- Opportunities for Italy -->
+    {% if summary.opportunities_italy %}
+    <h2 class="section-title">Opportunità per le Aziende Italiane</h2>
+    <div class="opportunity-box">
+        {{ summary.opportunities_italy|linebreaks }}
+    </div>
+    {% endif %}
+    
+    <!-- Full Content/Analysis -->
+    {% if summary.full_content %}
+    <h2 class="section-title">Analisi Completa</h2>
+    <div class="content">
+        {{ summary.full_content|linebreaks }}
+    </div>
+    {% endif %}
+    
+    <!-- Footer info -->
+    <div class="footer">
+        <i>Generato da {{ summary.llm_model|default:"AI Assistant" }}</i>
+    </div>
+    
+    <!-- Footer -->
+    <div class="footer-content">
+        TA - Technical Analyst | Generato il {{ now|date:"d/m/Y" }}
+        <span style="float: right;" class="page-number">Pagina </span>
+    </div>
+</body>
+</html>
