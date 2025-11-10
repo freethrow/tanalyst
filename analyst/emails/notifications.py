@@ -211,6 +211,19 @@ def send_latest_articles_email(
         try:
             pdf_generator = ArticlesPDFGenerator()
             # Convert the article query set to a list for the PDF generator
+            logger.debug(f"Creating PDF with {len(articles)} articles")
+            
+            # Check if necessary fonts exist in static/fonts directory
+            fonts_dir = os.path.join(settings.BASE_DIR, 'static', 'fonts')
+            roboto_path = os.path.join(fonts_dir, 'Roboto-Light.ttf')
+            manrope_path = os.path.join(fonts_dir, 'Manrope-Bold.ttf')
+            
+            if not os.path.exists(roboto_path):
+                logger.warning(f"Font file missing: {roboto_path}")
+            if not os.path.exists(manrope_path):
+                logger.warning(f"Font file missing: {manrope_path}")
+                
+            # Generate PDF content with fallback fonts if needed
             pdf_content = pdf_generator.generate_articles_pdf_bytes(articles)
             pdf_buffer.write(pdf_content)
             pdf_buffer.seek(0)
@@ -218,6 +231,7 @@ def send_latest_articles_email(
             has_attachment = True
         except Exception as pdf_error:
             logger.error(f"Failed to generate PDF: {str(pdf_error)}")
+            logger.error(f"PDF error details: {type(pdf_error).__name__}")
             pdf_buffer = None
             has_attachment = False
 

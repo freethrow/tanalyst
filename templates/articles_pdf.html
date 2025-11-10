@@ -21,16 +21,18 @@
         
         @font-face {
             font-family: 'Roboto';
-            src: url('{{ STATIC_URL }}fonts/Roboto-Light.ttf');
+            src: url('{{ STATIC_URL }}fonts/Roboto-Light.ttf') format('truetype');
             font-weight: normal;
             font-style: normal;
+            font-display: swap;
         }
         
         @font-face {
             font-family: 'Manrope';
-            src: url('{{ STATIC_URL }}fonts/Manrope-Bold.ttf');
+            src: url('{{ STATIC_URL }}fonts/Manrope-Bold.ttf') format('truetype');
             font-weight: bold;
             font-style: normal;
+            font-display: swap;
         }
         
         body {

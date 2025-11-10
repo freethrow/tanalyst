@@ -10,7 +10,7 @@ import os
 import sys
 import platform
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from django.conf import settings
 from django.http import HttpResponse
@@ -40,21 +40,77 @@ class WeasyPrintGenerator:
         if WEASYPRINT_AVAILABLE:
             self.font_config = FontConfiguration()
             self.css_path = os.path.join(settings.BASE_DIR, 'static', 'css', 'pdf.css')
+            self.fonts_dir = os.path.join(settings.BASE_DIR, 'static', 'fonts')
+            
+            # Import logging at the class level
+            import logging
+            self.logger = logging.getLogger(__name__)
         else:
             self.font_config = None
             self.css_path = None
+            self.fonts_dir = None
+            self.logger = None
 
-    def get_fonts_css(self) -> Optional[object]:
-        """Get custom CSS for fonts if available."""
+    def get_fonts_css(self) -> Optional[List]:
+        """Get custom CSS for fonts if available and provide fallbacks."""
         if not WEASYPRINT_AVAILABLE:
             return None
             
+        # Create a list to hold both custom and fallback CSS
+        css_list = []
+        
+        # Try to load custom CSS with the fonts
         try:
             if os.path.exists(self.css_path):
-                return CSS(filename=self.css_path, font_config=self.font_config)
+                # Check font files
+                roboto_path = os.path.join(self.fonts_dir, 'Roboto-Light.ttf')
+                manrope_path = os.path.join(self.fonts_dir, 'Manrope-Bold.ttf')
+                
+                if not os.path.exists(roboto_path):
+                    if self.logger:
+                        self.logger.warning("Font-face 'Roboto' cannot be loaded")
+                    else:
+                        print("Warning: Font-face 'Roboto' cannot be loaded")
+                        
+                if not os.path.exists(manrope_path):
+                    if self.logger:
+                        self.logger.warning("Font-face 'Manrope' cannot be loaded")
+                    else:
+                        print("Warning: Font-face 'Manrope' cannot be loaded")
+                
+                # Add custom CSS if it exists
+                custom_css = CSS(filename=self.css_path, font_config=self.font_config)
+                css_list.append(custom_css)
         except Exception as e:
-            print(f"Could not load custom CSS: {e}")
-        return None
+            if self.logger:
+                self.logger.error(f"Could not load custom CSS: {e}")
+            else:
+                print(f"Could not load custom CSS: {e}")
+        
+        # Always add fallback font CSS with web-safe fonts
+        fallback_css = CSS(string="""                
+            @page { margin: 1cm; }
+            body { 
+                font-family: Arial, Helvetica, sans-serif !important; 
+                line-height: 1.6; 
+            }
+            h1, h2, h3, h4, h5, h6 { 
+                font-family: 'Times New Roman', Times, serif !important; 
+                font-weight: bold; 
+            }
+            .article-title {
+                font-family: 'Times New Roman', Times, serif !important;
+                font-weight: bold;
+                color: #991b1b;
+            }
+            .header-content h1 {
+                font-family: 'Times New Roman', Times, serif !important;
+                font-weight: bold;
+            }
+        """, font_config=self.font_config)
+        css_list.append(fallback_css)
+        
+        return css_list
         
     def create_windows_fallback_response(self, filename: str) -> HttpResponse:
         """Create a fallback HTML response for Windows development environment."""
@@ -117,7 +173,11 @@ class ArticlesPDFGenerator(WeasyPrintGenerator):
         css = self.get_fonts_css()
         
         if css:
-            pdf_file = html.write_pdf(font_config=self.font_config, stylesheets=[css])
+            # Check if css is a list
+            if isinstance(css, list):
+                pdf_file = html.write_pdf(font_config=self.font_config, stylesheets=css)
+            else:
+                pdf_file = html.write_pdf(font_config=self.font_config, stylesheets=[css])
         else:
             pdf_file = html.write_pdf(font_config=self.font_config)
         
@@ -170,7 +230,11 @@ class WeeklySummaryPDFGenerator(WeasyPrintGenerator):
         css = self.get_fonts_css()
         
         if css:
-            pdf_file = html.write_pdf(font_config=self.font_config, stylesheets=[css])
+            # Check if css is a list
+            if isinstance(css, list):
+                pdf_file = html.write_pdf(font_config=self.font_config, stylesheets=css)
+            else:
+                pdf_file = html.write_pdf(font_config=self.font_config, stylesheets=[css])
         else:
             pdf_file = html.write_pdf(font_config=self.font_config)
             
