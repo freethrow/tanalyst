@@ -15,6 +15,7 @@ import os
 
 from dotenv import load_dotenv
 
+TWISTED_REACTOR = 'twisted.internet.epollreactor.EPollReactor'
 # Load .env file only if it exists (for local development)
 # In Docker, environment variables are injected by docker-compose
 env_path = Path(__file__).resolve().parent.parent / ".env"

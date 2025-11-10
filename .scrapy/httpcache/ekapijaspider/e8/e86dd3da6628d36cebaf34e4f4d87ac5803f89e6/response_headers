@@ -1,0 +1,13 @@
+Server: nginx
+Date: Mon, 10 Nov 2025 12:59:03 GMT
+Content-Type: text/html; charset=UTF-8
+X-Powered-By: PHP/5.4.45
+Set-Cookie: PHPSESSID=d0k2vg92as6utqsbkkl1uq6k66; path=/; domain=.ekapija.com; HttpOnly
+Set-Cookie: last=24fe66e9c4e9aef2258a9a7030fd5908934fd1b1ef2f9b04d4978c3581339b97a%3A2%3A%7Bi%3A0%3Bs%3A4%3A%22last%22%3Bi%3A1%3Bs%3A2%3A%22en%22%3B%7D; expires=Thu, 08-Nov-2035 12:59:02 GMT; path=/; domain=.ekapija.com; httponly
+Set-Cookie: started=62acbeae3ee08bc62848baf5bffebd6096c3d190e6b2d4a2dcf0339df49495d3a%3A2%3A%7Bi%3A0%3Bs%3A7%3A%22started%22%3Bi%3A1%3Bs%3A1%3A%22Y%22%3B%7D; path=/; domain=.ekapija.com; httponly
+Set-Cookie: _csrf=920dcb6644f3a3550e37c2bc2db2bfc7a954ea603c3d58d61a9ee6f79c7eb7c6a%3A2%3A%7Bi%3A0%3Bs%3A5%3A%22_csrf%22%3Bi%3A1%3Bs%3A32%3A%22Lwy_wyxSEsn7YyosPXVMqFQMUCoUG01x%22%3B%7D; path=/; httponly
+Expires: Thu, 19 Nov 1981 08:52:00 GMT
+Cache-Control: no-store, no-cache, must-revalidate, post-check=0, pre-check=0
+Pragma: no-cache
+Content-Encoding: gzip
+Mns-Refresh: true

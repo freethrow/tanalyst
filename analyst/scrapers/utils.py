@@ -13,8 +13,8 @@ def setup_twisted_reactor():
     Ensure the correct Twisted reactor is set in the environment.
     This must be called BEFORE any Twisted imports or reactor installation.
     """
-    # Force Twisted to use SelectReactor which is compatible with Crochet
-    reactor_class = 'twisted.internet.selectreactor.SelectReactor'
+    # Use EPollReactor which is the default on Linux and most efficient
+    reactor_class = 'twisted.internet.epollreactor.EPollReactor'
     os.environ['TWISTED_REACTOR'] = reactor_class
     logger.info(f"Set TWISTED_REACTOR to {reactor_class}")
     

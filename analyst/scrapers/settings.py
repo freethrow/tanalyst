@@ -1,7 +1,7 @@
 # Scrapy settings
 
 # Configure Twisted reactor to use the SelectReactor (compatible with Crochet)
-TWISTED_REACTOR = "twisted.internet.selectreactor.SelectReactor"
+TWISTED_REACTOR = "twisted.internet.epollreactor.EPollReactor"
 
 # Common settings for all spiders
 BOT_NAME = 'analyst'
@@ -25,7 +25,7 @@ RETRY_TIMES = 3
 RETRY_HTTP_CODES = [500, 502, 503, 504, 522, 524, 408, 429]
 
 # Default download settings
-DOWNLOAD_TIMEOUT = 20
+DOWNLOAD_TIMEOUT = 180
 RANDOMIZE_DOWNLOAD_DELAY = True
 
 # Extension settings

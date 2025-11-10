@@ -41,6 +41,8 @@ class Article(models.Model):
         max_length=500,
         db_column="title_en",  # Explicitly set column name
         help_text="Article title in English",
+        blank=True,
+        null=True,
     )
 
     title_it = models.CharField(
@@ -78,7 +80,10 @@ class Article(models.Model):
 
     # Content in English and Italian
     content_en = models.TextField(
-        db_column="content_en", help_text="Full article content in English"
+        db_column="content_en", 
+        help_text="Full article content in English",
+        null=True,
+        blank=True
     )
 
     content_it = models.TextField(
