@@ -23,6 +23,7 @@ pip-delete-this-directory.txt
 .coverage
 htmlcov/
 coverage/
+.scrapy
 
 # Virtual Environment
 venv/
