@@ -248,19 +248,34 @@ Provide a professional Italian translation suitable for business publications.""
 
     try:
         result = await agent.run(prompt)
+        
+        # Validate the result
+        if not result or not hasattr(result, 'output') or not result.output:
+            raise ValueError("No valid translation result returned from the model")
+            
         translated = result.output
+        
+        # Ensure the translated object has the expected attributes
+        if not hasattr(translated, 'titolo') or not hasattr(translated, 'contenuto'):
+            raise ValueError("Invalid translation format returned from the model")
+            
+        # Clean up the translated text to handle any encoding/formatting issues
+        titolo = str(translated.titolo).strip() if translated.titolo else ""
+        contenuto = str(translated.contenuto).strip() if translated.contenuto else ""
+        settore = str(translated.settore).strip() if hasattr(translated, 'settore') else ""
 
         return {
-            "title_it": translated.titolo,
-            "content_it": translated.contenuto,
-            "sector": translated.settore,
+            "title_it": titolo,
+            "content_it": contenuto,
+            "sector": settore,
             "llm_model": MODEL_NAME,
             "time_translated": datetime.utcnow(),
             "translation_success": True,
             "status": "PENDING",
         }
     except Exception as e:
-        logger.error(f"Translation error: {str(e)}")
+        error_msg = f"Translation error: {str(e)}"
+        logger.error(error_msg)
         return {
             "title_it": None,
             "content_it": None,
@@ -268,7 +283,8 @@ Provide a professional Italian translation suitable for business publications.""
             "llm_model": "chatgp40mini",
             "time_translated": datetime.utcnow(),
             "translation_success": False,
-            "translation_error": str(e),
+            "translation_error": error_msg,
+            "status": "FAILED"
         }
 
 
@@ -286,10 +302,25 @@ def translate_article(
     from analyst.agents.crochet_utils import crochet_async_task
     
     @crochet_async_task(timeout=60)  # 60 second timeout should be enough for translation
-    def translate_with_crochet():
-        return translate_article_async(title, content, source, source_language, wait_time)
+    async def translate_with_crochet():
+        # This function will be run in a new event loop by the crochet wrapper
+        return await translate_article_async(title, content, source, source_language, wait_time)
     
-    return translate_with_crochet()
+    try:
+        # The crochet wrapper will handle running the async function in a new event loop
+        return translate_with_crochet()
+    except Exception as e:
+        logger.error(f"Error in translate_article: {str(e)}")
+        return {
+            "title_it": None,
+            "content_it": None,
+            "sector": None,
+            "llm_model": "chatgp40mini",
+            "time_translated": datetime.utcnow(),
+            "translation_success": False,
+            "translation_error": str(e),
+            "status": "FAILED"
+        }
 
 
 @shared_task(bind=True, max_retries=3, name="translate_untranslated_articles")

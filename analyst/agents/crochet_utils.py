@@ -38,7 +38,15 @@ def crochet_async_task(timeout=480):
                 # Define a Crochet-wrapped version of the function
                 @wait_for(timeout=timeout)
                 def run_with_crochet():
-                    return func(*args, **kwargs)
+                    # Create a new event loop for this thread
+                    import asyncio
+                    loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(loop)
+                    
+                    # Run the async function and get the result
+                    result = loop.run_until_complete(func(*args, **kwargs))
+                    loop.close()
+                    return result
                 
                 logger.info(f"Running async task with Crochet: {func.__name__}")
                 result = run_with_crochet()

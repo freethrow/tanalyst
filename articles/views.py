@@ -7,8 +7,8 @@ from .utils import perform_vector_search, generate_query_embedding
 from django.views.generic import ListView, DetailView, UpdateView, FormView
 from django.db import models
 from django import forms
-from django.http import HttpResponse
-from django.shortcuts import render, redirect
+from django.http import HttpResponse, Http404, JsonResponse
+from django.shortcuts import render, redirect, get_object_or_404
 from django.core.cache import cache
 from django.contrib import messages
 from django.urls import reverse_lazy
@@ -16,6 +16,9 @@ from django.contrib.auth import authenticate, login as auth_login, logout as aut
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.decorators.http import require_POST
+from django.views.generic import View, TemplateView, DetailView, ListView, UpdateView, FormView
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 
 
 
@@ -28,6 +31,16 @@ from .forms import EmailArticlesForm
 from django.conf import settings
 from .tasks import scrape_ekapija, scrape_biznisrs, scrape_novaekonomija, create_all_embeddings
 from analyst.agents.summarizer import get_latest_weekly_summary, get_weekly_summaries
+from celery.result import AsyncResult
+from django.http import JsonResponse
+import json
+from django.views.generic import TemplateView, ListView
+from django.contrib import messages
+from django.urls import reverse_lazy
+from django.http import JsonResponse
+from django.views.decorators.http import require_http_methods
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 from django.utils.translation import gettext as _
 from django.utils.html import escape
 from datetime import datetime
@@ -393,7 +406,10 @@ class ArticleDetailView(LoginRequiredMixin, DetailView):
                         | models.Q(source=article.source)
                     )
                     .exclude(id=article.id)
-                    .exclude(title_it__isnull=True)[:6]
+                    .exclude(title_it__isnull=True)
+                    .exclude(title_it__iexact="NON PERTINENT")
+                    .exclude(content_it__isnull=True)
+                    .exclude(content_it="")[:6]
                 )
 
                 related = []
@@ -420,6 +436,16 @@ class ArticleDetailView(LoginRequiredMixin, DetailView):
                             "queryVector": query_vector,
                             "numCandidates": 50,
                             "limit": 10,
+                        }
+                    },
+                    {
+                        "$match": {
+                            "$and": [
+                                {"title_it": {"$ne": "NON PERTINENT"}},
+                                {"title_it": {"$ne": "non pertinent"}},
+                                {"content_it": {"$ne": None}},
+                                {"content_it": {"$ne": ""}},
+                            ]
                         }
                     },
                     {
