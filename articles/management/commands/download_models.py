@@ -9,7 +9,7 @@ class Command(BaseCommand):
         parser.add_argument(
             '--model',
             type=str,
-            default='intfloat/multilingual-e5-base',
+            default='intfloat/multilingual-e5-large',
             help='Model name to download',
         )
 

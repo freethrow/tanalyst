@@ -7,6 +7,7 @@ This guide provides step-by-step instructions for deploying the TA (Trade Analys
 The deployment uses Docker Compose to orchestrate all services in a single stack:
 
 ### Services Included:
+
 1. **MongoDB** (ta_mongodb) - Database server on port 7587
 2. **Redis** (ta_redis) - Cache and message broker on port 6379
 3. **Django Web** (ta_web) - Web application on port 8000
@@ -18,6 +19,7 @@ All services are defined in `docker-compose.yml` and will be created automatical
 ## What's Included in GitHub
 
 ### ✅ In Repository:
+
 - Application source code (Django, Celery, agents, scrapers)
 - `Dockerfile` - Container build instructions
 - `docker-compose.yml` - Complete service orchestration (MongoDB, Redis, Web, Celery)
@@ -26,6 +28,7 @@ All services are defined in `docker-compose.yml` and will be created automatical
 - Templates, static files, migrations
 
 ### ❌ NOT in Repository (Transfer via USB):
+
 - `.env` file with your actual API keys and secrets
 - `mongodb_backup.archive` - Your database backup
 - Any custom configuration files
@@ -35,6 +38,7 @@ All services are defined in `docker-compose.yml` and will be created automatical
 ### Required Software on New Windows Machine:
 
 1. **Docker Desktop for Windows**
+
    - Download: https://www.docker.com/products/docker-desktop
    - Install with WSL 2 backend enabled
    - Verify after installation:
@@ -44,6 +48,7 @@ All services are defined in `docker-compose.yml` and will be created automatical
      ```
 
 2. **Git for Windows**
+
    - Download: https://git-scm.com/download/win
    - Verify: `git --version`
 
@@ -60,6 +65,7 @@ Prepare a USB drive with these files from your development machine:
 2. **`mongodb_backup.archive`** - Your MongoDB database backup
 
 To create the backup on your development machine:
+
 ```powershell
 # Navigate to your project directory
 cd C:\Users\DELL\Desktop\TA
@@ -70,7 +76,7 @@ mongodump --host=localhost --port=7587 --db=analyst --archive=mongodb_backup.arc
 
 # Option 2: For migration to a system without Nomic embeddings
 # First remove embedding fields (temporary)
-mongosh --host=localhost --port=7587 --eval "db.getSiblingDB('analyst').articles.updateMany({}, {$unset: {embedding: '', embedding_model: '', embedding_created_at: '', embedding_dimensions: '', embedding_error: ''}})" 
+mongosh --host=localhost --port=7587 --eval "db.getSiblingDB('analyst').articles.updateMany({}, {$unset: {embedding: '', embedding_model: '', embedding_created_at: '', embedding_dimensions: '', embedding_error: ''}})"
 # Then export
 mongodump --host=localhost --port=7587 --db=analyst --archive=mongodb_backup_clean.archive
 
@@ -78,6 +84,7 @@ mongodump --host=localhost --port=7587 --db=analyst --archive=mongodb_backup_cle
 Copy-Item .env E:\deployment\
 Copy-Item mongodb_backup.archive E:\deployment\
 ```
+
 (Replace `E:\` with your USB drive letter)
 
 ## Quick Start - Complete Deployment
@@ -128,7 +135,7 @@ mongodump --host=localhost --port=7587 --db=analyst --archive=mongodb_backup.arc
 
 # Option 2: For migration to a system without Nomic embeddings
 # First remove embedding fields (temporary)
-mongosh --host=localhost --port=7587 --eval "db.getSiblingDB('analyst').articles.updateMany({}, {$unset: {embedding: '', embedding_model: '', embedding_created_at: '', embedding_dimensions: '', embedding_error: ''}})" 
+mongosh --host=localhost --port=7587 --eval "db.getSiblingDB('analyst').articles.updateMany({}, {$unset: {embedding: '', embedding_model: '', embedding_created_at: '', embedding_dimensions: '', embedding_error: ''}})"
 # Then export
 mongodump --host=localhost --port=7587 --db=analyst --archive=mongodb_backup_clean.archive
 
@@ -148,6 +155,7 @@ Copy-Item mongodb_backup.archive E:\deployment\mongodb_backup.archive
 On the new Windows machine:
 
 1. **Install Docker Desktop:**
+
    - Download and install from https://www.docker.com/products/docker-desktop
    - Enable WSL 2 backend during installation
    - Restart computer if prompted
@@ -212,6 +220,7 @@ docker-compose logs -f
 ```
 
 Expected output after ~60 seconds:
+
 ```
 NAME               STATUS
 ta_mongodb         Up (healthy)
@@ -256,13 +265,16 @@ docker exec ta_web python manage.py compilemessages
 ### Step 9: Verify the Deployment
 
 1. **Access the application:**
+
    - Open your browser and navigate to: http://localhost:8000
    - Login with your superuser credentials
 
 2. **Check the admin panel:**
+
    - Navigate to: http://localhost:8000/admin
 
 3. **Verify Celery is working:**
+
    ```powershell
    # Check Celery worker logs
    docker logs ta_celery_worker
@@ -280,6 +292,7 @@ docker exec ta_web python manage.py compilemessages
 The application uses Celery Beat for scheduled tasks. To configure:
 
 1. **Access Django admin:**
+
    - Go to: http://localhost:8000/admin
    - Navigate to "Periodic Tasks" under "Django Celery Beat"
 
@@ -295,10 +308,12 @@ The application uses Celery Beat for scheduled tasks. To configure:
 If `docker-compose up -d` fails:
 
 1. **Check Docker Desktop is running:**
+
    - Look for Docker icon in system tray
    - Should show "Docker Desktop is running"
 
 2. **View error logs:**
+
    ```powershell
    docker-compose logs
    ```
@@ -312,17 +327,20 @@ If `docker-compose up -d` fails:
 ### MongoDB Connection Issues
 
 1. **Check MongoDB container is healthy:**
+
    ```powershell
    docker-compose ps mongodb
    # Should show "Up (healthy)"
    ```
 
 2. **View MongoDB logs:**
+
    ```powershell
    docker-compose logs mongodb
    ```
 
 3. **Test MongoDB connection from host:**
+
    ```powershell
    docker exec ta_mongodb mongosh --eval "db.adminCommand('ping')"
    ```
@@ -335,11 +353,13 @@ If `docker-compose up -d` fails:
 ### Redis Connection Issues
 
 1. **Check Redis container is healthy:**
+
    ```powershell
    docker-compose ps redis
    ```
 
 2. **Test Redis connection:**
+
    ```powershell
    docker exec ta_redis redis-cli ping
    # Should return: PONG
@@ -355,15 +375,17 @@ If `docker-compose up -d` fails:
 If mongorestore fails:
 
 1. **Verify backup file exists:**
+
    ```powershell
    Test-Path E:\deployment\mongodb_backup.archive
    ```
 
 2. **Try alternative restore method:**
+
    ```powershell
    # Copy file into container
    docker cp E:\deployment\mongodb_backup.archive ta_mongodb:/tmp/backup.archive
-   
+
    # Restore from inside container
    docker exec ta_mongodb mongorestore --archive=/tmp/backup.archive --verbose
    ```
@@ -392,6 +414,7 @@ docker-compose logs -f celery_beat
 If ports are already in use:
 
 1. **Check what's using the port:**
+
    ```powershell
    netstat -ano | findstr :8000
    ```
@@ -399,7 +422,7 @@ If ports are already in use:
 2. **Change ports in docker-compose.yml:**
    ```yaml
    ports:
-     - "8080:8000"  # Change 8000 to 8080
+     - "8080:8000" # Change 8000 to 8080
    ```
 
 ## Maintenance
@@ -431,7 +454,7 @@ docker exec ta_mongodb mongodump --db=analyst --archive > "mongodb_backup_full_$
 
 # 2. Remove embedding fields from all articles (temporary modification)
 docker exec ta_mongodb mongosh --eval "db.getSiblingDB('analyst').articles.updateMany(
-  {}, 
+  {},
   {$unset: {
     embedding: '',
     embedding_model: '',
@@ -464,10 +487,10 @@ docker exec ta_mongodb mongorestore --archive=/tmp/backup.archive
 # 2. Drop old vector index if it exists
 docker exec ta_mongodb mongosh --eval "db.getSiblingDB('analyst').articles.dropIndex('article_vector_index')"
 
-# 3. Create new vector index for embeddings
+# 3. Create new vector index for embeddings (1024 dimensions for multilingual-e5-large)
 docker exec ta_mongodb mongosh --eval "db.getSiblingDB('analyst').articles.createIndex(
-  {embedding: 'vector'}, 
-  {name: 'article_vector_index', dimensions: 768, vectorSearchOptions: {similarity: 'cosine'}}
+  {embedding: 'vector'},
+  {name: 'article_vector_index', dimensions: 1024, vectorSearchOptions: {similarity: 'cosine'}}
 )"
 
 # 4. The embedding task will automatically process articles without embeddings
@@ -520,23 +543,28 @@ docker-compose restart celery_worker
 For production deployment, consider:
 
 1. **Use a production-grade web server:**
+
    - The Dockerfile already uses Gunicorn
    - Consider adding Nginx as a reverse proxy
 
 2. **Enable HTTPS:**
+
    - Use Let's Encrypt for SSL certificates
    - Configure Nginx with SSL
 
 3. **Database Security:**
+
    - Use MongoDB authentication
    - Update connection string: `mongodb://username:password@host:port/database`
 
 4. **Environment Variables:**
+
    - Set `DEBUG=False`
    - Use strong `SECRET_KEY`
    - Restrict `ALLOWED_HOSTS`
 
 5. **Monitoring:**
+
    - Set up application monitoring (e.g., Sentry)
    - Monitor Docker container health
    - Set up log aggregation
@@ -556,6 +584,7 @@ For production deployment, consider:
 ## Support
 
 For issues or questions:
+
 1. Check the logs: `docker-compose logs -f`
 2. Review the troubleshooting section
 3. Check GitHub issues
@@ -564,12 +593,13 @@ For issues or questions:
 ## Summary - Complete Deployment Checklist
 
 ### On Development Machine (Before Transfer):
+
 - [ ] Create MongoDB backup:
   - Standard backup: `mongodump --host=localhost --port=7587 --db=analyst --archive=mongodb_backup.archive`
   - Or clean export without embeddings (recommended when changing embedding models):
     ```powershell
     # First remove embedding fields
-    mongosh --host=localhost --port=7587 --eval "db.getSiblingDB('analyst').articles.updateMany({}, {$unset: {embedding: '', embedding_model: '', embedding_created_at: '', embedding_dimensions: '', embedding_error: ''}})" 
+    mongosh --host=localhost --port=7587 --eval "db.getSiblingDB('analyst').articles.updateMany({}, {$unset: {embedding: '', embedding_model: '', embedding_created_at: '', embedding_dimensions: '', embedding_error: ''}})"
     # Then export
     mongodump --host=localhost --port=7587 --db=analyst --archive=mongodb_backup_clean.archive
     ```
@@ -577,6 +607,7 @@ For issues or questions:
 - [ ] Push latest code to GitHub: `git push origin main`
 
 ### On New Windows Machine:
+
 - [ ] Install Docker Desktop (with WSL 2)
 - [ ] Install Git for Windows
 - [ ] Clone repository: `git clone https://github.com/yourusername/TA.git`
@@ -591,6 +622,7 @@ For issues or questions:
 - [ ] Access application: http://localhost:8000
 
 ### Services Running:
+
 - **ta_mongodb** - MongoDB database (port 7587)
 - **ta_redis** - Redis cache/broker (port 6379)
 - **ta_web** - Django web app (port 8000)
@@ -598,6 +630,7 @@ For issues or questions:
 - **ta_celery_beat** - Scheduled tasks
 
 ### Key Commands:
+
 ```powershell
 # View all services
 docker-compose ps

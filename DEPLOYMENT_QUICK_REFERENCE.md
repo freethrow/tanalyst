@@ -17,7 +17,7 @@ mongodump --host=localhost --port=7587 --db=analyst --archive=mongodb_backup.arc
 
 # Option B: Clean backup without Nomic embeddings (for migration)
 # Remove embedding fields
-mongosh --host=localhost --port=7587 --eval "db.getSiblingDB('analyst').articles.updateMany({}, {$unset: {embedding: '', embedding_model: '', embedding_created_at: '', embedding_dimensions: '', embedding_error: ''}})" 
+mongosh --host=localhost --port=7587 --eval "db.getSiblingDB('analyst').articles.updateMany({}, {$unset: {embedding: '', embedding_model: '', embedding_created_at: '', embedding_dimensions: '', embedding_error: ''}})"
 # Export clean database
 mongodump --host=localhost --port=7587 --db=analyst --archive=mongodb_backup_clean.archive
 
@@ -38,10 +38,12 @@ git push origin main
 ## 🖥️ New Machine Setup (5 Steps)
 
 ### 1. Install Prerequisites
+
 - Docker Desktop: https://www.docker.com/products/docker-desktop
 - Git: https://git-scm.com/download/win
 
 ### 2. Clone & Configure
+
 ```powershell
 git clone https://github.com/yourusername/TA.git
 cd TA
@@ -49,11 +51,13 @@ Copy-Item E:\deployment\.env .env
 ```
 
 ### 3. Start Services
+
 ```powershell
 docker-compose up -d --build
 ```
 
 ### 4. Restore Database
+
 ```powershell
 # Copy backup to container (use the appropriate backup file name)
 docker cp E:\deployment\mongodb_backup.archive ta_mongodb:/tmp/backup.archive
@@ -63,12 +67,13 @@ docker cp E:\deployment\mongodb_backup.archive ta_mongodb:/tmp/backup.archive
 # Restore database
 docker exec ta_mongodb mongorestore --archive=/tmp/backup.archive
 
-# If using clean backup (without embeddings), rebuild the vector index
+# If using clean backup (without embeddings), rebuild the vector index (1024 dims for multilingual-e5-large)
 docker exec ta_mongodb mongosh --eval "db.getSiblingDB('analyst').articles.dropIndex('article_vector_index')" || echo "No index to drop"
-docker exec ta_mongodb mongosh --eval "db.getSiblingDB('analyst').articles.createIndex({embedding: 'vector'}, {name: 'article_vector_index', dimensions: 768, vectorSearchOptions: {similarity: 'cosine'}})"  
+docker exec ta_mongodb mongosh --eval "db.getSiblingDB('analyst').articles.createIndex({embedding: 'vector'}, {name: 'article_vector_index', dimensions: 1024, vectorSearchOptions: {similarity: 'cosine'}})"
 ```
 
 ### 5. Initialize Django
+
 ```powershell
 docker exec ta_web python manage.py migrate
 docker exec -it ta_web python manage.py createsuperuser
@@ -78,13 +83,13 @@ docker exec ta_web python manage.py compilemessages
 
 ## 🐳 Docker Services
 
-| Service | Container Name | Port | Purpose |
-|---------|---------------|------|---------|
-| MongoDB | ta_mongodb | 7587 | Database |
-| Redis | ta_redis | 6379 | Cache/Broker |
-| Web | ta_web | 8000 | Django App |
-| Celery Worker | ta_celery_worker | - | Background Tasks |
-| Celery Beat | ta_celery_beat | - | Scheduled Tasks |
+| Service       | Container Name   | Port | Purpose          |
+| ------------- | ---------------- | ---- | ---------------- |
+| MongoDB       | ta_mongodb       | 7587 | Database         |
+| Redis         | ta_redis         | 6379 | Cache/Broker     |
+| Web           | ta_web           | 8000 | Django App       |
+| Celery Worker | ta_celery_worker | -    | Background Tasks |
+| Celery Beat   | ta_celery_beat   | -    | Scheduled Tasks  |
 
 ## 🔧 Common Commands
 
@@ -135,6 +140,7 @@ docker exec ta_mongodb mongosh --eval "use analyst; db.articles.countDocuments()
 ## 💾 Backup & Restore
 
 ### Create Backup
+
 ```powershell
 # Full backup with timestamp
 $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
@@ -149,21 +155,23 @@ docker exec ta_mongodb mongosh --eval "db.getSiblingDB('analyst').articles.updat
 ```
 
 ### Restore Backup
+
 ```powershell
 # Standard restore
 docker cp backup.archive ta_mongodb:/tmp/backup.archive
 docker exec ta_mongodb mongorestore --archive=/tmp/backup.archive
 
-# Restore and rebuild vector index for new embeddings
+# Restore and rebuild vector index for new embeddings (1024 dims for multilingual-e5-large)
 docker cp backup.archive ta_mongodb:/tmp/backup.archive
 docker exec ta_mongodb mongorestore --archive=/tmp/backup.archive
 docker exec ta_mongodb mongosh --eval "db.getSiblingDB('analyst').articles.dropIndex('article_vector_index')"
-docker exec ta_mongodb mongosh --eval "db.getSiblingDB('analyst').articles.createIndex({embedding: 'vector'}, {name: 'article_vector_index', dimensions: 768, vectorSearchOptions: {similarity: 'cosine'}})"
+docker exec ta_mongodb mongosh --eval "db.getSiblingDB('analyst').articles.createIndex({embedding: 'vector'}, {name: 'article_vector_index', dimensions: 1024, vectorSearchOptions: {similarity: 'cosine'}})"
 ```
 
 ## 🆘 Troubleshooting
 
 ### Services won't start
+
 ```powershell
 # Check Docker is running
 docker version
@@ -176,6 +184,7 @@ netstat -ano | findstr "7587 6379 8000"
 ```
 
 ### Can't access web app
+
 ```powershell
 # Check web container is running
 docker-compose ps web
@@ -188,6 +197,7 @@ docker exec ta_web curl -f http://localhost:8000/
 ```
 
 ### Database connection issues
+
 ```powershell
 # Test from web container
 docker exec ta_web python -c "from pymongo import MongoClient; client = MongoClient('mongodb://mongodb:27017/'); print(client.admin.command('ping'))"
@@ -223,6 +233,7 @@ TA/
 ## ⚙️ Environment Variables
 
 Key variables in `.env`:
+
 - `SECRET_KEY` - Django secret
 - `DEBUG` - true/false
 - `MONGODB_URI` - mongodb://mongodb:27017/...

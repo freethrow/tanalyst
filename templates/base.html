@@ -284,6 +284,9 @@
               </button>
               <div class="absolute left-0 mt-1 w-48 bg-white rounded-md shadow-lg border border-secondary opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                 <div class="py-1">
+                  <a href="{% url 'articles:hybrid_search' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-secondary hover:text-primary">
+                    ⚡ {% trans "Hybrid Search" %}
+                  </a>
                   <a href="/vector-search/" class="block px-4 py-2 text-sm text-gray-700 hover:bg-secondary hover:text-primary">
                     🔍 {% trans "Vector Search" %}
                   </a>
@@ -428,6 +431,9 @@
             </a>
             <div class="border-t border-secondary my-2 pt-2">
               <div class="px-3 py-2 text-xs font-semibold font-display text-gray-500 uppercase">{% trans "Tools" %}</div>
+              <a href="{% url 'articles:hybrid_search' %}" class="block px-3 py-2 rounded-md text-base font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary">
+                ⚡ {% trans "Hybrid Search" %}
+              </a>
               <a href="/vector-search/" class="block px-3 py-2 rounded-md text-base font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary">
                 🔍 {% trans "Vector Search" %}
               </a>
@@ -497,6 +503,7 @@
           <div>
             <h3 class="text-sm font-semibold font-display text-white uppercase tracking-wider mb-4">{% trans "Tools" %}</h3>
             <ul class="space-y-2">
+              <li><a href="{% url 'articles:hybrid_search' %}" class="text-white/80 hover:text-white text-sm transition-colors">{% trans "Hybrid Search" %}</a></li>
               <li><a href="/vector-search/" class="text-white/80 hover:text-white text-sm transition-colors">{% trans "Vector Search" %}</a></li>
               <li><a href="{% url 'articles:sectors' %}" class="text-white/80 hover:text-white text-sm transition-colors">{% trans "Sectors" %}</a></li>
               {% if user.is_staff %}

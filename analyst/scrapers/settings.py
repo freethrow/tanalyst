@@ -25,7 +25,7 @@ RETRY_TIMES = 3
 RETRY_HTTP_CODES = [500, 502, 503, 504, 522, 524, 408, 429]
 
 # Default download settings
-DOWNLOAD_TIMEOUT = 180
+DOWNLOAD_TIMEOUT = 180  # 3 minutes timeout for scrapers
 RANDOMIZE_DOWNLOAD_DELAY = True
 
 # Extension settings

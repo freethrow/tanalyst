@@ -44,7 +44,7 @@ def fix_numpy():
         
         # Create the reranker
         print("Loading model...")
-        reranker = Reranker('cross-encoder/ms-marco-MiniLM-L-6-v2')
+        reranker = Reranker('BAAI/bge-reranker-v2-m3')
         print("✓ Successfully loaded the model")
         
         # Test with Italian content

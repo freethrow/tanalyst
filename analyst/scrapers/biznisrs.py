@@ -112,7 +112,7 @@ class BiznisRsSpider(CrawlSpider):
         "RANDOMIZE_DOWNLOAD_DELAY": True,
         "CONCURRENT_REQUESTS_PER_DOMAIN": 8,
         "COOKIES_ENABLED": False,
-        "DOWNLOAD_TIMEOUT": 20,
+        "DOWNLOAD_TIMEOUT": 180,  # 3 minutes timeout
         "DOWNLOADER_MIDDLEWARES": {
             "scrapy.downloadermiddlewares.useragent.UserAgentMiddleware": None,
             __name__ + ".RandomUserAgentMiddleware": 400,

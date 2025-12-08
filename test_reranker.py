@@ -15,7 +15,7 @@ def test_reranker():
         # Load the model
         print("Loading reranker model...")
         start_time = time.time()
-        reranker = Reranker('cross-encoder/ms-marco-MiniLM-L-6-v2')
+        reranker = Reranker('BAAI/bge-reranker-v2-m3')
         load_time = time.time() - start_time
         print(f"Model loaded in {load_time:.2f} seconds")
         print(f"Reranker available: {reranker.is_available()}")

@@ -27,6 +27,8 @@ urlpatterns = [
     path("test-tasks/", views.test_tasks, name="test_tasks"),
     # Vector search page
     path("vector-search/", views.vector_search, name="vector_search"),
+    # Hybrid search page (Atlas Search + Vector Search)
+    path("hybrid-search/", views.hybrid_search, name="hybrid_search"),
     # Sectors pages
     path("settori/", views.SectorListView.as_view(), name="sectors"),
     path(
@@ -57,6 +59,9 @@ urlpatterns = [
     path("set-language/", views.set_language, name="set_language"),
     path(
         "remove-embeddings/", views.remove_all_embeddings, name="remove_all_embeddings"
+    ),
+    path(
+        "delete-non-pertinent/", views.delete_non_pertinent_articles, name="delete_non_pertinent"
     ),
     path(
         "embedding-management/", views.embedding_management, name="embedding_management"

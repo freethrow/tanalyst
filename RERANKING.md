@@ -47,7 +47,7 @@ python test_reranking.py "your search query" --limit 5
 
 ## Performance Considerations
 
-The reranking process uses the `cross-encoder/ms-marco-MiniLM-L-6-v2` model, which works well for multilingual content including Italian. It provides a good balance between quality and efficiency for reranking search results.
+The reranking process uses the `BAAI/bge-reranker-v2-m3` model, a state-of-the-art multilingual reranker supporting 100+ languages including Italian, Serbian, and English. This model provides exceptional quality for reranking search results with excellent cross-lingual capabilities.
 
 For very large result sets or in performance-critical scenarios, you can disable reranking by setting `apply_reranking=False` in the `perform_vector_search` function.
 
@@ -67,10 +67,10 @@ def _load_reranker(self):
         # Create the model and tokenizer directly from Hugging Face
         self._tokenizer = AutoTokenizer.from_pretrained("cross-encoder/ms-marco-MiniLM-L-6-v2")
         self._model = AutoModelForSequenceClassification.from_pretrained("cross-encoder/ms-marco-MiniLM-L-6-v2")
-        
+
         # Move to CPU for standard server deployment
         self._model.to("cpu")
-        
+
         logger.info("Loaded Hugging Face reranker model successfully")
     except ImportError:
         logger.error("Failed to import transformers library")

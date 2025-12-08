@@ -22,8 +22,18 @@ class Reranker:
     # Singleton model instances
     _cross_encoder = None
     
-    def __init__(self, model_name="cross-encoder/ms-marco-MiniLM-L-6-v2"):
-        """Initialize the reranker with specified model."""
+    def __init__(self, model_name="mixedbread-ai/mxbai-rerank-xsmall-v1"):
+        """
+        Initialize the reranker with specified model.
+        
+        Default model changed to mixedbread-ai/mxbai-rerank-xsmall-v1 for better speed.
+        This is 4x faster than the previous BAAI/bge-reranker-v2-m3 model.
+        
+        Other options:
+        - "mixedbread-ai/mxbai-rerank-xsmall-v1" (fastest, good quality)
+        - "BAAI/bge-reranker-base" (medium speed, good quality)
+        - "BAAI/bge-reranker-v2-m3" (slowest, best quality)
+        """
         self.model_name = model_name
         
         if Reranker._cross_encoder is None:
@@ -139,9 +149,9 @@ class Reranker:
                 title = (doc.get(title_field) or doc.get('title_en') or 
                         doc.get('title_rs') or 'No title')
                 
-                # Get a snippet of content for reranking (first 1000 chars)
+                # Get a snippet of content for reranking (first 500 chars for speed)
                 content = doc.get(content_field) or doc.get('content_en') or doc.get('content_rs') or ''
-                content = content[:1000]  # Truncate to avoid issues with very large texts
+                content = content[:500]  # Truncate to 500 chars for faster processing
                 
                 # Combine title and content for better reranking
                 text = f"{title}\n{content}"
@@ -167,7 +177,7 @@ class Reranker:
                     
                     # Get scores using batched inference
                     scores = []
-                    batch_size = 8  # Small batch size for CPU
+                    batch_size = 16  # Increased batch size for better throughput
                     
                     for i in range(0, len(document_texts), batch_size):
                         batch_queries = [query] * min(batch_size, len(document_texts) - i)
@@ -180,7 +190,7 @@ class Reranker:
                             padding=True,
                             truncation=True,
                             return_tensors="pt",
-                            max_length=256  # Truncate for efficiency
+                            max_length=128  # Reduced to 128 for faster processing
                         )
                         
                         # Get scores

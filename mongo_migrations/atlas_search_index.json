@@ -1,0 +1,33 @@
+{
+  "mappings": {
+    "dynamic": false,
+    "fields": {
+      "title_it": {
+        "type": "string",
+        "analyzer": "lucene.italian"
+      },
+      "content_it": {
+        "type": "string",
+        "analyzer": "lucene.italian"
+      },
+      "sector": {
+        "type": "string",
+        "analyzer": "lucene.standard"
+      },
+      "source": {
+        "type": "string",
+        "analyzer": "lucene.keyword"
+      },
+      "status": {
+        "type": "string",
+        "analyzer": "lucene.keyword"
+      },
+      "article_date": {
+        "type": "date"
+      },
+      "scraped_at": {
+        "type": "date"
+      }
+    }
+  }
+}

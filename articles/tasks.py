@@ -24,6 +24,44 @@ EMBEDDING_BATCH_SIZE = 10
 logger = get_task_logger(__name__)
 
 
+@shared_task
+def delete_non_pertinent_articles():
+    """
+    Background task to delete all articles marked as 'NON PERTINENT'.
+    This removes articles with content_it containing 'NON PERTINENT' from the database.
+    """
+    try:
+        logger.info("Starting deletion of NON PERTINENT articles...")
+        
+        # Get MongoDB connection
+        client, collection = get_mongodb_connection()
+        
+        # Find and delete articles with NON PERTINENT in content_it
+        result = collection.delete_many({
+            "$or": [
+                {"content_it": {"$regex": "NON PERTINENT", "$options": "i"}},
+                {"content_it": {"$regex": "non pertinent", "$options": "i"}}
+            ]
+        })
+        
+        deleted_count = result.deleted_count
+        client.close()
+        
+        logger.info(f"Successfully deleted {deleted_count} NON PERTINENT articles")
+        return {
+            "status": "success",
+            "deleted_count": deleted_count,
+            "message": f"Deleted {deleted_count} NON PERTINENT articles"
+        }
+        
+    except Exception as e:
+        logger.error(f"Error deleting NON PERTINENT articles: {str(e)}")
+        return {
+            "status": "error",
+            "message": str(e)
+        }
+
+
 def get_mongodb_connection():
     """Get MongoDB connection using settings from Django or environment variables."""
     mongo_uri = getattr(settings, "MONGODB_URI", None)
@@ -193,7 +231,7 @@ def create_all_embeddings(
                             {
                                 "$set": {
                                     "embedding": embedding.tolist(),
-                                    "embedding_model": "multilingual-e5-base",
+                                    "embedding_model": "multilingual-e5-large",
                                     "embedding_created_at": datetime.utcnow(),
                                     "embedding_dimensions": len(embedding),
                                 }
@@ -247,7 +285,7 @@ def create_all_embeddings(
                                     {
                                         "$set": {
                                             "embedding": embedding.tolist(),
-                                            "embedding_model": "multilingual-e5-base",
+                                            "embedding_model": "multilingual-e5-large",
                                             "embedding_created_at": datetime.utcnow(),
                                             "embedding_dimensions": len(embedding),
                                         }

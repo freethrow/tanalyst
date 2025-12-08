@@ -3,7 +3,7 @@ import os
 from django.conf import settings
 
 from .models import Article
-from .utils import perform_vector_search, generate_query_embedding
+from .utils import perform_vector_search, generate_query_embedding, perform_hybrid_search
 from django.views.generic import ListView, DetailView, UpdateView, FormView
 from django.db import models
 from django import forms
@@ -637,6 +637,23 @@ def remove_all_embeddings(request):
 
 
 @staff_required
+def delete_non_pertinent_articles(request):
+    """Trigger background task to delete all NON PERTINENT articles (Admin only)."""
+    try:
+        from articles.tasks import delete_non_pertinent_articles as delete_task
+        
+        # Trigger the background task
+        task = delete_task.delay()
+        
+        message = f"✅ Started deletion task (Task ID: {task.id}). Check Celery logs for progress."
+        return HttpResponse(message)
+        
+    except Exception as e:
+        error_message = f"❌ Error starting deletion task: {str(e)}"
+        return HttpResponse(error_message, status=500)
+
+
+@staff_required
 def embedding_management(request):
     """View for managing embeddings - show stats and provide management options (Admin only)."""
     from pymongo import MongoClient
@@ -700,6 +717,7 @@ def embedding_management(request):
 def vector_search(request):
     if request.method == "POST":
         query = request.POST.get("query", "").strip()
+        enable_reranking = request.POST.get("enable_reranking") == "on"  # Checkbox for reranking
         is_htmx = (
             request.headers.get("HX-Request") == "true"
             or request.headers.get("Hx-Request") == "true"
@@ -720,8 +738,9 @@ def vector_search(request):
                 query=query,
                 article_model=Article,
                 index_name="article_vector_index",
-                num_candidates=100,
-                limit=50,
+                num_candidates=50,
+                limit=25,
+                apply_reranking=enable_reranking,
             )
             
             if is_htmx:
@@ -749,6 +768,109 @@ def vector_search(request):
             )
 
     return render(request, "vector_search.html")
+
+
+@login_required
+def hybrid_search(request):
+    """
+    Hybrid search view combining Atlas Search (text) and Vector Search (semantic).
+    
+    This provides the best of both worlds:
+    - Atlas Search for keyword-based relevance
+    - Vector Search for semantic similarity
+    - Reciprocal Rank Fusion to combine results
+    """
+    if request.method == "POST":
+        query = request.POST.get("query", "").strip()
+        search_type = request.POST.get("search_type", "hybrid")  # hybrid, vector, or text
+        enable_reranking = request.POST.get("enable_reranking") == "on"  # Checkbox for reranking
+        is_htmx = (
+            request.headers.get("HX-Request") == "true"
+            or request.headers.get("Hx-Request") == "true"
+        )
+        
+        if not query:
+            if is_htmx:
+                return render(
+                    request, "partials/hybrid_search_results.html", {"results": []}
+                )
+            return render(
+                request, "hybrid_search.html", {"results": [], "query": query}
+            )
+        
+        try:
+            # Choose search method based on user selection
+            if search_type == "vector":
+                # Pure vector search
+                processed_results = perform_vector_search(
+                    query=query,
+                    article_model=Article,
+                    index_name="article_vector_index",
+                    num_candidates=50,
+                    limit=25,
+                    apply_reranking=enable_reranking,
+                )
+            elif search_type == "text":
+                # Pure Atlas text search
+                from .utils import perform_atlas_search
+                processed_results = perform_atlas_search(
+                    query=query,
+                    article_model=Article,
+                    index_name="article_text_search_index",
+                    limit=25,
+                )
+            else:
+                # Hybrid search (default)
+                processed_results = perform_hybrid_search(
+                    query=query,
+                    article_model=Article,
+                    vector_index_name="article_vector_index",
+                    text_index_name="article_text_search_index",
+                    limit=25,
+                    vector_weight=0.6,
+                    text_weight=0.4,
+                    apply_reranking=enable_reranking,
+                )
+            
+            # Add search type info to each result
+            for result in processed_results:
+                result['used_search_type'] = search_type
+            
+            if is_htmx:
+                return render(
+                    request,
+                    "partials/hybrid_search_results.html",
+                    {"results": processed_results, "search_type": search_type},
+                )
+            return render(
+                request,
+                "hybrid_search.html",
+                {"results": processed_results, "query": query, "search_type": search_type},
+            )
+            
+        except Exception as e:
+            print(f"Error performing hybrid search: {e}")
+            error_msg = str(e)
+            
+            # Provide helpful error messages
+            if "text search failed" in error_msg.lower():
+                error_msg = "Atlas Search index not found. Please create the 'article_text_search_index' index first."
+            elif "vector search failed" in error_msg.lower():
+                error_msg = "Vector search index not found. Please ensure embeddings are generated."
+            
+            if is_htmx:
+                return render(
+                    request, 
+                    "partials/hybrid_search_results.html", 
+                    {"results": [], "error": error_msg}
+                )
+            return render(
+                request,
+                "hybrid_search.html",
+                {"results": [], "query": query, "error": error_msg, "search_type": search_type},
+            )
+
+    return render(request, "hybrid_search.html", {"search_type": "hybrid"})
 
 
 class ArticleEditView(LoginRequiredMixin, UpdateView):

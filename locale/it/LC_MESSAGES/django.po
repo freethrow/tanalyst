@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: TA 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-02 23:02+0200\n"
+"POT-Creation-Date: 2025-12-01 09:49+0100\n"
 "PO-Revision-Date: 2025-10-03 14:20+0200\n"
 "Last-Translator: TA Team\n"
 "Language-Team: Italian\n"
@@ -17,84 +17,114 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 3.7\n"
 
-#: .\articles\middleware.py:30 .\articles\views.py:1011
-#: .\templates\base.html:162 .\templates\base.html:274
-#: .\templates\base.html:333 .\templates\partials\card.html:28
+#: .\articles\middleware.py:29 .\templates\base.html:258
+#: .\templates\base.html:413 .\templates\base.html:491
+#: .\templates\partials\card.html:46
 msgid "Approved"
 msgstr "Approvati"
 
-#: .\articles\middleware.py:31 .\templates\partials\card.html:117
+#: .\articles\middleware.py:30 .\templates\partials\card.html:135
 msgid "Discard"
 msgstr "Scarta"
 
-#: .\articles\views.py:957
+# Admin permission error message
+#: .\articles\views.py:72 .\articles\views.py:93
+msgid "This action can only be performed by an administrator"
+msgstr "Questa azione richiede un amministratore"
+
+#: .\articles\views.py:206 .\templates\base.html:255 .\templates\base.html:410
+#: .\templates\base.html:490
+msgid "Inbox"
+msgstr ""
+
+#: .\articles\views.py:226 .\templates\send_email.html:141
+msgid "Approved Articles"
+msgstr "Modifica Articolo"
+
+#: .\articles\views.py:246
+#, fuzzy
+#| msgid "Related Articles"
+msgid "Discarded Articles"
+msgstr "Articoli Correlati"
+
+#: .\articles\views.py:266
+#, fuzzy
+#| msgid "Latest Articles"
+msgid "Sent Articles"
+msgstr "Ultimi Articoli"
+
+#: .\articles\views.py:284 .\templates\base.html:267 .\templates\base.html:422
+#: .\templates\base.html:494
+#, fuzzy
+#| msgid "Articles"
+msgid "All Articles"
+msgstr "Articoli inbox"
+
+# Embedding management
+#: .\articles\views.py:511
+msgid "Embeddings generation started"
+msgstr "Iniziata la creazione di embeddings"
+
+#: .\articles\views.py:1065
 msgid ""
 "Translation service started successfully. Articles will be translated "
 "shortly."
 msgstr ""
 
-#: .\articles\views.py:959
+#: .\articles\views.py:1070
 #, python-format
 msgid "Error starting translation: %(error)s"
 msgstr ""
 
-#: .\articles\views.py:970
+#: .\articles\views.py:1086
 msgid "Ekapija scraper started successfully. New articles will appear shortly."
 msgstr ""
 
-#: .\articles\views.py:971
+#: .\articles\views.py:1092
 msgid ""
 "BiznisRS scraper started successfully. New articles will appear shortly."
 msgstr ""
 
-#: .\articles\views.py:975
+#: .\articles\views.py:1098
+msgid ""
+"Nova Ekonomija scraper started successfully. New articles will appear "
+"shortly."
+msgstr ""
+
+#: .\articles\views.py:1104
 msgid "Invalid scraper name"
 msgstr ""
 
-#: .\articles\views.py:985
+#: .\articles\views.py:1115
 #, python-format
 msgid "Error starting scraper: %(error)s"
 msgstr ""
-
-#: .\articles\views.py:1006
-msgid "Business News Report"
-msgstr ""
-
-#: .\articles\views.py:1007
-#, fuzzy
-#| msgid "Approved Articles"
-msgid "Approved Articles Collection"
-msgstr "Modifica Articolo"
-
-#: .\articles\views.py:1010
-msgid "Latest Articles"
-msgstr "Ultimi Articoli"
 
 #: .\templates\article_detail.html:15
 msgid "Print"
 msgstr "Stampa"
 
-#: .\templates\article_detail.html:33
+#: .\templates\article_detail.html:80
 msgid "Translated"
 msgstr ""
 
-#: .\templates\article_detail.html:77
+#: .\templates\article_detail.html:124
 msgid "Related Articles"
 msgstr "Articoli Correlati"
 
-#: .\templates\article_detail.html:91
+#: .\templates\article_detail.html:138
 msgid "No related articles found"
 msgstr "Senza articoli correlati"
 
-#: .\templates\article_detail.html:102
+#: .\templates\article_detail.html:149
 msgid "Back"
 msgstr ""
 
-#: .\templates\article_detail.html:110 .\templates\article_edit.html:11
+#: .\templates\article_detail.html:157 .\templates\article_edit.html:11
 msgid "Edit Article"
 msgstr "Modifica Articolo"
 
-#: .\templates\article_detail.html:114
+#: .\templates\article_detail.html:161
 msgid "View Original"
 msgstr "Link Originale"
 
@@ -141,8 +171,8 @@ msgstr "Stato Articolo"
 msgid "Status"
 msgstr "Stato"
 
-#: .\templates\article_edit.html:111 .\templates\embedding_management.html:218
-#: .\templates\send_email.html:113
+#: .\templates\article_edit.html:111 .\templates\embedding_management.html:427
+#: .\templates\send_email.html:125
 msgid "Cancel"
 msgstr "Annulla"
 
@@ -151,182 +181,193 @@ msgid "Save Changes"
 msgstr ""
 
 # Navigation
-#: .\templates\base.html:159 .\templates\base.html:271
-#: .\templates\base.html:332
-msgid "Home"
-msgstr "Home"
+#: .\templates\base.html:236
+msgid "About"
+msgstr "Chi Siamo"
 
-#: .\templates\base.html:165 .\templates\base.html:277
-#: .\templates\base.html:334 .\templates\partials\card.html:33
+#: .\templates\base.html:247 .\templates\base.html:408
+#: .\templates\base.html:488 .\templates\index.html:8
+msgid "Articles"
+msgstr "Articoli inbox"
+
+#: .\templates\base.html:261 .\templates\base.html:416
+#: .\templates\base.html:492 .\templates\partials\card.html:51
 msgid "Discarded"
 msgstr "Scartati"
 
-#: .\templates\base.html:168 .\templates\base.html:280
+#: .\templates\base.html:264 .\templates\base.html:419
+#: .\templates\base.html:493 .\templates\partials\card.html:56
+msgid "Sent"
+msgstr "Inviato"
+
+#: .\templates\base.html:274 .\templates\base.html:427
+#: .\templates\base.html:501
 msgid "Sectors"
 msgstr "Settori"
 
-#: .\templates\base.html:174 .\templates\base.html:283
+#: .\templates\base.html:280 .\templates\base.html:430
+#: .\templates\base.html:498
 msgid "Tools"
 msgstr "Strumenti"
 
-#: .\templates\base.html:182 .\templates\base.html:285
-#: .\templates\base.html:335 .\templates\vector_search.html:8
+#: .\templates\base.html:288 .\templates\base.html:432
+#: .\templates\base.html:500
 msgid "Vector Search"
 msgstr "Ricerca Vettoriale"
 
-#: .\templates\base.html:185 .\templates\base.html:288
+#: .\templates\base.html:292 .\templates\base.html:436
 msgid "Embeddings"
 msgstr "Embeddings"
 
-#: .\templates\base.html:188 .\templates\scrapers.html:4
+#: .\templates\base.html:295 .\templates\base.html:439
+#: .\templates\scrapers.html:4
 msgid "Scrapers"
 msgstr "Scraper"
 
-#: .\templates\base.html:191
+#: .\templates\base.html:298 .\templates\base.html:442
 msgid "Translation"
 msgstr "Traduzione"
 
-#: .\templates\base.html:198 .\templates\base.html:292
+#: .\templates\base.html:307 .\templates\base.html:448
+#: .\templates\base.html:503
 msgid "Summaries"
 msgstr "Riassunti"
 
-#: .\templates\base.html:201 .\templates\base.html:295
+#: .\templates\base.html:310 .\templates\base.html:451
 msgid "Email"
 msgstr "Email"
 
-#: .\templates\base.html:222
+#: .\templates\base.html:333
 msgid "Signed in as"
 msgstr "Connesso come"
 
-#: .\templates\base.html:229
+#: .\templates\base.html:340
 msgid "Sign Out"
 msgstr "Esci"
 
-#: .\templates\base.html:330
-msgid "Navigation"
-msgstr "Navigazione"
-
-#: .\templates\base.html:339
+#: .\templates\base.html:508
 msgid "Company"
 msgstr "Azienda"
 
-#: .\templates\base.html:341
+#: .\templates\base.html:510
 msgid "About us"
 msgstr "Chi Siamo"
 
-#: .\templates\base.html:342
+#: .\templates\base.html:511
 msgid "Contact"
 msgstr "Contatti"
 
-#: .\templates\embedding_management.html:4
-#: .\templates\embedding_management.html:17
+#: .\templates\embedding_management.html:29
 msgid "Embedding Management"
 msgstr ""
 
-#: .\templates\embedding_management.html:19
+#: .\templates\embedding_management.html:33
 msgid "Manage vector embeddings for semantic search"
 msgstr ""
 
-#: .\templates\embedding_management.html:27
+#: .\templates\embedding_management.html:43
 msgid "Total Articles"
 msgstr "Modifica Articolo"
 
-#: .\templates\embedding_management.html:40
+#: .\templates\embedding_management.html:62
 msgid "With Embeddings"
 msgstr ""
 
-#: .\templates\embedding_management.html:48
+#: .\templates\embedding_management.html:78
 #, python-format
 msgid "%(embedding_percentage)s%% complete"
 msgstr ""
 
-#: .\templates\embedding_management.html:54
+#: .\templates\embedding_management.html:86
 msgid "Missing"
 msgstr ""
 
-#: .\templates\embedding_management.html:67
+#: .\templates\embedding_management.html:109
 msgid "With Errors"
 msgstr ""
 
-#: .\templates\embedding_management.html:85
+#: .\templates\embedding_management.html:146
 msgid "Embedding Models Used"
 msgstr ""
 
-#: .\templates\embedding_management.html:91
+#: .\templates\embedding_management.html:155
 msgid "Model"
 msgstr ""
 
-#: .\templates\embedding_management.html:92
+#: .\templates\embedding_management.html:160
 msgid "Articles Count"
 msgstr "Conteggio articoli"
 
-#: .\templates\embedding_management.html:93
+#: .\templates\embedding_management.html:165
 msgid "Percentage"
 msgstr ""
 
-#: .\templates\embedding_management.html:126
+#: .\templates\embedding_management.html:218
 msgid "Management Actions"
 msgstr ""
 
-#: .\templates\embedding_management.html:129
-msgid ""
-"Use these actions to manage your embeddings. Be careful as some actions "
-"cannot be undone."
-msgstr ""
-
-#: .\templates\embedding_management.html:142
-msgid ""
-"This will remove all embedding data from articles. Use this before switching "
-"embedding models."
-msgstr ""
-
-#: .\templates\embedding_management.html:161
+#: .\templates\embedding_management.html:289
 msgid "Generate New Embeddings"
 msgstr "Genera Nuovo Riassunto"
 
-#: .\templates\embedding_management.html:164
-msgid ""
-"Start generating embeddings for articles that don't have them using Nomic "
-"API."
-msgstr ""
-
-#: .\templates\embedding_management.html:173
+#: .\templates\embedding_management.html:312
 msgid "Start Embedding Generation"
 msgstr ""
 
-#: .\templates\embedding_management.html:187
-msgid "Migration to Nomic Embeddings"
+#: .\templates\embedding_management.html:335
+#: .\templates\embedding_management.html:358
+msgid "Delete NON PERTINENT Articles"
 msgstr ""
 
-#: .\templates\embedding_management.html:189
+#: .\templates\embedding_management.html:377
+msgid "Migration to multilingual-e5-large Embeddings"
+msgstr ""
+
+#: .\templates\embedding_management.html:379
 msgid ""
-"Your system is now configured to use Nomic embeddings (nomic-embed-text-"
-"v1.5) instead of VoyageAI. Remove old embeddings first, then generate new "
-"ones for better performance."
+"Your system is now configured to use multilingual-e5-large embeddings (1024 "
+"dimensions) for superior semantic search. Remove old embeddings first, then "
+"generate new ones for better performance."
 msgstr ""
 
-#: .\templates\embedding_management.html:206
+#: .\templates\embedding_management.html:410
 msgid "Confirm Removal"
 msgstr ""
 
-#: .\templates\embedding_management.html:210
+#: .\templates\embedding_management.html:415
 #, python-format
 msgid ""
-"Are you sure you want to remove ALL embeddings from <strong>%(count)s</"
-"strong> article? This action cannot be undone."
+"Are you sure you want to remove\n"
+"      ALL embeddings from <strong>%(count)s</strong> article? This action\n"
+"      cannot be undone."
 msgid_plural ""
-"Are you sure you want to remove ALL embeddings from <strong>%(count)s</"
-"strong> articles? This action cannot be undone."
+"Are you sure you want to remove ALL\n"
+"      embeddings from <strong>%(count)s</strong> articles? This action "
+"cannot\n"
+"      be undone."
 msgstr[0] ""
 msgstr[1] ""
 
-#: .\templates\embedding_management.html:227
+#: .\templates\embedding_management.html:446
 msgid "Yes, Remove All"
 msgstr ""
 
-#: .\templates\index.html:8
-msgid "Articles"
-msgstr "Articoli inbox"
+#: .\templates\embedding_management.html:478
+#: .\templates\embedding_management.html:501
+msgid "Error"
+msgstr ""
+
+#: .\templates\embedding_management.html:483
+msgid ""
+"Are you sure you want to delete ALL articles with NON PERTINENT in their "
+"content?"
+msgstr ""
+
+#: .\templates\embedding_management.html:483
+msgid ""
+"This action cannot be undone and will permanently remove these articles from "
+"the database."
+msgstr ""
 
 #: .\templates\index.html:9
 #, python-format
@@ -388,32 +429,32 @@ msgid "Contact your administrator to create an account"
 msgstr "Contatta il tuo amministratore per creare un account"
 
 # Article Status
-#: .\templates\partials\card.html:23
+#: .\templates\partials\card.html:41
 msgid "Pending"
 msgstr "In Attesa"
 
-#: .\templates\partials\card.html:38
-msgid "Sent"
-msgstr "Inviato"
-
 # Article Actions
-#: .\templates\partials\card.html:107
+#: .\templates\partials\card.html:125
 msgid "Approve"
 msgstr "Approva"
 
-#: .\templates\partials\card.html:128
+#: .\templates\partials\card.html:146
 msgid "Restore"
 msgstr "Ripristina"
 
-#: .\templates\partials\card.html:134
+#: .\templates\partials\card.html:157
+msgid "Restore as Pending"
+msgstr ""
+
+#: .\templates\partials\card.html:163
 msgid "Edit article"
 msgstr "Modifica articolo"
 
-#: .\templates\partials\card.html:138
+#: .\templates\partials\card.html:167
 msgid "Edit"
 msgstr "Modifica"
 
-#: .\templates\partials\card.html:142
+#: .\templates\partials\card.html:171
 msgid "Read"
 msgstr "Leggi"
 
@@ -430,6 +471,7 @@ msgid "Scrapes latest business news from Ekapija news portal"
 msgstr ""
 
 #: .\templates\scrapers.html:66 .\templates\scrapers.html:93
+#: .\templates\scrapers.html:120
 msgid "Start Scraper"
 msgstr ""
 
@@ -437,27 +479,31 @@ msgstr ""
 msgid "Scrapes latest business news from BiznisRS news portal"
 msgstr ""
 
-#: .\templates\scrapers.html:107
+#: .\templates\scrapers.html:112
+msgid "Scrapes latest business news from Nova Ekonomija news portal"
+msgstr ""
+
+#: .\templates\scrapers.html:133
 msgid "How Scrapers Work"
 msgstr ""
 
-#: .\templates\scrapers.html:109
+#: .\templates\scrapers.html:135
 msgid "Scrapers run as background Celery tasks"
 msgstr ""
 
-#: .\templates\scrapers.html:110
+#: .\templates\scrapers.html:136
 msgid "New articles are automatically fetched and stored"
 msgstr ""
 
-#: .\templates\scrapers.html:111
+#: .\templates\scrapers.html:137
 msgid "Articles will appear in the main list after scraping completes"
 msgstr ""
 
-#: .\templates\scrapers.html:112
+#: .\templates\scrapers.html:138
 msgid "Duplicate articles are automatically detected and skipped"
 msgstr ""
 
-#: .\templates\scrapers.html:113
+#: .\templates\scrapers.html:139
 msgid "You can run multiple scrapers simultaneously"
 msgstr ""
 
@@ -482,35 +528,31 @@ msgstr "Torna ai Riassunti"
 msgid "Email Configuration"
 msgstr ""
 
-#: .\templates\send_email.html:99
+#: .\templates\send_email.html:111
 msgid "Sending Information"
 msgstr ""
 
-#: .\templates\send_email.html:101
+#: .\templates\send_email.html:113
 msgid "Only articles with APPROVED status will be sent"
 msgstr ""
 
-#: .\templates\send_email.html:102
+#: .\templates\send_email.html:114
 msgid "Articles will be sorted by translation date (most recent first)"
 msgstr ""
 
-#: .\templates\send_email.html:103
+#: .\templates\send_email.html:115
 msgid "After sending, the status of articles will become SENT"
 msgstr ""
 
-#: .\templates\send_email.html:104
+#: .\templates\send_email.html:116
 msgid "The email will be sent in the background and may take a few minutes"
 msgstr ""
 
-#: .\templates\send_email.html:119
+#: .\templates\send_email.html:131
 msgid "Send Email"
 msgstr "Invia Email"
 
-#: .\templates\send_email.html:129
-msgid "Approved Articles"
-msgstr "Modifica Articolo"
-
-#: .\templates\send_email.html:131
+#: .\templates\send_email.html:143
 msgid "Ready to send"
 msgstr ""
 
@@ -599,189 +641,72 @@ msgstr ""
 msgid "Translation quality is reviewed by AI for accuracy"
 msgstr ""
 
-#: .\templates\vector_search.html:10
-#, python-format
-msgid "%(counter)s result"
-msgid_plural "%(counter)s results"
-msgstr[0] ""
-msgstr[1] ""
-
-#: .\templates\vector_search.html:13
-msgid "Search articles using semantic similarity"
-msgstr ""
-
-#: .\templates\vector_search.html:33
-msgid "Enter your search query..."
-msgstr ""
-
-#: .\templates\vector_search.html:45
-msgid "Search"
-msgstr "Ricerca Vettoriale"
-
-#: .\templates\vector_search.html:56
-msgid "Searching..."
-msgstr ""
-
-#: .\templates\vector_search.html:81
-msgid "No results found"
-msgstr ""
-
-#: .\templates\vector_search.html:82
-msgid "Try different search terms or check your spelling"
-msgstr ""
-
-#: .\templates\vector_search.html:89
-msgid "Start searching"
-msgstr ""
-
-#: .\templates\vector_search.html:90
-msgid "Enter a query above to find relevant articles"
-msgstr ""
-
-# Weekly Summaries
-#: .\templates\weekly_summaries.html:4
-msgid "Weekly Summaries"
-msgstr "Riassunti Settimanali"
-
-#: .\templates\weekly_summaries.html:17
-msgid "Weekly Business Summaries"
-msgstr "Riassunti Settimanali di Business"
-
-#: .\templates\weekly_summaries.html:26
-msgid "Generate New Summary"
-msgstr "Genera Nuovo Riassunto"
-
-#: .\templates\weekly_summaries.html:29
-msgid "AI-generated weekly analysis of business news"
-msgstr "Analisi settimanale delle notizie di business generata dall'IA"
-
-#: .\templates\weekly_summaries.html:41
-msgid "Total Summaries"
-msgstr "Riassunti Totali"
-
-#: .\templates\weekly_summaries.html:43
-msgid "Generated reports"
-msgstr "Report generati"
-
-#: .\templates\weekly_summaries.html:73
-#, fuzzy, python-format
-#| msgid "articles analyzed"
-msgid "%(count)s article analyzed"
-msgid_plural "%(count)s articles analyzed"
-msgstr[0] "articoli analizzati"
-msgstr[1] "articoli analizzati"
-
-#: .\templates\weekly_summaries.html:79
-#, fuzzy, python-format
-#| msgid "weeks period"
-msgid "%(count)s week period"
-msgid_plural "%(count)s weeks period"
-msgstr[0] "periodo di settimane"
-msgstr[1] "periodo di settimane"
-
-#: .\templates\weekly_summaries.html:87
-msgid "Executive Summary"
-msgstr "Riassunto Esecutivo"
-
-#: .\templates\weekly_summaries.html:96
-msgid "Featured Sectors"
-msgstr "Settori in Evidenza"
-
-#: .\templates\weekly_summaries.html:111
-msgid "Read Full Summary"
-msgstr "Leggi Riassunto Completo"
-
-#: .\templates\weekly_summaries.html:126
-msgid "No Weekly Summaries Yet"
-msgstr "Nessun Riassunto Settimanale Ancora"
-
-#: .\templates\weekly_summaries.html:128
-msgid ""
-"Generate your first weekly business summary to get started with AI-powered "
-"analysis."
-msgstr ""
-"Genera il tuo primo riassunto settimanale di business per iniziare con "
-"l'analisi basata sull'IA."
-
-#: .\templates\weekly_summaries.html:135
-msgid "Generate First Summary"
-msgstr "Genera Primo Riassunto"
-
-#~ msgid "About"
-#~ msgstr "Chi Siamo"
-
-#~ msgid "Main Trends"
-#~ msgstr "Tendenze Principali"
-
-#~ msgid "Opportunities for Italian Companies"
-#~ msgstr "Opportunità per le Aziende Italiane"
-
-#~ msgid "Complete Analysis"
-#~ msgstr "Analisi Completa"
-
-#~ msgid "Generated"
-#~ msgstr "Generato"
-
-#~ msgid "Period"
-#~ msgstr "Periodo"
-
-#~ msgid "Generated by"
-#~ msgstr "Generato da"
-
-#~ msgid "AI Assistant"
-#~ msgstr "Assistente IA"
-
-#~ msgid "View All Summaries"
-#~ msgstr "Visualizza Tutti i Riassunti"
-
-# Article Metadata
-#~ msgid "Published"
-#~ msgstr "Pubblicato"
-
-#~ msgid "Source"
-#~ msgstr "Fonte"
-
-# Forms
-#~ msgid "Email Address"
-#~ msgstr "Indirizzo Email"
-
-#~ msgid "Number of Articles"
-#~ msgstr "Numero di Articoli"
-
-#~ msgid "Subject"
-#~ msgstr "Oggetto"
-
-#~ msgid "Send"
-#~ msgstr "Invia"
-
-#~ msgid "Save"
-#~ msgstr "Salva"
-
-# Messages
-#~ msgid "Article approved successfully"
-#~ msgstr "Articolo approvato con successo"
-
-#~ msgid "Article discarded successfully"
-#~ msgstr "Articolo scartato con successo"
-
-#~ msgid "Article restored successfully"
-#~ msgstr "Articolo ripristinato con successo"
-
-#~ msgid "Email sent successfully"
-#~ msgstr "Email inviata con successo"
-
-#~ msgid "Error sending email"
-#~ msgstr "Errore nell'invio dell'email"
-
-# Admin permission error message
-msgid "This action can only be performed by an administrator"
-msgstr "Questa azione richiede un amministratore"
+#, fuzzy
+#~| msgid "Approved Articles"
+#~ msgid "Approved Articles Collection"
+#~ msgstr "Modifica Articolo"
 
 # Navigation
-#: .\templates\base.html:236
-msgid "About"
-msgstr "Chi Siamo"
+#~ msgid "Home"
+#~ msgstr "Home"
 
-# Embedding management
-msgid "Embeddings generation started"
-msgstr "Iniziata la creazione di embeddings"
+#~ msgid "Navigation"
+#~ msgstr "Navigazione"
+
+#~ msgid "Search"
+#~ msgstr "Ricerca Vettoriale"
+
+# Weekly Summaries
+#~ msgid "Weekly Summaries"
+#~ msgstr "Riassunti Settimanali"
+
+#~ msgid "Weekly Business Summaries"
+#~ msgstr "Riassunti Settimanali di Business"
+
+#~ msgid "Generate New Summary"
+#~ msgstr "Genera Nuovo Riassunto"
+
+#~ msgid "AI-generated weekly analysis of business news"
+#~ msgstr "Analisi settimanale delle notizie di business generata dall'IA"
+
+#~ msgid "Total Summaries"
+#~ msgstr "Riassunti Totali"
+
+#~ msgid "Generated reports"
+#~ msgstr "Report generati"
+
+#, fuzzy, python-format
+#~| msgid "articles analyzed"
+#~ msgid "%(count)s article analyzed"
+#~ msgid_plural "%(count)s articles analyzed"
+#~ msgstr[0] "articoli analizzati"
+#~ msgstr[1] "articoli analizzati"
+
+#, fuzzy, python-format
+#~| msgid "weeks period"
+#~ msgid "%(count)s week period"
+#~ msgid_plural "%(count)s weeks period"
+#~ msgstr[0] "periodo di settimane"
+#~ msgstr[1] "periodo di settimane"
+
+#~ msgid "Executive Summary"
+#~ msgstr "Riassunto Esecutivo"
+
+#~ msgid "Featured Sectors"
+#~ msgstr "Settori in Evidenza"
+
+#~ msgid "Read Full Summary"
+#~ msgstr "Leggi Riassunto Completo"
+
+#~ msgid "No Weekly Summaries Yet"
+#~ msgstr "Nessun Riassunto Settimanale Ancora"
+
+#~ msgid ""
+#~ "Generate your first weekly business summary to get started with AI-"
+#~ "powered analysis."
+#~ msgstr ""
+#~ "Genera il tuo primo riassunto settimanale di business per iniziare con "
+#~ "l'analisi basata sull'IA."
+
+#~ msgid "Generate First Summary"
+#~ msgstr "Genera Primo Riassunto"
