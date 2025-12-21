@@ -1,0 +1,309 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Selected Articles Summary" %} · TA{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+  <!-- Page Header -->
+  <div class="mb-8">
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <h1 class="text-3xl font-bold font-display text-gray-700">{% trans "Selected Articles Summary" %}</h1>
+        <p class="text-sm text-gray-600 mt-1">{% trans "Generate an AI-powered summary of your selected articles" %}</p>
+      </div>
+      <a href="/" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 border border-gray-200 rounded-md transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+        </svg>
+        {% trans "Back to Articles" %}
+      </a>
+    </div>
+  </div>
+
+  <!-- No Selection State -->
+  <div id="no-selection-state" class="hidden bg-white border border-secondary rounded-lg p-12 text-center">
+    <svg class="mx-auto h-16 w-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+    </svg>
+    <h3 class="text-xl font-medium font-display text-gray-700 mb-2">{% trans "No Articles Selected" %}</h3>
+    <p class="text-gray-600 mb-6">{% trans "Please select some articles from the article lists to generate a summary." %}</p>
+    <a href="/" class="inline-flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary/90 text-white font-medium rounded-md transition-colors">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+      </svg>
+      {% trans "Browse Articles" %}
+    </a>
+  </div>
+
+  <!-- Main Content -->
+  <div id="main-content" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Left Column: Selected Articles List -->
+    <div class="lg:col-span-1">
+      <div class="bg-white border border-secondary rounded-lg p-6 sticky top-6">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-semibold font-display text-gray-700">{% trans "Selected Articles" %}</h2>
+          <span id="article-count-badge" class="px-2.5 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary">0</span>
+        </div>
+        
+        <div id="selected-articles-list" class="space-y-2 max-h-96 overflow-y-auto">
+          <!-- JavaScript will populate this -->
+        </div>
+
+        <div class="mt-4 pt-4 border-t border-gray-200">
+          <button 
+            onclick="clearAllSelections()"
+            class="w-full inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 rounded-md transition-colors"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+            </svg>
+            {% trans "Clear All Selections" %}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Summary Generation -->
+    <div class="lg:col-span-2">
+      <!-- Generation Form -->
+      <div class="bg-white border border-secondary rounded-lg p-6 mb-6">
+        <h2 class="text-lg font-semibold font-display text-gray-700 mb-4">{% trans "Generate Summary" %}</h2>
+        
+        <form id="summary-form" method="post" action="{% url 'articles:generate_selection_summary' %}">
+          {% csrf_token %}
+          <input type="hidden" name="article_ids" id="article-ids-input" value="">
+          
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2">{% trans "Summary Instructions" %}</label>
+            <textarea 
+              name="custom_prompt" 
+              rows="4"
+              class="w-full px-4 py-3 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+              placeholder="{% trans 'Optional: Add custom instructions for the summary...' %}"
+            ></textarea>
+            <p class="mt-2 text-xs text-gray-500">
+              {% trans "Default: Summarize these articles in concise business Italian, provide URLs, and organize by sector then chronologically." %}
+            </p>
+          </div>
+
+          <!-- Title for saving -->
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2">{% trans "Summary Title" %}</label>
+            <input 
+              type="text"
+              name="title"
+              id="summary-title"
+              class="w-full px-4 py-2 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+              placeholder="{% trans 'Optional: Give this summary a title...' %}"
+            >
+          </div>
+
+          <div class="flex gap-3">
+            <button 
+              type="submit"
+              id="generate-btn"
+              class="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary hover:bg-primary/90 text-white font-medium rounded-md transition-colors"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+              </svg>
+              <span id="generate-btn-text">{% trans "Generate" %}</span>
+            </button>
+            <button 
+              type="button"
+              id="generate-save-btn"
+              onclick="generateAndSave()"
+              class="flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-medium rounded-md transition-colors"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
+              </svg>
+              <span id="generate-save-btn-text">{% trans "Generate & Save" %}</span>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Summary Result -->
+      <div id="summary-result" class="hidden bg-white border border-secondary rounded-lg p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-semibold font-display text-gray-700">{% trans "Summary Result" %}</h2>
+          <div class="flex gap-2">
+            <button 
+              onclick="copySummary()"
+              class="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 border border-gray-200 rounded-md transition-colors"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+              </svg>
+              {% trans "Copy" %}
+            </button>
+            <a id="view-saved-link" href="#" class="hidden inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md transition-colors">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+              {% trans "View Saved" %}
+            </a>
+          </div>
+        </div>
+        
+        <div id="summary-content" class="prose prose-sm max-w-none">
+          <!-- AI-generated summary will be displayed here -->
+        </div>
+      </div>
+
+      <!-- Loading State -->
+      <div id="loading-state" class="hidden bg-white border border-secondary rounded-lg p-12 text-center">
+        <div class="flex flex-col items-center gap-4">
+          <svg class="animate-spin h-12 w-12 text-primary" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <p class="text-gray-600 font-medium">{% trans "Generating summary with AI..." %}</p>
+          <p class="text-sm text-gray-500">{% trans "This may take a minute" %}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Initialize page
+  document.addEventListener('DOMContentLoaded', function() {
+    loadSelectedArticles();
+  });
+
+  function loadSelectedArticles() {
+    if (!window.ArticleSelection) {
+      console.error('ArticleSelection not loaded');
+      return;
+    }
+
+    const selectedArticles = window.ArticleSelection.getSelectedArticles();
+    const articleIds = window.ArticleSelection.getSelectedIds();
+    
+    if (articleIds.length === 0) {
+      document.getElementById('no-selection-state').classList.remove('hidden');
+      document.getElementById('main-content').classList.add('hidden');
+      return;
+    }
+
+    // Update count badge
+    document.getElementById('article-count-badge').textContent = articleIds.length;
+
+    // Update hidden input with article IDs
+    document.getElementById('article-ids-input').value = JSON.stringify(articleIds);
+
+    // Populate article list
+    const listContainer = document.getElementById('selected-articles-list');
+    listContainer.innerHTML = selectedArticles.map((article, index) => `
+      <div class="flex items-start gap-2 p-2 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors">
+        <span class="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-white text-xs flex items-center justify-center font-medium">${index + 1}</span>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-medium text-gray-700 truncate">${article.title}</p>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function clearAllSelections() {
+    if (window.ArticleSelection) {
+      window.ArticleSelection.clearAllSelections();
+      setTimeout(() => window.location.reload(), 500);
+    }
+  }
+
+  function copySummary() {
+    const summaryContent = document.getElementById('summary-content').innerText;
+    navigator.clipboard.writeText(summaryContent).then(() => {
+      window.showToast('{% trans "Summary copied to clipboard" %}', 'success');
+    }).catch(err => {
+      console.error('Failed to copy:', err);
+      window.showToast('{% trans "Failed to copy summary" %}', 'error');
+    });
+  }
+
+  function setLoadingState(isLoading, buttonId = 'generate-btn') {
+    const generateBtn = document.getElementById('generate-btn');
+    const generateSaveBtn = document.getElementById('generate-save-btn');
+    const generateBtnText = document.getElementById('generate-btn-text');
+    const generateSaveBtnText = document.getElementById('generate-save-btn-text');
+    const loadingState = document.getElementById('loading-state');
+    const summaryResult = document.getElementById('summary-result');
+    
+    if (isLoading) {
+      loadingState.classList.remove('hidden');
+      summaryResult.classList.add('hidden');
+      generateBtn.disabled = true;
+      generateSaveBtn.disabled = true;
+      if (buttonId === 'generate-btn') {
+        generateBtnText.textContent = '{% trans "Generating..." %}';
+      } else {
+        generateSaveBtnText.textContent = '{% trans "Generating..." %}';
+      }
+    } else {
+      loadingState.classList.add('hidden');
+      generateBtn.disabled = false;
+      generateSaveBtn.disabled = false;
+      generateBtnText.textContent = '{% trans "Generate" %}';
+      generateSaveBtnText.textContent = '{% trans "Generate & Save" %}';
+    }
+  }
+
+  function submitSummary(save = false) {
+    const form = document.getElementById('summary-form');
+    const formData = new FormData(form);
+    
+    if (save) {
+      formData.append('save', 'true');
+    }
+    
+    setLoadingState(true, save ? 'generate-save-btn' : 'generate-btn');
+    
+    fetch(form.action, {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        document.getElementById('summary-content').innerHTML = data.summary.replace(/\n/g, '<br>');
+        document.getElementById('summary-result').classList.remove('hidden');
+        
+        if (data.saved && data.summary_id) {
+          const viewLink = document.getElementById('view-saved-link');
+          viewLink.href = '{% url "articles:weekly_summary_detail" "PLACEHOLDER" %}'.replace('PLACEHOLDER', data.summary_id);
+          viewLink.classList.remove('hidden');
+          window.showToast('{% trans "Summary generated and saved!" %}', 'success');
+        } else {
+          document.getElementById('view-saved-link').classList.add('hidden');
+          window.showToast('{% trans "Summary generated successfully!" %}', 'success');
+        }
+      } else {
+        window.showToast(data.error || '{% trans "Failed to generate summary" %}', 'error');
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      window.showToast('{% trans "An error occurred while generating the summary" %}', 'error');
+    })
+    .finally(() => {
+      setLoadingState(false);
+    });
+  }
+
+  function generateAndSave() {
+    submitSummary(true);
+  }
+
+  // Handle form submission (generate only)
+  document.getElementById('summary-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    submitSummary(false);
+  });
+</script>
+{% endblock %}

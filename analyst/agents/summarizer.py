@@ -1,17 +1,21 @@
 # analyst/agents/summarizer.py
+"""
+Unified Summary Generator for both Topic (Selection) and Weekly summaries.
+Generates newspaper-style articles in Italian from business news.
+"""
 import asyncio
 from datetime import datetime, timedelta
 import os
 from time import sleep
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 import logging
 
 from dotenv import load_dotenv
-from pydantic import BaseModel, Field
 from pydantic_ai.models.openai import OpenAIChatModel
 from pydantic_ai.providers.openrouter import OpenRouterProvider
 from pydantic_ai import Agent
 from pymongo import MongoClient
+from bson import ObjectId
 from celery import shared_task
 from django.conf import settings
 
@@ -19,69 +23,50 @@ from django.conf import settings
 logger = logging.getLogger(__name__)
 
 # Model configuration
-MODEL_NAME = os.getenv("LLM_MODEL")
+MODEL_NAME = os.getenv("LLM_MODEL", "anthropic/claude-3.5-sonnet")
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+
 model = OpenAIChatModel(
     model_name=MODEL_NAME,
     provider=OpenRouterProvider(api_key=OPENROUTER_API_KEY),
 )
 
-
-class WeeklySummary(BaseModel):
-    """Structured output for weekly business summary in Italian"""
-
-    titolo: str = Field(description="Titolo del riassunto settimanale")
-    riassunto_esecutivo: str = Field(
-        description="Breve riassunto esecutivo (2-3 frasi) dei punti principali della settimana"
-    )
-    tendenze_principali: List[str] = Field(
-        description="Lista delle 3-5 tendenze principali emerse durante la settimana"
-    )
-    settori_in_evidenza: List[str] = Field(
-        description="Lista dei settori che hanno avuto maggiore rilevanza durante la settimana"
-    )
-    opportunita_per_italia: str = Field(
-        description="Analisi delle opportunità per le aziende italiane basate sulle notizie della settimana"
-    )
-    contenuto_completo: str = Field(
-        description="Riassunto completo e dettagliato della settimana in formato articolo"
-    )
+# Collection name for all summaries
+SUMMARIES_COLLECTION = "summaries"
 
 
 def get_system_prompt() -> str:
-    """Get the system prompt for weekly summary generation."""
-    return """You are an expert business analyst specializing in creating weekly summaries of business and economic news.
+    """
+    Unified system prompt for generating newspaper-style business articles in Italian.
+    Used for both topic summaries and weekly summaries.
+    """
+    return """Sei un giornalista economico esperto che scrive per un quotidiano italiano di business come Il Sole 24 Ore.
 
-Your task is to analyze business articles from the past two weeks and create a comprehensive weekly summary in Italian.
+Il tuo compito è analizzare gli articoli forniti e scrivere un pezzo giornalistico professionale che sintetizza e analizza le notizie.
 
-ANALYSIS GUIDELINES:
-- Focus on the most significant business trends and developments
-- Identify patterns and connections between different news stories
-- Highlight sectors that showed particular activity or growth
-- Analyze market movements, investments, and business opportunities
-- Consider geopolitical and economic factors affecting business
-- Emphasize opportunities for Italian companies and investors
+STILE DI SCRITTURA:
+- Scrivi come un articolo di giornale economico italiano
+- Usa paragrafi fluidi e narrativa continua
+- NO liste, NO bullet points, NO struttura rigida con titoli di sezione
+- Integra naturalmente i riferimenti agli articoli con i loro URL inline
+- Organizza il contenuto per temi e tendenze, non per singoli articoli
 
-SUMMARY STRUCTURE:
-1. Executive Summary: 2-3 sentences capturing the week's most important developments
-2. Main Trends: 3-5 key trends that emerged from the news analysis
-3. Featured Sectors: Sectors that were most prominent in the news
-4. Opportunities for Italy: Specific opportunities for Italian businesses based on the week's news
-5. Complete Content: A full article-style summary (300-500 words)
+STRUTTURA NARRATIVA:
+1. Inizia con un'apertura forte che cattura l'essenza delle tendenze principali
+2. Sviluppa i temi attraverso paragrafi che integrano informazioni da multiple fonti
+3. Quando menzioni informazioni specifiche, cita la fonte con URL inline
+4. Collega gli sviluppi tra diversi settori evidenziando pattern comuni
+5. Concludi con prospettive e implicazioni per il mercato italiano
 
-WRITING STYLE:
-- Use professional Italian business language
-- Write in a clear, engaging, and informative style
-- Maintain objectivity while providing insightful analysis
-- Use proper business terminology
-- Structure content logically with smooth transitions
-- Make it suitable for business executives and decision-makers
+REQUISITI:
+- Scrivi interamente in italiano professionale
+- Usa un tono analitico ma scorrevole e coinvolgente
+- Ogni articolo fonte deve essere citato almeno una volta nel testo
+- Evidenzia opportunità concrete per le aziende italiane
+- Lunghezza: 400-800 parole
 
-OUTPUT REQUIREMENTS:
-- All content must be in Italian
-- Provide actionable insights where possible
-- Ensure the summary is comprehensive yet concise
-- Focus on information that would be valuable for Italian business readers"""
+OUTPUT:
+Restituisci SOLO il testo dell'articolo, senza titoli di sezione o formattazione speciale."""
 
 
 def get_mongodb_connection():
@@ -103,275 +88,319 @@ def get_mongodb_connection():
     return client, collection
 
 
-async def generate_weekly_summary_async(
-    articles: List[Dict[str, Any]], wait_time: int = 10
-) -> Dict[str, Any]:
+def prepare_articles_text(articles: List[Dict[str, Any]], base_url: str = "") -> str:
     """
-    Generate a weekly summary from a list of articles.
-
+    Prepare articles text for the AI prompt.
+    
     Args:
-        articles: List of article dictionaries with Italian content
-        wait_time: Seconds to wait before generation (rate limiting)
-
+        articles: List of article dictionaries
+        base_url: Base URL for internal article links (e.g., "http://127.0.0.1:8000")
+    
     Returns:
-        Dict with generated summary and metadata
+        Formatted string with all articles
     """
-    # Create the agent
-    agent = Agent(
-        model=model,
-        output_type=WeeklySummary,
-        system_prompt=get_system_prompt(),
-    )
-
-    # Prepare articles text for analysis
     articles_text = ""
+    
     for i, article in enumerate(articles, 1):
-        title = article.get("title_it", "Titolo non disponibile")
-        content = article.get("content_it", "")
+        # Get article details
+        title = article.get("title_it") or article.get("title_en") or article.get("title", "Titolo non disponibile")
+        content = article.get("content_it") or article.get("content_en") or article.get("content", "")
         sector = article.get("sector", "Non specificato")
         date = article.get("article_date", "")
-
+        source = article.get("source", "")
+        
+        # Format date if it's a datetime object
+        if isinstance(date, datetime):
+            date = date.strftime("%Y-%m-%d")
+        
+        # Get article ID for internal URL
+        article_id = str(article.get("_id", article.get("id", "")))
+        internal_url = f"{base_url}/article/{article_id}" if article_id else article.get("url", "")
+        
         articles_text += f"""
+---
 Articolo {i}:
 Titolo: {title}
 Settore: {sector}
 Data: {date}
-Contenuto: {content[:500]}...
-
----
+Fonte: {source}
+URL: {internal_url}
+Contenuto: {content[:1000]}...
 """
+    
+    return articles_text
 
-    prompt = f"""Analizza le seguenti notizie di business degli ultimi due settimane e crea un riassunto settimanale completo.
 
-Notizie da analizzare:
+async def generate_summary_async(
+    articles: List[Dict[str, Any]],
+    summary_type: str = "topic",
+    custom_prompt: Optional[str] = None,
+    base_url: str = "",
+    wait_time: int = 5
+) -> Dict[str, Any]:
+    """
+    Generate a summary from a list of articles.
+    
+    Args:
+        articles: List of article dictionaries
+        summary_type: "topic" for selection summaries, "weekly" for periodic summaries
+        custom_prompt: Optional custom instructions to append
+        base_url: Base URL for internal article links
+        wait_time: Seconds to wait before generation (rate limiting)
+    
+    Returns:
+        Dict with generated summary and metadata
+    """
+    # Create the agent with system prompt
+    agent = Agent(
+        model=model,
+        system_prompt=get_system_prompt(),
+    )
+    
+    # Prepare articles text
+    articles_text = prepare_articles_text(articles, base_url)
+    
+    # Build the user prompt
+    prompt = f"""Analizza i seguenti articoli di business e scrivi un articolo giornalistico professionale in italiano.
+
 {articles_text}
 
-Crea un riassunto settimanale professionale che evidenzi:
-- Le tendenze principali emerse
-- I settori più attivi
-- Le opportunità per le aziende italiane
-- Un'analisi complessiva del panorama business
-
-Il riassunto deve essere informativo, ben strutturato e utile per dirigenti aziendali italiani."""
-
+"""
+    
+    if custom_prompt:
+        prompt += f"\nIstruzioni aggiuntive: {custom_prompt}\n"
+    
+    prompt += "\nScrivi l'articolo:"
+    
     # Wait for rate limiting
     if wait_time > 0:
         logger.info(f"Waiting {wait_time} seconds to avoid rate limits...")
         sleep(wait_time)
-
+    
     try:
         result = await agent.run(prompt)
-        summary = result.output
-
+        content = result.output
+        
+        # Extract article IDs
+        article_ids = [str(a.get("_id", a.get("id", ""))) for a in articles if a.get("_id") or a.get("id")]
+        
         return {
-            "title": summary.titolo,
-            "executive_summary": summary.riassunto_esecutivo,
-            "main_trends": summary.tendenze_principali,
-            "featured_sectors": summary.settori_in_evidenza,
-            "opportunities_italy": summary.opportunita_per_italia,
-            "full_content": summary.contenuto_completo,
+            "content": content,
+            "summary_type": summary_type,
+            "article_ids": article_ids,
+            "articles_count": len(articles),
             "llm_model": MODEL_NAME,
             "generated_at": datetime.utcnow(),
-            "articles_analyzed": len(articles),
             "generation_success": True,
         }
     except Exception as e:
         logger.error(f"Summary generation error: {str(e)}")
         return {
-            "title": None,
-            "executive_summary": None,
-            "main_trends": None,
-            "featured_sectors": None,
-            "opportunities_italy": None,
-            "full_content": None,
+            "content": None,
+            "summary_type": summary_type,
+            "article_ids": [],
+            "articles_count": len(articles),
             "llm_model": MODEL_NAME,
             "generated_at": datetime.utcnow(),
-            "articles_analyzed": len(articles),
             "generation_success": False,
             "generation_error": str(e),
         }
 
 
-def generate_weekly_summary(
-    articles: List[Dict[str, Any]], wait_time: int = 10
+def generate_summary(
+    articles: List[Dict[str, Any]],
+    summary_type: str = "topic",
+    custom_prompt: Optional[str] = None,
+    base_url: str = "",
+    wait_time: int = 5
 ) -> Dict[str, Any]:
     """
-    Synchronous wrapper for generate_weekly_summary_async.
+    Synchronous wrapper for generate_summary_async.
     """
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     try:
         return loop.run_until_complete(
-            generate_weekly_summary_async(articles, wait_time)
+            generate_summary_async(articles, summary_type, custom_prompt, base_url, wait_time)
         )
     finally:
         loop.close()
 
 
+def save_summary(summary_data: Dict[str, Any], title: str) -> str:
+    """
+    Save a summary to the database.
+    
+    Args:
+        summary_data: Dictionary with summary content and metadata
+        title: Title for the summary
+    
+    Returns:
+        String ID of the saved summary
+    """
+    client = None
+    try:
+        client, _ = get_mongodb_connection()
+        summaries_collection = client[getattr(settings, "MONGO_DB", "analyst")][SUMMARIES_COLLECTION]
+        
+        doc = {
+            "title": title,
+            "content": summary_data.get("content"),
+            "summary_type": summary_data.get("summary_type", "topic"),
+            "article_ids": summary_data.get("article_ids", []),
+            "articles_count": summary_data.get("articles_count", 0),
+            "llm_model": summary_data.get("llm_model"),
+            "generated_at": summary_data.get("generated_at", datetime.utcnow()),
+        }
+        
+        result = summaries_collection.insert_one(doc)
+        logger.info(f"Summary saved with ID: {result.inserted_id}")
+        return str(result.inserted_id)
+        
+    except Exception as e:
+        logger.error(f"Error saving summary: {str(e)}")
+        raise
+    finally:
+        if client:
+            client.close()
+
+
+def get_summaries(limit: int = 20, summary_type: Optional[str] = None) -> List[Dict[str, Any]]:
+    """
+    Get recent summaries from the database.
+    
+    Args:
+        limit: Maximum number of summaries to retrieve
+        summary_type: Filter by type ("topic" or "weekly"), None for all
+    
+    Returns:
+        List of summary dictionaries
+    """
+    client = None
+    try:
+        client, _ = get_mongodb_connection()
+        summaries_collection = client[getattr(settings, "MONGO_DB", "analyst")][SUMMARIES_COLLECTION]
+        
+        query = {}
+        if summary_type:
+            query["summary_type"] = summary_type
+        
+        summaries = list(
+            summaries_collection.find(query).sort("generated_at", -1).limit(limit)
+        )
+        
+        # Convert _id to string id
+        for summary in summaries:
+            summary["id"] = str(summary["_id"])
+        
+        return summaries
+        
+    except Exception as e:
+        logger.error(f"Error retrieving summaries: {str(e)}")
+        return []
+    finally:
+        if client:
+            client.close()
+
+
+def get_summary_by_id(summary_id: str) -> Optional[Dict[str, Any]]:
+    """
+    Get a specific summary by ID.
+    
+    Args:
+        summary_id: The summary's MongoDB ObjectId as string
+    
+    Returns:
+        Summary dictionary or None if not found
+    """
+    client = None
+    try:
+        client, _ = get_mongodb_connection()
+        summaries_collection = client[getattr(settings, "MONGO_DB", "analyst")][SUMMARIES_COLLECTION]
+        
+        summary = summaries_collection.find_one({"_id": ObjectId(summary_id)})
+        
+        if summary:
+            summary["id"] = str(summary["_id"])
+        
+        return summary
+        
+    except Exception as e:
+        logger.error(f"Error retrieving summary: {str(e)}")
+        return None
+    finally:
+        if client:
+            client.close()
+
+
+def delete_summary(summary_id: str) -> bool:
+    """
+    Delete a summary by ID.
+    
+    Args:
+        summary_id: The summary's MongoDB ObjectId as string
+    
+    Returns:
+        True if deleted, False otherwise
+    """
+    client = None
+    try:
+        client, _ = get_mongodb_connection()
+        summaries_collection = client[getattr(settings, "MONGO_DB", "analyst")][SUMMARIES_COLLECTION]
+        
+        result = summaries_collection.delete_one({"_id": ObjectId(summary_id)})
+        return result.deleted_count > 0
+        
+    except Exception as e:
+        logger.error(f"Error deleting summary: {str(e)}")
+        return False
+    finally:
+        if client:
+            client.close()
+
+
 @shared_task(bind=True, max_retries=3, name="generate_weekly_summary")
 def generate_weekly_summary_task(self, weeks_back: int = 2):
     """
-    Generate a weekly summary from articles of the last specified weeks.
-
+    Celery task to generate a weekly summary from recent articles.
+    
     Args:
         weeks_back: Number of weeks back to analyze (default: 2)
-
+    
     Returns:
-        Dict with generation statistics and summary
+        Dict with generation statistics and summary ID
     """
     client = None
-
+    
     try:
-        # Get MongoDB connection
         client, collection = get_mongodb_connection()
-
-        # Calculate date range (last N weeks) - ensure we're using UTC timezone
+        
+        # Calculate date range
         end_date = datetime.utcnow()
         start_date = end_date - timedelta(weeks=weeks_back)
         
-        # Log the exact date objects for debugging
-        logger.info(f"Using start_date: {start_date} ({type(start_date)}), end_date: {end_date} ({type(end_date)})")
+        logger.info(f"Generating weekly summary for {start_date.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')}")
         
-        # If the dates in MongoDB have timezone info, we should make our comparison dates timezone-aware
-        try:
-            import pytz
-            # Create timezone-aware versions of our dates
-            utc_tz = pytz.UTC
-            start_date_tz = pytz.utc.localize(start_date) if start_date.tzinfo is None else start_date
-            end_date_tz = pytz.utc.localize(end_date) if end_date.tzinfo is None else end_date
-            
-            # Use these timezone-aware dates instead
-            start_date = start_date_tz
-            end_date = end_date_tz
-            
-            logger.info(f"Adjusted to timezone-aware dates: start_date: {start_date}, end_date: {end_date}")
-        except ImportError:
-            logger.warning("pytz not available, continuing with naive datetimes")
-        except Exception as e:
-            logger.warning(f"Error adjusting timezones: {str(e)}, continuing with original dates")
-
-        logger.info(
-            f"Generating weekly summary for articles from {start_date.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')}"
-        )
-        
-        # Check for articles without dates (this may be a source of the problem)
-        no_date_count = collection.count_documents({"article_date": {"$exists": False}})
-        null_date_count = collection.count_documents({"article_date": None})
-        logger.info(f"Articles with no article_date field: {no_date_count}")
-        logger.info(f"Articles with null article_date: {null_date_count}")
-        
-        # Check article statuses
-        status_counts = {}
-        for status_type in ["PENDING", "APPROVED", "SENT", "DISCARDED"]:
-            count = collection.count_documents({"status": status_type})
-            status_counts[status_type] = count
-        logger.info(f"Article status counts: {status_counts}")
-
-        # Query for articles from the last N weeks with Italian content
+        # Query for approved articles with Italian content
         query = {
             "$and": [
-                # Must have Italian content
                 {"title_it": {"$exists": True, "$ne": None, "$ne": ""}},
                 {"content_it": {"$exists": True, "$ne": None, "$ne": ""}},
-                # Must be from the specified date range
                 {"article_date": {"$gte": start_date, "$lte": end_date}},
-                # Must be validated/approved articles
                 {"status": {"$in": ["APPROVED", "SENT"]}},
             ]
         }
         
-        # Log the exact query for debugging
-        logger.info(f"MongoDB query: {query}")
+        articles = list(collection.find(query).sort("article_date", -1).limit(50))
+        logger.info(f"Found {len(articles)} articles for summary")
         
-        # As a test, try running just the date part of the query to see if we get any results
-        date_only_query = {"article_date": {"$gte": start_date, "$lte": end_date}}
-        date_only_count = collection.count_documents(date_only_query)
-        logger.info(f"Articles in date range (any status/content): {date_only_count}")
-        
-        # Check if there are ANY articles with dates in the system
-        any_date_count = collection.count_documents({"article_date": {"$exists": True, "$ne": None}})
-        logger.info(f"Total articles with valid dates: {any_date_count}")
-        
-        # Check a wider date range to see if there might be a date format issue
-        wider_start = end_date - timedelta(weeks=12)  # 3 months back
-        wider_query = {"article_date": {"$gte": wider_start, "$lte": end_date}}
-        wider_count = collection.count_documents(wider_query)
-        logger.info(f"Articles in wider 3-month range: {wider_count}")
-        
-        # Test with exact date from the database
-        # Try a direct lookup with a sample date format from the database
-        try:
-            from dateutil import parser
-            
-            # Parse a sample date in the format we've seen
-            sample_date_str = "2025-10-21T09:14:00.000+00:00"  # Format seen in the database
-            sample_date = parser.parse(sample_date_str)
-            logger.info(f"Sample date parsed as: {sample_date} ({type(sample_date)})")
-            
-            # Try a query with this exact date format
-            recent_date = datetime.utcnow() - timedelta(days=2)  # 2 days ago
-            test_query = {"article_date": {"$gte": recent_date}}
-            test_count = collection.count_documents(test_query)
-            logger.info(f"Articles in the last 2 days: {test_count}")
-        except Exception as e:
-            logger.warning(f"Error during date format testing: {str(e)}")
-
-        # Get articles
-        articles = list(collection.find(query).sort("article_date", -1))
-        
-        # Add more detailed logging
-        logger.info(f"Found {len(articles)} articles for summary generation")
-        logger.info(f"Date range: {start_date.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')}")
-        
-        # Log article dates for debugging
-        if articles:
-            oldest_date = min([a.get('article_date') for a in articles if a.get('article_date')])  
-            newest_date = max([a.get('article_date') for a in articles if a.get('article_date')])
-            logger.info(f"Oldest article date: {oldest_date}")
-            logger.info(f"Newest article date: {newest_date}")
-            
-            # Check date distribution 
-            date_counts = {}
-            for article in articles:
-                article_date = article.get('article_date')
-                if article_date:
-                    date_str = article_date.strftime('%Y-%m-%d')
-                    date_counts[date_str] = date_counts.get(date_str, 0) + 1
-            logger.info(f"Article date distribution: {date_counts}")
-
-        # If not enough articles found, try with a wider date range
+        # Try wider range if not enough articles
         if len(articles) < 5:
-            logger.warning(f"Only {len(articles)} articles found in {weeks_back} weeks - trying wider range")
-            
-            # Double the date range
-            extended_start = end_date - timedelta(weeks=weeks_back * 2)
-            extended_query = query.copy()
-            extended_query["$and"][2] = {"article_date": {"$gte": extended_start, "$lte": end_date}}
-            
-            logger.info(f"Extended date range to {extended_start.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')}")
-            
-            # Try with extended date range
-            extended_articles = list(collection.find(extended_query).sort("article_date", -1))
-            logger.info(f"Found {len(extended_articles)} articles with extended date range")
-            
-            # Use the extended articles if we found more
-            if len(extended_articles) > len(articles):
-                articles = extended_articles
-                logger.info(f"Using extended date range with {len(articles)} articles")
-                
-            # Try even wider if still not enough
-            if len(articles) < 5:
-                logger.warning(f"Still only {len(articles)} articles - trying maximum range of 3 months")
-                max_start = end_date - timedelta(weeks=12)  # 3 months
-                max_query = query.copy()
-                max_query["$and"][2] = {"article_date": {"$gte": max_start, "$lte": end_date}}
-                
-                max_articles = list(collection.find(max_query).sort("article_date", -1))
-                logger.info(f"Found {len(max_articles)} articles with maximum 3-month range")
-                
-                if len(max_articles) > len(articles):
-                    articles = max_articles
-                    logger.info(f"Using maximum date range with {len(articles)} articles")            
+            logger.warning(f"Only {len(articles)} articles found, trying 3-month range")
+            extended_start = end_date - timedelta(weeks=12)
+            query["$and"][2] = {"article_date": {"$gte": extended_start, "$lte": end_date}}
+            articles = list(collection.find(query).sort("article_date", -1).limit(50))
+            logger.info(f"Found {len(articles)} articles with extended range")
         
         if len(articles) == 0:
             return {
@@ -380,150 +409,56 @@ def generate_weekly_summary_task(self, weeks_back: int = 2):
                 "articles_analyzed": 0,
                 "summary_generated": False,
             }
-
-        if len(articles) < 5:
-            logger.warning(
-                f"Only {len(articles)} articles found - summary may be limited"
-            )
-
-        # Generate the weekly summary
-        logger.info("Generating weekly summary...")
-        summary_result = generate_weekly_summary(articles, wait_time=10)
-
+        
+        # Generate summary
+        summary_result = generate_summary(
+            articles,
+            summary_type="weekly",
+            wait_time=10
+        )
+        
         if summary_result["generation_success"]:
-            # Save summary to a separate collection
-            summaries_collection = client[getattr(settings, "MONGO_DB", "analyst")][
-                "weekly_summaries"
-            ]
-
-            # Find actual date range of included articles
-            if articles:
-                actual_dates = [a.get('article_date') for a in articles if a.get('article_date')]
-                if actual_dates:
-                    actual_start = min(actual_dates)
-                    actual_end = max(actual_dates)
-                    logger.info(f"Actual article date range: {actual_start.strftime('%Y-%m-%d')} to {actual_end.strftime('%Y-%m-%d')}")
-                else:
-                    actual_start = start_date
-                    actual_end = end_date
-            else:
-                actual_start = start_date
-                actual_end = end_date
-                
-            # Calculate actual weeks covered
-            if actual_start and actual_end:
-                actual_weeks = (actual_end - actual_start).days / 7
-                actual_weeks = round(actual_weeks, 1)
-            else:
-                actual_weeks = weeks_back
-                
-            summary_doc = {
-                "title": summary_result["title"],
-                "executive_summary": summary_result["executive_summary"],
-                "main_trends": summary_result["main_trends"],
-                "featured_sectors": summary_result["featured_sectors"],
-                "opportunities_italy": summary_result["opportunities_italy"],
-                "full_content": summary_result["full_content"],
-                "period_start": actual_start,
-                "period_end": actual_end,
-                "articles_analyzed": summary_result["articles_analyzed"],
-                "llm_model": summary_result["llm_model"],
-                "generated_at": summary_result["generated_at"],
-                "weeks_analyzed": actual_weeks,
-                "original_weeks_requested": weeks_back,
-            }
-
-            # Insert the summary
-            result = summaries_collection.insert_one(summary_doc)
-            summary_id = result.inserted_id
-
-            logger.info(f"✅ Weekly summary generated and saved with ID: {summary_id}")
-
+            # Create title based on date range
+            title = f"Rassegna Business {start_date.strftime('%d/%m')} - {end_date.strftime('%d/%m/%Y')}"
+            
+            # Save to database
+            summary_id = save_summary(summary_result, title)
+            
+            logger.info(f"Weekly summary saved with ID: {summary_id}")
+            
             return {
                 "status": "success",
                 "message": "Weekly summary generated successfully",
-                "summary_id": str(summary_id),
+                "summary_id": summary_id,
                 "articles_analyzed": len(articles),
                 "summary_generated": True,
-                "title": summary_result["title"],
-                "executive_summary": summary_result["executive_summary"][:200] + "..."
-                if len(summary_result["executive_summary"]) > 200
-                else summary_result["executive_summary"],
+                "title": title,
             }
         else:
-            logger.error(
-                f"Failed to generate summary: {summary_result.get('generation_error', 'Unknown error')}"
-            )
+            logger.error(f"Failed to generate summary: {summary_result.get('generation_error')}")
             return {
                 "status": "error",
-                "message": f"Failed to generate summary: {summary_result.get('generation_error', 'Unknown error')}",
+                "message": f"Failed to generate summary: {summary_result.get('generation_error')}",
                 "articles_analyzed": len(articles),
                 "summary_generated": False,
             }
-
+    
     except Exception as e:
         logger.error(f"Task failed: {str(e)}")
         raise self.retry(exc=e, countdown=60 * (self.request.retries + 1))
-
+    
     finally:
         if client:
             client.close()
 
 
-def get_latest_weekly_summary():
-    """
-    Get the most recent weekly summary from the database.
-
-    Returns:
-        Dict with the latest summary or None if no summaries exist
-    """
-    client = None
-    try:
-        client, _ = get_mongodb_connection()
-        summaries_collection = client[getattr(settings, "MONGO_DB", "analyst")][
-            "weekly_summaries"
-        ]
-
-        # Get the most recent summary
-        latest_summary = summaries_collection.find_one({}, sort=[("generated_at", -1)])
-
-        return latest_summary
-
-    except Exception as e:
-        logger.error(f"Error retrieving latest summary: {str(e)}")
-        return None
-    finally:
-        if client:
-            client.close()
+# Legacy function aliases for backward compatibility
+def get_weekly_summaries(limit: int = 20) -> List[Dict[str, Any]]:
+    """Get all summaries (legacy function name)."""
+    return get_summaries(limit=limit)
 
 
-def get_weekly_summaries(limit: int = 10):
-    """
-    Get recent weekly summaries from the database.
-
-    Args:
-        limit: Maximum number of summaries to retrieve
-
-    Returns:
-        List of summary dictionaries
-    """
-    client = None
-    try:
-        client, _ = get_mongodb_connection()
-        summaries_collection = client[getattr(settings, "MONGO_DB", "analyst")][
-            "weekly_summaries"
-        ]
-
-        # Get recent summaries
-        summaries = list(
-            summaries_collection.find({}, sort=[("generated_at", -1)]).limit(limit)
-        )
-
-        return summaries
-
-    except Exception as e:
-        logger.error(f"Error retrieving summaries: {str(e)}")
-        return []
-    finally:
-        if client:
-            client.close()
+def get_latest_weekly_summary() -> Optional[Dict[str, Any]]:
+    """Get the most recent summary (legacy function name)."""
+    summaries = get_summaries(limit=1)
+    return summaries[0] if summaries else None

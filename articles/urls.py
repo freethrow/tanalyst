@@ -25,8 +25,6 @@ urlpatterns = [
     ),
     # Test Celery task trigger
     path("test-tasks/", views.test_tasks, name="test_tasks"),
-    # Vector search page
-    path("vector-search/", views.vector_search, name="vector_search"),
     # Hybrid search page (Atlas Search + Vector Search)
     path("hybrid-search/", views.hybrid_search, name="hybrid_search"),
     # Sectors pages
@@ -94,4 +92,7 @@ urlpatterns = [
         views.generate_weekly_summary_pdf,
         name="weekly_summary_pdf",
     ),
+    # Article Selection Summary
+    path("articles/selection-summary/", views.selection_summary_view, name="selection_summary"),
+    path("articles/generate-selection-summary/", views.generate_selection_summary, name="generate_selection_summary"),
 ]

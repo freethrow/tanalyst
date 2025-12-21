@@ -1,4 +1,5 @@
 {% load i18n %}
+{% load static %}
 <!DOCTYPE html>
 <html lang="{{ LANGUAGE_CODE }}">
 <head>
@@ -285,10 +286,7 @@
               <div class="absolute left-0 mt-1 w-48 bg-white rounded-md shadow-lg border border-secondary opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                 <div class="py-1">
                   <a href="{% url 'articles:hybrid_search' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-secondary hover:text-primary">
-                    ⚡ {% trans "Hybrid Search" %}
-                  </a>
-                  <a href="/vector-search/" class="block px-4 py-2 text-sm text-gray-700 hover:bg-secondary hover:text-primary">
-                    🔍 {% trans "Vector Search" %}
+                    🔍 {% trans "Search" %}
                   </a>
                   {% if user.is_staff %}
                   <a href="{% url 'articles:embedding_management' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-secondary hover:text-primary">
@@ -432,10 +430,7 @@
             <div class="border-t border-secondary my-2 pt-2">
               <div class="px-3 py-2 text-xs font-semibold font-display text-gray-500 uppercase">{% trans "Tools" %}</div>
               <a href="{% url 'articles:hybrid_search' %}" class="block px-3 py-2 rounded-md text-base font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary">
-                ⚡ {% trans "Hybrid Search" %}
-              </a>
-              <a href="/vector-search/" class="block px-3 py-2 rounded-md text-base font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary">
-                🔍 {% trans "Vector Search" %}
+                🔍 {% trans "Search" %}
               </a>
               {% if user.is_staff %}
               <a href="{% url 'articles:embedding_management' %}" class="block px-3 py-2 rounded-md text-base font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary">
@@ -503,8 +498,7 @@
           <div>
             <h3 class="text-sm font-semibold font-display text-white uppercase tracking-wider mb-4">{% trans "Tools" %}</h3>
             <ul class="space-y-2">
-              <li><a href="{% url 'articles:hybrid_search' %}" class="text-white/80 hover:text-white text-sm transition-colors">{% trans "Hybrid Search" %}</a></li>
-              <li><a href="/vector-search/" class="text-white/80 hover:text-white text-sm transition-colors">{% trans "Vector Search" %}</a></li>
+              <li><a href="{% url 'articles:hybrid_search' %}" class="text-white/80 hover:text-white text-sm transition-colors">{% trans "Search" %}</a></li>
               <li><a href="{% url 'articles:sectors' %}" class="text-white/80 hover:text-white text-sm transition-colors">{% trans "Sectors" %}</a></li>
               {% if user.is_staff %}
               <li><a href="{% url 'articles:weekly_summaries' %}" class="text-white/80 hover:text-white text-sm transition-colors">{% trans "Summaries" %}</a></li>
@@ -585,6 +579,64 @@
         showToast(message, type);
       });
     </script>
+
+    <!-- Article Selection Panel (Floating) -->
+    {% if user.is_authenticated %}
+    <div id="selection-panel" class="fixed bottom-6 right-6 z-50 hidden">
+      <div class="bg-white rounded-lg shadow-2xl border-2 border-primary p-4 min-w-[300px]">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2">
+            <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+            </svg>
+            <h3 class="font-semibold font-display text-gray-700">{% trans "Selected Articles" %}</h3>
+          </div>
+          <button 
+            onclick="window.ArticleSelection?.clearAllSelections()"
+            class="text-gray-400 hover:text-red-600 transition-colors"
+            title="{% trans 'Clear all selections' %}"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+        
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-2">
+            <span class="text-3xl font-bold text-primary" id="selection-count">0</span>
+            <span class="text-sm text-gray-600">{% trans "articles" %}</span>
+          </div>
+        </div>
+        
+        <div class="flex flex-col gap-2">
+          <a 
+            href="/selection-summary/" 
+            id="view-selections-btn"
+            class="flex items-center justify-center gap-2 px-4 py-2 bg-primary hover:bg-primary/90 text-white font-medium rounded-md transition-colors"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            {% trans "Generate Summary" %}
+          </a>
+          <button 
+            onclick="window.ArticleSelection?.clearAllSelections()"
+            id="clear-selections-btn"
+            class="flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-md transition-colors"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+            </svg>
+            {% trans "Clear All" %}
+          </button>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Article Selection JavaScript -->
+    <script src="{% static 'js/article-selection.js' %}?v=2"></script>
 
     {% block extra_scripts %}{% endblock %}
   </body>

@@ -1,8 +1,12 @@
-
 import os
+import logging
+from typing import List
 from django.conf import settings
 
 from .models import Article
+
+# Configure logger
+logger = logging.getLogger(__name__)
 from .utils import perform_vector_search, generate_query_embedding, perform_hybrid_search
 from django.views.generic import ListView, DetailView, UpdateView, FormView
 from django.db import models
@@ -19,10 +23,8 @@ from django.views.decorators.http import require_POST
 from django.views.generic import View, TemplateView, DetailView, ListView, UpdateView, FormView
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
-
-
-
-
+from django.http import JsonResponse
+import json
 
 
 from analyst.emails.notifications import send_latest_articles_email
@@ -30,7 +32,14 @@ from analyst.agents.translator import translate_untranslated_articles
 from .forms import EmailArticlesForm
 from django.conf import settings
 from .tasks import scrape_ekapija, scrape_biznisrs, scrape_novaekonomija, create_all_embeddings
-from analyst.agents.summarizer import get_latest_weekly_summary, get_weekly_summaries
+from analyst.agents.summarizer import (
+    get_latest_weekly_summary, 
+    get_weekly_summaries, 
+    get_summaries,
+    get_summary_by_id,
+    generate_summary as generate_ai_summary,
+    save_summary
+)
 from celery.result import AsyncResult
 from django.http import JsonResponse
 import json
@@ -45,6 +54,8 @@ from django.utils.translation import gettext as _
 from django.utils.html import escape
 from datetime import datetime
 import io
+
+# AI imports removed - now using unified summarizer
 
 # PDF imports removed - now using WeasyPrint in weasyprint_generators.py
 
@@ -533,14 +544,11 @@ def generate_summary(request):
 
 @login_required
 def weekly_summaries_list(request):
-    """Display list of weekly summaries."""
+    """Display list of all summaries (both weekly and topic)."""
     try:
-        summaries = get_weekly_summaries(limit=20)
-
-        # Convert MongoDB _id to id for template consistency
-        for summary in summaries:
-            summary["id"] = str(summary["_id"])
-
+        # Get all summaries using the unified function
+        summaries = get_summaries(limit=20)
+        
         context = {"summaries": summaries, "total_summaries": len(summaries)}
 
         return render(request, "weekly_summaries.html", context)
@@ -552,34 +560,12 @@ def weekly_summaries_list(request):
 
 @login_required
 def weekly_summary_detail(request, summary_id):
-    """Display detailed view of a specific weekly summary."""
-    from pymongo import MongoClient
-    from bson import ObjectId
-    import os
-
+    """Display detailed view of a specific summary."""
     try:
-        # Get MongoDB connection
-        mongo_uri = getattr(
-            settings,
-            "MONGODB_URI",
-            os.getenv("MONGODB_URI", "mongodb://localhost:7587/?directConnection=true"),
-        )
-        mongo_db = getattr(settings, "MONGO_DB", os.getenv("MONGO_DB", "analyst"))
-
-        client = MongoClient(mongo_uri)
-        db = client[mongo_db]
-        summaries_collection = db["weekly_summaries"]
-
-        # Get the specific summary
-        summary = summaries_collection.find_one({"_id": ObjectId(summary_id)})
-
-        client.close()
+        summary = get_summary_by_id(summary_id)
 
         if not summary:
             return HttpResponse("Summary not found", status=404)
-
-        # Convert MongoDB _id to id for template consistency
-        summary["id"] = str(summary["_id"])
 
         context = {"summary": summary}
 
@@ -711,63 +697,6 @@ def embedding_management(request):
     except Exception as e:
         error_message = f"❌ Error getting embedding statistics: {str(e)}"
         return HttpResponse(error_message, status=500)
-
-
-@login_required
-def vector_search(request):
-    if request.method == "POST":
-        query = request.POST.get("query", "").strip()
-        enable_reranking = request.POST.get("enable_reranking") == "on"  # Checkbox for reranking
-        is_htmx = (
-            request.headers.get("HX-Request") == "true"
-            or request.headers.get("Hx-Request") == "true"
-        )
-        
-        if not query:
-            if is_htmx:
-                return render(
-                    request, "partials/vector_search_results.html", {"results": []}
-                )
-            return render(
-                request, "vector_search.html", {"results": [], "query": query}
-            )
-        
-        try:
-            # Perform vector search using utility function
-            processed_results = perform_vector_search(
-                query=query,
-                article_model=Article,
-                index_name="article_vector_index",
-                num_candidates=50,
-                limit=25,
-                apply_reranking=enable_reranking,
-            )
-            
-            if is_htmx:
-                return render(
-                    request,
-                    "partials/vector_search_results.html",
-                    {"results": processed_results},
-                )
-            return render(
-                request,
-                "vector_search.html",
-                {"results": processed_results, "query": query},
-            )
-            
-        except Exception as e:
-            print(f"Error performing vector search: {e}")
-            if is_htmx:
-                return render(
-                    request, "partials/vector_search_results.html", {"results": []}
-                )
-            return render(
-                request,
-                "vector_search.html",
-                {"results": [], "query": query, "error": str(e)},
-            )
-
-    return render(request, "vector_search.html")
 
 
 @login_required
@@ -1266,3 +1195,107 @@ def generate_weekly_summary_pdf(request, summary_id):
     except Exception as e:
         error_message = f"❌ Error generating PDF: {str(e)}"
         return HttpResponse(error_message, status=500)
+
+
+@login_required
+def selection_summary_view(request):
+    """
+    Display the selection summary page where users can generate AI summaries
+    of their selected articles.
+    """
+    return render(request, 'selection_summary.html')
+
+
+@login_required
+@require_POST
+def generate_selection_summary(request):
+    """
+    Generate AI summary for selected articles using the unified summarizer.
+    Optionally saves the summary to the database.
+    """
+    try:
+        # Parse article IDs from request
+        article_ids_json = request.POST.get('article_ids', '[]')
+        article_ids = json.loads(article_ids_json)
+        
+        if not article_ids:
+            return JsonResponse({
+                'success': False,
+                'error': 'No articles selected'
+            }, status=400)
+        
+        # Get custom prompt and title
+        custom_prompt = request.POST.get('custom_prompt', '').strip() or None
+        title = request.POST.get('title', '').strip()
+        save_to_db = request.POST.get('save', 'false').lower() == 'true'
+        
+        # Fetch articles from MongoDB
+        articles = list(Article.objects.filter(id__in=article_ids))
+        
+        if not articles:
+            return JsonResponse({
+                'success': False,
+                'error': 'No articles found with the provided IDs'
+            }, status=404)
+        
+        # Convert Article objects to dicts for the summarizer
+        articles_data = []
+        for article in articles:
+            articles_data.append({
+                '_id': str(article.id),
+                'title_it': article.title_it,
+                'title_en': article.title_en,
+                'content_it': article.content_it,
+                'content_en': article.content_en,
+                'sector': article.sector,
+                'article_date': article.article_date,
+                'source': article.source,
+                'url': article.url,
+            })
+        
+        # Get base URL for internal article links
+        base_url = request.build_absolute_uri('/').rstrip('/')
+        
+        # Generate summary using unified summarizer
+        summary_result = generate_ai_summary(
+            articles_data,
+            summary_type="topic",
+            custom_prompt=custom_prompt,
+            base_url=base_url,
+            wait_time=5
+        )
+        
+        if not summary_result.get('generation_success'):
+            return JsonResponse({
+                'success': False,
+                'error': summary_result.get('generation_error', 'Failed to generate summary')
+            }, status=500)
+        
+        response_data = {
+            'success': True,
+            'summary': summary_result['content'],
+            'article_count': len(articles)
+        }
+        
+        # Save to database if requested
+        if save_to_db:
+            if not title:
+                title = f"Selezione del {datetime.now().strftime('%d/%m/%Y %H:%M')}"
+            
+            summary_id = save_summary(summary_result, title)
+            response_data['summary_id'] = summary_id
+            response_data['saved'] = True
+        
+        return JsonResponse(response_data)
+        
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'success': False,
+            'error': 'Invalid article IDs format'
+        }, status=400)
+    except Exception as e:
+        logger.error(f"Error generating selection summary: {str(e)}")
+        return JsonResponse({
+            'success': False,
+            'error': f'Failed to generate summary: {str(e)}'
+        }, status=500)

@@ -81,6 +81,12 @@ MIDDLEWARE = [
     "articles.middleware.LanguageMiddleware",  # Custom language middleware AFTER all others
 ]
 
+# Disable browser caching in DEBUG mode to prevent stale content
+if DEBUG:
+    MIDDLEWARE.insert(1, "django.middleware.cache.UpdateCacheMiddleware")
+    MIDDLEWARE.append("django.middleware.cache.FetchFromCacheMiddleware")
+    CACHE_MIDDLEWARE_SECONDS = 0  # No caching in development
+
 ROOT_URLCONF = "analyst.urls"
 
 TEMPLATES = [
@@ -171,8 +177,17 @@ LOCALE_PATHS = [
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
+# Additional locations for static files
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
+
 # WhiteNoise configuration for serving static files with Waitress
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+# Use regular WhiteNoise storage in development, compressed manifest in production
+if DEBUG:
+    STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
+else:
+    STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
