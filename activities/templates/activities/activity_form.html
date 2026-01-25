@@ -1,0 +1,320 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{{ action }} Activity - TA{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 max-w-3xl">
+    <div class="mb-6">
+        <a href="{% url 'activities:activity_list' %}" class="inline-flex items-center gap-2 text-primary hover:text-accent font-medium transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+            </svg>
+            {% trans "Back to Activities" %}
+        </a>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-sm border border-secondary p-6">
+        <div class="mb-6 pb-4 border-b border-secondary">
+            <h1 class="text-2xl font-bold font-display text-gray-700">{{ action }} {% trans "Activity" %}</h1>
+            <p class="text-sm text-gray-600 mt-1">{% trans "Fill in the details below to" %} {{ action|lower }} {% trans "the activity" %}</p>
+        </div>
+
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+
+            {% if form.errors %}
+            <div class="bg-red-50 border-l-4 border-red-500 text-red-700 px-4 py-3 rounded-md mb-4">
+                <div class="flex items-start">
+                    <svg class="w-5 h-5 text-red-500 mt-0.5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <div>
+                        <p class="font-semibold">{% trans "Please correct the following errors:" %}</p>
+                        <ul class="list-disc list-inside mt-2 space-y-1">
+                            {% for field in form %}
+                                {% for error in field.errors %}
+                                    <li class="text-sm">{{ field.label }}: {{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-semibold font-display text-gray-700 mb-2.5 flex items-center gap-2">
+                        <svg class="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/>
+                        </svg>
+                        {{ form.tipo.label }}
+                        <span class="text-xs text-gray-500 font-normal">{% trans "(required)" %}</span>
+                    </label>
+                    {{ form.tipo }}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold font-display text-gray-700 mb-2.5 flex items-center gap-2">
+                        <svg class="w-4 h-4 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        {{ form.mese.label }}
+                    </label>
+                    {{ form.mese }}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold font-display text-gray-700 mb-2.5 flex items-center gap-2">
+                        <svg class="w-4 h-4 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        {{ form.anno.label }}
+                    </label>
+                    {{ form.anno }}
+                </div>
+
+                <div class="md:col-span-2 border-t border-secondary pt-6">
+                    <label class="block text-sm font-semibold font-display text-gray-700 mb-2.5 flex items-center gap-2">
+                        <svg class="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        </svg>
+                        {{ form.nome_iniziativa.label }}
+                        <span class="text-xs text-gray-500 font-normal">{% trans "(required)" %}</span>
+                    </label>
+                    {{ form.nome_iniziativa }}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold font-display text-gray-700 mb-2.5 flex items-center gap-2">
+                        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                        {{ form.citta.label }}
+                    </label>
+                    {{ form.citta }}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold font-display text-gray-700 mb-2.5">
+                        <span class="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-green-50 text-green-700 border border-green-200 mb-1">
+                            <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z"/>
+                            </svg>
+                            {{ form.settore.label }}
+                        </span>
+                    </label>
+                    {{ form.settore }}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold font-display text-gray-700 mb-2.5 flex items-center gap-2">
+                        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        {{ form.data_inizio.label }}
+                    </label>
+                    {{ form.data_inizio }}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold font-display text-gray-700 mb-2.5 flex items-center gap-2">
+                        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        {{ form.data_fine.label }}
+                    </label>
+                    {{ form.data_fine }}
+                </div>
+
+                <div class="md:col-span-2 border-t border-secondary pt-6">
+                    <label class="block text-sm font-semibold font-display text-gray-700 mb-2 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        {{ form.descrizione.label }}
+                    </label>
+                    {{ form.descrizione }}
+                </div>
+
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-semibold font-display text-gray-700 mb-2 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        </svg>
+                        {{ form.azione.label }}
+                    </label>
+                    {{ form.azione }}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold font-display text-gray-700 mb-2.5 flex items-center gap-2">
+                        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                        </svg>
+                        {{ form.responsabile_iniziativa.label }}
+                    </label>
+                    {{ form.responsabile_iniziativa }}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold font-display text-gray-700 mb-2.5 flex items-center gap-2">
+                        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                        </svg>
+                        {{ form.ufficio.label }}
+                    </label>
+                    {{ form.ufficio }}
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-3 pt-6 border-t border-secondary">
+                <a href="{% url 'activities:activity_list' %}"
+                   class="inline-flex items-center gap-2 px-6 py-2 bg-white border border-secondary text-gray-700 font-medium rounded-md hover:bg-secondary transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                    {% trans "Cancel" %}
+                </a>
+                <button type="submit"
+                        class="inline-flex items-center gap-2 px-6 py-2 bg-accent text-white font-medium rounded-md hover:bg-accent/90 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    {{ action }} {% trans "Activity" %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+/* Form field styling */
+#id_tipo,
+#id_mese,
+#id_anno,
+#id_nome_iniziativa,
+#id_citta,
+#id_settore,
+#id_data_inizio,
+#id_data_fine,
+#id_responsabile_iniziativa,
+#id_ufficio {
+    width: 100%;
+    border: 1px solid #D6E4E5;
+    border-radius: 0.375rem;
+    padding: 0.625rem 0.875rem;
+    color: #374151;
+    font-size: 0.9375rem;
+    background-color: white;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+#id_tipo:hover,
+#id_mese:hover,
+#id_anno:hover,
+#id_nome_iniziativa:hover,
+#id_citta:hover,
+#id_settore:hover,
+#id_data_inizio:hover,
+#id_data_fine:hover,
+#id_responsabile_iniziativa:hover,
+#id_ufficio:hover {
+    border-color: #497174;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+#id_tipo:focus,
+#id_mese:focus,
+#id_anno:focus,
+#id_nome_iniziativa:focus,
+#id_citta:focus,
+#id_settore:focus,
+#id_data_inizio:focus,
+#id_data_fine:focus,
+#id_responsabile_iniziativa:focus,
+#id_ufficio:focus {
+    outline: none;
+    border-color: #497174;
+    ring: 2px;
+    ring-color: rgba(73, 113, 116, 0.2);
+    box-shadow: 0 0 0 3px rgba(73, 113, 116, 0.1), 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+#id_descrizione,
+#id_azione {
+    width: 100%;
+    border: 1px solid #D6E4E5;
+    border-radius: 0.375rem;
+    padding: 0.625rem 0.875rem;
+    color: #374151;
+    font-size: 0.9375rem;
+    background-color: white;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    min-height: 140px;
+    resize: vertical;
+    font-family: inherit;
+    line-height: 1.6;
+}
+
+#id_descrizione:hover,
+#id_azione:hover {
+    border-color: #497174;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+#id_descrizione:focus,
+#id_azione:focus {
+    outline: none;
+    border-color: #497174;
+    box-shadow: 0 0 0 3px rgba(73, 113, 116, 0.1), 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+/* Select dropdown styling */
+select#id_mese,
+select#id_anno,
+select#id_ufficio {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23497174' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.5rem center;
+    background-repeat: no-repeat;
+    background-size: 1.5em 1.5em;
+    padding-right: 2.5rem;
+    appearance: none;
+    cursor: pointer;
+}
+
+select#id_mese:hover,
+select#id_anno:hover,
+select#id_ufficio:hover {
+    background-color: #F9FAFB;
+}
+
+/* Input type date styling */
+input[type="date"]#id_data_inizio,
+input[type="date"]#id_data_fine {
+    cursor: pointer;
+}
+
+/* Placeholder styling */
+#id_tipo::placeholder,
+#id_nome_iniziativa::placeholder,
+#id_citta::placeholder,
+#id_settore::placeholder,
+#id_responsabile_iniziativa::placeholder,
+#id_descrizione::placeholder,
+#id_azione::placeholder {
+    color: #9CA3AF;
+    font-style: italic;
+}
+
+/* Better focus states for accessibility */
+*:focus-visible {
+    outline: 2px solid #497174;
+    outline-offset: 2px;
+}
+</style>
+{% endblock %}

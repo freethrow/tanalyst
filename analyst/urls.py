@@ -8,6 +8,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("login/", articles_views.login_view, name="login"),
     path("logout/", articles_views.logout_view, name="logout"),
+    path("activities/", include("activities.urls", namespace="activities")),
     path("", include("articles.urls", namespace="articles")),
 ]
 

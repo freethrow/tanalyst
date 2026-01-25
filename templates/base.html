@@ -274,7 +274,11 @@
             <a href="{% url 'articles:sectors' %}" class="px-3 py-2 rounded-md text-sm font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary transition-colors">
               {% trans "Sectors" %}
             </a>
-            
+
+            <a href="{% url 'activities:activity_list' %}" class="px-3 py-2 rounded-md text-sm font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary transition-colors">
+              {% trans "Activities" %}
+            </a>
+
             <!-- Tools Dropdown -->
             <div class="relative group">
               <button class="px-3 py-2 rounded-md text-sm font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary transition-colors flex items-center gap-1">
@@ -426,6 +430,9 @@
             <div class="border-t border-secondary my-2"></div>
             <a href="{% url 'articles:sectors' %}" class="block px-3 py-2 rounded-md text-base font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary">
               {% trans "Sectors" %}
+            </a>
+            <a href="{% url 'activities:activity_list' %}" class="block px-3 py-2 rounded-md text-base font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary">
+              {% trans "Activities" %}
             </a>
             <div class="border-t border-secondary my-2 pt-2">
               <div class="px-3 py-2 text-xs font-semibold font-display text-gray-500 uppercase">{% trans "Tools" %}</div>
