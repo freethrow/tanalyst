@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Activities Report</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
+
+        body {
+            font-family: 'DejaVu Sans', Arial, sans-serif;
+            font-size: 10pt;
+            line-height: 1.5;
+            color: #333;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #EB6440;
+        }
+
+        .header h1 {
+            color: #497174;
+            font-size: 20pt;
+            margin: 0 0 8px 0;
+            font-weight: bold;
+        }
+
+        .header .meta {
+            color: #666;
+            font-size: 9pt;
+        }
+
+        .activity {
+            margin-bottom: 20px;
+            padding: 12px;
+            border-left: 3px solid #EB6440;
+            border-bottom: 1px solid #ddd;
+            page-break-inside: avoid;
+        }
+
+        .activity-title {
+            font-size: 13pt;
+            font-weight: bold;
+            color: #497174;
+            margin: 0 0 8px 0;
+        }
+
+        .activity-meta {
+            margin-bottom: 10px;
+            font-size: 9pt;
+            color: #666;
+            line-height: 1.8;
+        }
+
+        .meta-item {
+            margin-right: 20px;
+            display: inline-block;
+        }
+
+        .meta-label {
+            font-weight: bold;
+            color: #497174;
+        }
+
+        .sector-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            background-color: #E8F5E9;
+            color: #2E7D32;
+            font-weight: 500;
+        }
+
+        .activity-body {
+            margin-top: 8px;
+        }
+
+        .activity-section {
+            margin-bottom: 8px;
+        }
+
+        .section-title {
+            font-weight: bold;
+            color: #497174;
+            font-size: 9.5pt;
+            margin-bottom: 3px;
+        }
+
+        .section-content {
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .footer {
+            margin-top: 30px;
+            padding-top: 10px;
+            border-top: 1px solid #ddd;
+            text-align: center;
+            font-size: 8pt;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Report Attivita\</h1>
+        <div class="meta">
+            Generato il {{ generated_date }} | Totale attivita': {{ total_count }}
+        </div>
+    </div>
+
+    {% for activity in activities %}
+    <div class="activity">
+        <h2 class="activity-title">{{ activity.nome_iniziativa }}</h2>
+
+        <div class="activity-meta">
+            <span class="meta-item"><span class="meta-label">Date:</span> {{ activity.mese }}/{{ activity.anno }}</span>
+            {% if activity.tipo %}<span class="meta-item"><span class="meta-label">Type:</span> {{ activity.tipo }}</span>{% endif %}
+            {% if activity.citta %}<span class="meta-item"><span class="meta-label">City:</span> {{ activity.citta }}</span>{% endif %}
+            {% if activity.settore %}<span class="meta-item"><span class="meta-label">Sector:</span> <span class="sector-badge">{{ activity.settore }}</span></span>{% endif %}
+            {% if activity.ufficio %}<span class="meta-item"><span class="meta-label">Office:</span> {{ activity.ufficio }}</span>{% endif %}
+        </div>
+
+        <div class="activity-body">
+            {% if activity.descrizione %}
+            <div class="activity-section">
+                <div class="section-title">Descrizione:</div>
+                <div class="section-content">{{ activity.descrizione }}</div>
+            </div>
+            {% endif %}
+
+            {% if activity.azione %}
+            <div class="activity-section">
+                <div class="section-title">Azione:</div>
+                <div class="section-content">{{ activity.azione }}</div>
+            </div>
+            {% endif %}
+
+            {% if activity.responsabile_iniziativa %}
+            <div class="activity-section">
+                <div class="section-title">Responsible:</div>
+                <div class="section-content">{{ activity.responsabile_iniziativa }}</div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+
+    <div class="footer">
+        <p>TA - Activities Management System</p>
+    </div>
+</body>
+</html>

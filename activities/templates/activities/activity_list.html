@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block title %}Activities - TA{% endblock %}
 
@@ -58,6 +58,9 @@
         <table class="min-w-full divide-y divide-secondary">
             <thead class="bg-gradient-to-r from-primary/5 to-secondary/30">
                 <tr>
+                    <th class="px-4 py-3 text-left text-xs font-semibold font-display text-gray-700 uppercase tracking-wider whitespace-nowrap">
+                        <input type="checkbox" id="select-all" class="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary" title="{% trans 'Select all' %}">
+                    </th>
                     <th class="px-4 py-3 text-left text-xs font-semibold font-display text-gray-700 uppercase tracking-wider whitespace-nowrap">{% trans "Date" %}</th>
                     <th class="px-4 py-3 text-left text-xs font-semibold font-display text-gray-700 uppercase tracking-wider">{% trans "Initiative" %}</th>
                     <th class="px-4 py-3 text-left text-xs font-semibold font-display text-gray-700 uppercase tracking-wider whitespace-nowrap">{% trans "City" %}</th>
@@ -69,6 +72,15 @@
             <tbody class="bg-white divide-y divide-secondary">
                 {% for activity in page_obj %}
                 <tr class="hover:bg-secondary/20 transition-colors">
+                    <td class="px-4 py-3 whitespace-nowrap text-sm">
+                        <input
+                            type="checkbox"
+                            class="activity-selector w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary cursor-pointer"
+                            data-activity-id="{{ activity.id }}"
+                            data-activity-title="{{ activity.nome_iniziativa }}"
+                            onchange="window.ActivitySelection?.toggleActivity(this)"
+                        />
+                    </td>
                     <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700 font-medium">
                         {{ activity.mese }}/{{ activity.anno }}
                     </td>
@@ -95,7 +107,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="6" class="px-6 py-12 text-center">
+                    <td colspan="7" class="px-6 py-12 text-center">
                         <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
                         </svg>
@@ -126,4 +138,79 @@
     </div>
     {% endif %}
 </div>
+
+<!-- Activity Selection Panel (Floating) -->
+<div id="activity-selection-panel" class="fixed bottom-6 right-6 z-50 hidden">
+    <div class="bg-white rounded-lg shadow-2xl border-2 border-accent p-4 min-w-[320px]">
+        <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2">
+                <svg class="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                </svg>
+                <h3 class="font-semibold font-display text-gray-700">{% trans "Selected Activities" %}</h3>
+            </div>
+            <button
+                onclick="window.ActivitySelection?.clearAllSelections()"
+                class="text-gray-400 hover:text-red-600 transition-colors"
+                title="{% trans 'Clear all selections' %}"
+            >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-2">
+                <span class="text-3xl font-bold text-accent" id="activity-selection-count">0</span>
+                <span class="text-sm text-gray-600">{% trans "activities" %}</span>
+            </div>
+        </div>
+
+        <div class="flex flex-col gap-2">
+            <button
+                onclick="window.ActivitySelection?.generateExcelReport()"
+                class="flex items-center justify-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-medium rounded-md transition-colors"
+            >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                {% trans "Generate Excel Report" %}
+            </button>
+            <button
+                onclick="window.ActivitySelection?.generatePDFReport()"
+                class="flex items-center justify-center gap-2 px-4 py-2 bg-accent hover:bg-accent/90 text-white font-medium rounded-md transition-colors"
+            >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                </svg>
+                {% trans "Generate PDF Report" %}
+            </button>
+            <button
+                onclick="window.ActivitySelection?.clearAllSelections()"
+                class="flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-md transition-colors"
+            >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+                {% trans "Clear All" %}
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Activity Selection Script -->
+<script src="{% static 'js/activity-selection.js' %}?v=1"></script>
+<script>
+    // Select All functionality
+    document.getElementById('select-all')?.addEventListener('change', function(e) {
+        const checkboxes = document.querySelectorAll('.activity-selector');
+        checkboxes.forEach(checkbox => {
+            if (checkbox.checked !== e.target.checked) {
+                checkbox.checked = e.target.checked;
+                window.ActivitySelection?.toggleActivity(checkbox);
+            }
+        });
+    });
+</script>
 {% endblock %}

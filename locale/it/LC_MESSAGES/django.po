@@ -39,26 +39,20 @@ msgstr ""
 
 #: .\articles\views.py:226 .\templates\send_email.html:141
 msgid "Approved Articles"
-msgstr "Modifica Articolo"
+msgstr "Articoli Approvati"
 
 #: .\articles\views.py:246
-#, fuzzy
-#| msgid "Related Articles"
 msgid "Discarded Articles"
-msgstr "Articoli Correlati"
+msgstr "Articoli Scartati"
 
 #: .\articles\views.py:266
-#, fuzzy
-#| msgid "Latest Articles"
 msgid "Sent Articles"
-msgstr "Ultimi Articoli"
+msgstr "Articoli Inviati"
 
 #: .\articles\views.py:284 .\templates\base.html:267 .\templates\base.html:422
 #: .\templates\base.html:494
-#, fuzzy
-#| msgid "Articles"
 msgid "All Articles"
-msgstr "Articoli inbox"
+msgstr "Tutti gli Articoli"
 
 # Embedding management
 #: .\articles\views.py:511
@@ -173,6 +167,8 @@ msgstr "Stato"
 
 #: .\templates\article_edit.html:111 .\templates\embedding_management.html:427
 #: .\templates\send_email.html:125
+#: activities/templates/activities/activity_form.html:179
+#: activities/templates/activities/activity_confirm_delete.html:81
 msgid "Cancel"
 msgstr "Annulla"
 
@@ -259,40 +255,40 @@ msgstr "Contatti"
 
 #: .\templates\embedding_management.html:29
 msgid "Embedding Management"
-msgstr ""
+msgstr "Gestione Embeddings"
 
 #: .\templates\embedding_management.html:33
 msgid "Manage vector embeddings for semantic search"
-msgstr ""
+msgstr "Gestisci gli embeddings vettoriali per la ricerca semantica"
 
 #: .\templates\embedding_management.html:43
 msgid "Total Articles"
-msgstr "Modifica Articolo"
+msgstr "Articoli Totali"
 
 #: .\templates\embedding_management.html:62
 msgid "With Embeddings"
-msgstr ""
+msgstr "Con Embeddings"
 
 #: .\templates\embedding_management.html:78
 #, python-format
 msgid "%(embedding_percentage)s%% complete"
-msgstr ""
+msgstr "%(embedding_percentage)s%% completato"
 
 #: .\templates\embedding_management.html:86
 msgid "Missing"
-msgstr ""
+msgstr "Mancanti"
 
 #: .\templates\embedding_management.html:109
 msgid "With Errors"
-msgstr ""
+msgstr "Con Errori"
 
 #: .\templates\embedding_management.html:146
 msgid "Embedding Models Used"
-msgstr ""
+msgstr "Modelli di Embedding Utilizzati"
 
 #: .\templates\embedding_management.html:155
 msgid "Model"
-msgstr ""
+msgstr "Modello"
 
 #: .\templates\embedding_management.html:160
 msgid "Articles Count"
@@ -300,28 +296,28 @@ msgstr "Conteggio articoli"
 
 #: .\templates\embedding_management.html:165
 msgid "Percentage"
-msgstr ""
+msgstr "Percentuale"
 
 #: .\templates\embedding_management.html:218
 msgid "Management Actions"
-msgstr ""
+msgstr "Azioni di Gestione"
 
 #: .\templates\embedding_management.html:289
 msgid "Generate New Embeddings"
-msgstr "Genera Nuovo Riassunto"
+msgstr "Genera Nuovi Embeddings"
 
 #: .\templates\embedding_management.html:312
 msgid "Start Embedding Generation"
-msgstr ""
+msgstr "Inizia Generazione Embeddings"
 
 #: .\templates\embedding_management.html:335
 #: .\templates\embedding_management.html:358
 msgid "Delete NON PERTINENT Articles"
-msgstr ""
+msgstr "Elimina Articoli NON PERTINENTI"
 
 #: .\templates\embedding_management.html:377
 msgid "Migration to multilingual-e5-large Embeddings"
-msgstr ""
+msgstr "Migrazione a Embeddings multilingual-e5-large"
 
 #: .\templates\embedding_management.html:379
 msgid ""
@@ -329,10 +325,13 @@ msgid ""
 "dimensions) for superior semantic search. Remove old embeddings first, then "
 "generate new ones for better performance."
 msgstr ""
+"Il tuo sistema è ora configurato per utilizzare embeddings multilingual-e5-large (1024 "
+"dimensioni) per una ricerca semantica superiore. Rimuovi prima i vecchi embeddings, poi "
+"genera quelli nuovi per ottenere prestazioni migliori."
 
 #: .\templates\embedding_management.html:410
 msgid "Confirm Removal"
-msgstr ""
+msgstr "Conferma Rimozione"
 
 #: .\templates\embedding_management.html:415
 #, python-format
@@ -346,28 +345,36 @@ msgid_plural ""
 "cannot\n"
 "      be undone."
 msgstr[0] ""
+"Sei sicuro di voler rimuovere TUTTI gli embeddings da <strong>%(count)s</strong> articolo? Questa azione "
+"non può essere annullata."
 msgstr[1] ""
+"Sei sicuro di voler rimuovere TUTTI gli embeddings da <strong>%(count)s</strong> articoli? Questa azione "
+"non può essere annullata."
 
 #: .\templates\embedding_management.html:446
 msgid "Yes, Remove All"
-msgstr ""
+msgstr "Sì, Rimuovi Tutto"
 
 #: .\templates\embedding_management.html:478
 #: .\templates\embedding_management.html:501
 msgid "Error"
-msgstr ""
+msgstr "Errore"
 
 #: .\templates\embedding_management.html:483
 msgid ""
 "Are you sure you want to delete ALL articles with NON PERTINENT in their "
 "content?"
 msgstr ""
+"Sei sicuro di voler eliminare TUTTI gli articoli con NON PERTINENT nel loro "
+"contenuto?"
 
 #: .\templates\embedding_management.html:483
 msgid ""
 "This action cannot be undone and will permanently remove these articles from "
 "the database."
 msgstr ""
+"Questa azione non può essere annullata e rimuoverà permanentemente questi articoli dal "
+"database."
 
 #: .\templates\index.html:9
 #, python-format
@@ -451,6 +458,8 @@ msgid "Edit article"
 msgstr "Modifica articolo"
 
 #: .\templates\partials\card.html:167
+#: activities/templates/activities/activity_list.html:100
+#: activities/templates/activities/activity_list.html:104
 msgid "Edit"
 msgstr "Modifica"
 
@@ -653,9 +662,6 @@ msgstr ""
 #~ msgid "Navigation"
 #~ msgstr "Navigazione"
 
-#~ msgid "Search"
-#~ msgstr "Ricerca Vettoriale"
-
 # Weekly Summaries
 #~ msgid "Weekly Summaries"
 #~ msgstr "Riassunti Settimanali"
@@ -710,3 +716,306 @@ msgstr ""
 
 #~ msgid "Generate First Summary"
 #~ msgstr "Genera Primo Riassunto"
+
+# Activities App Translations
+#: activities/templates/activities/activity_detail.html:13
+#: activities/templates/activities/activity_form.html:13
+msgid "Back to Activities"
+msgstr "Torna alle Attività"
+
+#: activities/templates/activities/activity_detail.html:41
+#: activities/templates/activities/activity_list.html:64
+msgid "Date"
+msgstr "Data"
+
+#: activities/templates/activities/activity_detail.html:45
+msgid "Type"
+msgstr "Tipo"
+
+#: activities/templates/activities/activity_detail.html:49
+#: activities/templates/activities/activity_confirm_delete.html:47
+msgid "Period"
+msgstr "Periodo"
+
+#: activities/templates/activities/activity_detail.html:53
+#: activities/templates/activities/activity_list.html:67
+#: activities/templates/activities/activity_confirm_delete.html:53
+msgid "Sector"
+msgstr "Settore"
+
+#: activities/templates/activities/activity_detail.html:57
+#: activities/templates/activities/activity_list.html:68
+msgid "Office"
+msgstr "Ufficio"
+
+#: activities/templates/activities/activity_detail.html:67
+msgid "Description"
+msgstr "Descrizione"
+
+#: activities/templates/activities/activity_detail.html:80
+msgid "Action"
+msgstr "Azione"
+
+#: activities/templates/activities/activity_detail.html:89
+msgid "Responsible"
+msgstr "Responsabile"
+
+#: activities/templates/activities/activity_detail.html:107
+msgid "Edit Activity"
+msgstr "Modifica Attività"
+
+#: activities/templates/activities/activity_detail.html:114
+#: activities/templates/activities/activity_confirm_delete.html:4
+#: activities/templates/activities/activity_confirm_delete.html:24
+#: activities/templates/activities/activity_confirm_delete.html:88
+msgid "Delete Activity"
+msgstr "Elimina Attività"
+
+#: activities/templates/activities/activity_form.html:19
+#: activities/templates/activities/activity_form.html:186
+msgid "Activity"
+msgstr "Attività"
+
+#: activities/templates/activities/activity_form.html:20
+msgid "Fill in the details below to"
+msgstr "Compila i dettagli qui sotto per"
+
+#: activities/templates/activities/activity_form.html:20
+msgid "the activity"
+msgstr "l'attività"
+
+#: activities/templates/activities/activity_form.html:33
+msgid "Please correct the following errors:"
+msgstr "Si prega di correggere i seguenti errori:"
+
+#: activities/templates/activities/activity_form.html:53
+#: activities/templates/activities/activity_form.html:84
+msgid "(required)"
+msgstr "(richiesto)"
+
+#: activities/templates/activities/activity_list.html:9
+msgid "Activities"
+msgstr "Attività"
+
+#: activities/templates/activities/activity_list.html:14
+msgid "New Activity"
+msgstr "Nuova Attività"
+
+#: activities/templates/activities/activity_list.html:22
+msgid "Year"
+msgstr "Anno"
+
+#: activities/templates/activities/activity_list.html:24
+msgid "All Years"
+msgstr "Tutti gli Anni"
+
+#: activities/templates/activities/activity_list.html:31
+msgid "Search sector..."
+msgstr "Cerca settore..."
+
+#: activities/templates/activities/activity_list.html:36
+msgid "All Offices"
+msgstr "Tutti gli Uffici"
+
+#: activities/templates/activities/activity_list.html:50
+msgid "Filter"
+msgstr "Filtra"
+
+#: activities/templates/activities/activity_list.html:62
+msgid "Select all"
+msgstr "Seleziona tutto"
+
+#: activities/templates/activities/activity_list.html:65
+msgid "Initiative"
+msgstr "Iniziativa"
+
+#: activities/templates/activities/activity_list.html:66
+msgid "City"
+msgstr "Città"
+
+#: activities/templates/activities/activity_list.html:69
+msgid "Actions"
+msgstr "Azioni"
+
+
+#: activities/templates/activities/activity_list.html:114
+msgid "No activities found."
+msgstr "Nessuna attività trovata."
+
+#: activities/templates/activities/activity_list.html:126
+msgid "First"
+msgstr "Prima"
+
+#: activities/templates/activities/activity_list.html:127
+msgid "Previous"
+msgstr "Precedente"
+
+#: activities/templates/activities/activity_list.html:131
+msgid "Page"
+msgstr "Pagina"
+
+#: activities/templates/activities/activity_list.html:131
+msgid "of"
+msgstr "di"
+
+#: activities/templates/activities/activity_list.html:135
+msgid "Next"
+msgstr "Successiva"
+
+#: activities/templates/activities/activity_list.html:136
+msgid "Last"
+msgstr "Ultima"
+
+#: activities/templates/activities/activity_list.html:150
+msgid "Selected Activities"
+msgstr "Attività Selezionate"
+
+#: activities/templates/activities/activity_list.html:155
+msgid "Clear all selections"
+msgstr "Cancella tutte le selezioni"
+
+#: activities/templates/activities/activity_list.html:166
+msgid "activities"
+msgstr "attività"
+
+#: activities/templates/activities/activity_list.html:178
+msgid "Generate Excel Report"
+msgstr "Genera Report Excel"
+
+#: activities/templates/activities/activity_list.html:187
+msgid "Generate PDF Report"
+msgstr "Genera Report PDF"
+
+#: activities/templates/activities/activity_list.html:196
+msgid "Clear All"
+msgstr "Cancella Tutto"
+
+#: activities/templates/activities/activity_confirm_delete.html:13
+msgid "Back to Activity"
+msgstr "Torna all'Attività"
+
+#: activities/templates/activities/activity_confirm_delete.html:24
+msgid "Confirm Deletion"
+msgstr "Conferma Eliminazione"
+
+#: activities/templates/activities/activity_confirm_delete.html:25
+msgid "Are you sure you want to delete this activity?"
+msgstr "Sei sicuro di voler eliminare questa attività?"
+
+#: activities/templates/activities/activity_confirm_delete.html:41
+msgid "City:"
+msgstr "Città:"
+
+#: activities/templates/activities/activity_confirm_delete.html:68
+msgid "Warning:"
+msgstr "Attenzione:"
+
+#: activities/templates/activities/activity_confirm_delete.html:68
+msgid "This action cannot be undone. The activity will be permanently deleted from the database."
+msgstr "Questa azione non può essere annullata. L'attività sarà eliminata permanentemente dal database."
+
+# Search/Hybrid Search Page Translations
+#: templates/hybrid_search.html:9
+msgid "Search Articles"
+msgstr "Cerca Articoli"
+
+#: templates/hybrid_search.html:11
+msgid "result"
+msgstr "risultato"
+
+#: templates/hybrid_search.html:11
+msgid "results"
+msgstr "risultati"
+
+#: templates/hybrid_search.html:14
+msgid "Search articles using hybrid, semantic, or keyword search modes"
+msgstr "Cerca articoli utilizzando modalità di ricerca ibrida, semantica o per parole chiave"
+
+#: templates/hybrid_search.html:36
+msgid "Enter your search query..."
+msgstr "Inserisci la tua query di ricerca..."
+
+#: templates/hybrid_search.html:48
+msgid "Search"
+msgstr "Cerca"
+
+#: templates/hybrid_search.html:54
+msgid "Search Mode"
+msgstr "Modalità di Ricerca"
+
+#: templates/hybrid_search.html:65
+#: templates/hybrid_search.html:133
+msgid "Hybrid"
+msgstr "Ibrida"
+
+#: templates/hybrid_search.html:66
+msgid "Best"
+msgstr "Migliore"
+
+#: templates/hybrid_search.html:78
+#: templates/hybrid_search.html:134
+msgid "Semantic Only"
+msgstr "Solo Semantica"
+
+#: templates/hybrid_search.html:90
+#: templates/hybrid_search.html:135
+msgid "Keyword Only"
+msgstr "Solo Parole Chiave"
+
+#: templates/hybrid_search.html:104
+msgid "Enable Reranking"
+msgstr "Abilita Riordino"
+
+#: templates/hybrid_search.html:105
+msgid "Slower but more accurate"
+msgstr "Più lento ma più preciso"
+
+#: templates/hybrid_search.html:120
+msgid "Searching..."
+msgstr "Ricerca in corso..."
+
+#: templates/hybrid_search.html:131
+msgid "Search Modes Explained"
+msgstr "Modalità di Ricerca Spiegate"
+
+#: templates/hybrid_search.html:133
+msgid "Combines keyword matching and semantic similarity for best results"
+msgstr "Combina la corrispondenza delle parole chiave e la somiglianza semantica per i migliori risultati"
+
+#: templates/hybrid_search.html:134
+msgid "Finds articles with similar meaning, even if words differ"
+msgstr "Trova articoli con significato simile, anche se le parole sono diverse"
+
+#: templates/hybrid_search.html:135
+msgid "Traditional search based on exact word matches"
+msgstr "Ricerca tradizionale basata su corrispondenze esatte di parole"
+
+#: templates/hybrid_search.html:163
+#: templates/partials/hybrid_search_results.html:13
+msgid "No results found"
+msgstr "Nessun risultato trovato"
+
+#: templates/hybrid_search.html:164
+#: templates/partials/hybrid_search_results.html:14
+msgid "Try different search terms or check your spelling"
+msgstr "Prova termini di ricerca diversi o controlla l'ortografia"
+
+#: templates/hybrid_search.html:171
+msgid "Start searching"
+msgstr "Inizia la ricerca"
+
+#: templates/hybrid_search.html:172
+msgid "Enter a query above to find relevant articles"
+msgstr "Inserisci una query sopra per trovare articoli pertinenti"
+
+#: templates/partials/hybrid_search_results.html:34
+msgid "Show raw data"
+msgstr "Mostra dati grezzi"
+
+#: templates/partials/hybrid_search_results.html:44
+msgid "Full Search Results"
+msgstr "Risultati di Ricerca Completi"
+
+#: templates/partials/hybrid_search_results.html:89
+msgid "Hide raw data"
+msgstr "Nascondi dati grezzi"
