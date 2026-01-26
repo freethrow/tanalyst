@@ -33,8 +33,9 @@ sentence-transformers>=2.3.0
 transformers>=4.35.0  # For reranking
 huggingface-hub>=0.20.0  # For downloading models
 
-# PDF Generation
+# PDF & Excel Generation
 WeasyPrint>=54.3
+openpyxl>=3.1.0
 
 # Email
 resend

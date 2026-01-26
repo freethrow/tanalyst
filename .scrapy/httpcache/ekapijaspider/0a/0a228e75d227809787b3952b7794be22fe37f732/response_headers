@@ -1,11 +1,11 @@
 Server: nginx
-Date: Tue, 11 Nov 2025 12:35:27 GMT
+Date: Mon, 26 Jan 2026 12:09:59 GMT
 Content-Type: text/html; charset=UTF-8
 X-Powered-By: PHP/5.4.45
-Set-Cookie: PHPSESSID=okf7gffut2lirftb9l4eg9e9n5; path=/; domain=.ekapija.com; HttpOnly
-Set-Cookie: last=24fe66e9c4e9aef2258a9a7030fd5908934fd1b1ef2f9b04d4978c3581339b97a%3A2%3A%7Bi%3A0%3Bs%3A4%3A%22last%22%3Bi%3A1%3Bs%3A2%3A%22en%22%3B%7D; expires=Fri, 09-Nov-2035 12:35:23 GMT; path=/; domain=.ekapija.com; httponly
+Set-Cookie: PHPSESSID=umje7gkg0j9md68sgkjup4t2b0; path=/; domain=.ekapija.com; HttpOnly
+Set-Cookie: last=24fe66e9c4e9aef2258a9a7030fd5908934fd1b1ef2f9b04d4978c3581339b97a%3A2%3A%7Bi%3A0%3Bs%3A4%3A%22last%22%3Bi%3A1%3Bs%3A2%3A%22en%22%3B%7D; expires=Thu, 24-Jan-2036 12:09:55 GMT; path=/; domain=.ekapija.com; httponly
 Set-Cookie: started=62acbeae3ee08bc62848baf5bffebd6096c3d190e6b2d4a2dcf0339df49495d3a%3A2%3A%7Bi%3A0%3Bs%3A7%3A%22started%22%3Bi%3A1%3Bs%3A1%3A%22Y%22%3B%7D; path=/; domain=.ekapija.com; httponly
-Set-Cookie: _csrf=4e7d1e39322b7b46c399202049c2109ef34e8d7df318265eac6bb87c8c65a8aea%3A2%3A%7Bi%3A0%3Bs%3A5%3A%22_csrf%22%3Bi%3A1%3Bs%3A32%3A%22bQX5on777FL8ciq1whbWrle4T-oJ4h_Z%22%3B%7D; path=/; httponly
+Set-Cookie: _csrf=d18352e46593f5e2c93d181a472995add5f580130d776d9eb968c20c87a7eae5a%3A2%3A%7Bi%3A0%3Bs%3A5%3A%22_csrf%22%3Bi%3A1%3Bs%3A32%3A%221CRp71mvQvjoZWC-_jPKIJE-Q8bpuxU1%22%3B%7D; path=/; httponly
 Expires: Thu, 19 Nov 1981 08:52:00 GMT
 Cache-Control: no-store, no-cache, must-revalidate, post-check=0, pre-check=0
 Pragma: no-cache
