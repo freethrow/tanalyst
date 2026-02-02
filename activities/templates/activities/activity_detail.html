@@ -83,7 +83,7 @@
             </div>
             {% endif %}
 
-            <!-- Responsible -->
+            <!-- Responsible (legacy text field) -->
             {% if activity.responsabile_iniziativa %}
             <div class="border-t border-secondary pt-6">
                 <h3 class="text-xs font-semibold font-display text-gray-500 uppercase tracking-wider mb-2">{% trans "Responsible" %}</h3>
@@ -95,24 +95,149 @@
                 </div>
             </div>
             {% endif %}
+
+            <!-- Responsabili (Users with edit permissions) -->
+            {% if responsabili_users %}
+            <div class="border-t border-secondary pt-6">
+                <h3 class="text-xs font-semibold font-display text-gray-500 uppercase tracking-wider mb-3">{% trans "Responsabili" %}</h3>
+                <div class="flex flex-wrap gap-2">
+                    {% for user in responsabili_users %}
+                    <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-primary/10 text-primary rounded-full text-sm font-medium">
+                        <div class="w-6 h-6 bg-primary rounded-full flex items-center justify-center text-white font-bold text-xs">
+                            {{ user.username|slice:":1"|upper }}
+                        </div>
+                        {{ user.get_full_name|default:user.username }}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Todos Section -->
+            <div class="border-t border-secondary pt-6" id="todo-section">
+                <h3 class="text-sm font-semibold font-display text-gray-700 mb-4 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                    </svg>
+                    {% trans "Todos" %}
+                    {% if activity.todos %}
+                    <span class="text-xs font-normal text-gray-500">({{ activity.todos|length }})</span>
+                    {% endif %}
+                </h3>
+
+                {% if can_edit %}
+                <!-- Add Todo Form (only shown to users with edit permission) -->
+                <form hx-post="{% url 'activities:add_todo' activity.slug %}"
+                      hx-target="#todo-list"
+                      hx-swap="innerHTML"
+                      class="mb-4 p-4 bg-neutral rounded-lg border border-secondary">
+                    {% csrf_token %}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                        <div>
+                            <label for="todo-name" class="block text-xs font-medium text-gray-600 mb-1">{% trans "Name" %} *</label>
+                            <input type="text"
+                                   id="todo-name"
+                                   name="name"
+                                   required
+                                   placeholder="{% trans 'Enter todo name...' %}"
+                                   class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-primary">
+                        </div>
+                        <div>
+                            <label for="todo-datetime" class="block text-xs font-medium text-gray-600 mb-1">{% trans "Due Date" %}</label>
+                            <input type="datetime-local"
+                                   id="todo-datetime"
+                                   name="datetime"
+                                   class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-primary">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="todo-description" class="block text-xs font-medium text-gray-600 mb-1">{% trans "Description" %}</label>
+                        <textarea id="todo-description"
+                                  name="description"
+                                  rows="2"
+                                  placeholder="{% trans 'Optional description...' %}"
+                                  class="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-primary resize-none"></textarea>
+                    </div>
+                    <button type="submit"
+                            class="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white text-sm font-medium rounded-md hover:bg-primary/90 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        {% trans "Add Todo" %}
+                    </button>
+                </form>
+                {% endif %}
+
+                <!-- Todo List -->
+                {% include "activities/partials/todo_list.html" with can_edit=can_edit %}
+            </div>
         </div>
 
-        <!-- Actions -->
+        <!-- Actions (only shown to users with edit permission) -->
+        {% if can_edit %}
         <div class="bg-gradient-to-r from-neutral to-secondary/30 px-6 py-4 flex justify-end gap-3 border-t border-secondary">
-            <a href="{% url 'activities:activity_update' activity.id %}"
+            <a href="{% url 'activities:activity_update' activity.slug %}"
                class="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white font-medium rounded-md hover:bg-primary/90 transition-colors">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                 </svg>
                 {% trans "Edit Activity" %}
             </a>
-            <a href="{% url 'activities:activity_delete' activity.id %}"
-               class="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white font-medium rounded-md hover:bg-red-700 transition-colors">
+            <button type="button"
+                    onclick="document.getElementById('delete-modal').classList.remove('hidden')"
+                    class="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white font-medium rounded-md hover:bg-red-700 transition-colors">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                 </svg>
                 {% trans "Delete Activity" %}
-            </a>
+            </button>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="delete-modal" class="hidden fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <!-- Background overlay -->
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onclick="document.getElementById('delete-modal').classList.add('hidden')"></div>
+
+        <!-- Modal panel -->
+        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <div class="sm:flex sm:items-start">
+                    <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+                        <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        </svg>
+                    </div>
+                    <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">
+                            {% trans "Delete Activity" %}
+                        </h3>
+                        <div class="mt-2">
+                            <p class="text-sm text-gray-500">
+                                {% trans "Are you sure you want to delete" %} <strong>{{ activity.nome_iniziativa }}</strong>?
+                                {% trans "This action cannot be undone." %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse gap-3">
+                <form method="post" action="{% url 'activities:activity_delete' activity.slug %}" class="inline">
+                    {% csrf_token %}
+                    <button type="submit"
+                            class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:w-auto sm:text-sm">
+                        {% trans "Delete" %}
+                    </button>
+                </form>
+                <button type="button"
+                        onclick="document.getElementById('delete-modal').classList.add('hidden')"
+                        class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:mt-0 sm:w-auto sm:text-sm">
+                    {% trans "Cancel" %}
+                </button>
+            </div>
         </div>
     </div>
 </div>

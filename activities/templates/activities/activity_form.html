@@ -152,21 +152,47 @@
                 <div>
                     <label class="block text-sm font-semibold font-display text-gray-700 mb-2.5 flex items-center gap-2">
                         <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                        </svg>
-                        {{ form.responsabile_iniziativa.label }}
-                    </label>
-                    {{ form.responsabile_iniziativa }}
-                </div>
-
-                <div>
-                    <label class="block text-sm font-semibold font-display text-gray-700 mb-2.5 flex items-center gap-2">
-                        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                         </svg>
                         {{ form.ufficio.label }}
                     </label>
                     {{ form.ufficio }}
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold font-display text-gray-700 mb-2.5 flex items-center gap-2">
+                        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                        {{ form.number_persons.label }}
+                    </label>
+                    {{ form.number_persons }}
+                </div>
+
+                <!-- Responsabili Section -->
+                <div class="md:col-span-2 border-t border-secondary pt-6">
+                    <label class="block text-sm font-semibold font-display text-gray-700 mb-3 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                        </svg>
+                        {% trans "Responsabili" %}
+                        <span class="text-xs text-gray-500 font-normal ml-1">{% trans "(users who can edit this activity)" %}</span>
+                    </label>
+                    <p class="text-xs text-gray-500 mb-3">{% trans "Select one or more users who will be responsible for this activity. Only responsabili and administrators can edit." %}</p>
+                    <div class="bg-neutral rounded-lg p-4 border border-secondary max-h-48 overflow-y-auto">
+                        {% if form.responsabili.field.queryset.exists %}
+                        <div class="space-y-2">
+                            {% for checkbox in form.responsabili %}
+                            <label class="flex items-center gap-3 p-2 rounded-md hover:bg-white cursor-pointer transition-colors">
+                                {{ checkbox.tag }}
+                                <span class="text-sm text-gray-700">{{ checkbox.choice_label }}</span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <p class="text-sm text-gray-500 italic text-center py-2">{% trans "No users available" %}</p>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
 
@@ -200,8 +226,8 @@
 #id_settore,
 #id_data_inizio,
 #id_data_fine,
-#id_responsabile_iniziativa,
-#id_ufficio {
+#id_ufficio,
+#id_number_persons {
     width: 100%;
     border: 1px solid #D6E4E5;
     border-radius: 0.375rem;
@@ -221,8 +247,8 @@
 #id_settore:hover,
 #id_data_inizio:hover,
 #id_data_fine:hover,
-#id_responsabile_iniziativa:hover,
-#id_ufficio:hover {
+#id_ufficio:hover,
+#id_number_persons:hover {
     border-color: #497174;
     box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
 }
@@ -235,8 +261,8 @@
 #id_settore:focus,
 #id_data_inizio:focus,
 #id_data_fine:focus,
-#id_responsabile_iniziativa:focus,
-#id_ufficio:focus {
+#id_ufficio:focus,
+#id_number_persons:focus {
     outline: none;
     border-color: #497174;
     ring: 2px;
@@ -304,7 +330,6 @@ input[type="date"]#id_data_fine {
 #id_nome_iniziativa::placeholder,
 #id_citta::placeholder,
 #id_settore::placeholder,
-#id_responsabile_iniziativa::placeholder,
 #id_descrizione::placeholder,
 #id_azione::placeholder {
     color: #9CA3AF;
@@ -315,6 +340,36 @@ input[type="date"]#id_data_fine {
 *:focus-visible {
     outline: 2px solid #497174;
     outline-offset: 2px;
+}
+
+/* Responsabili checkbox styling */
+.responsabili-checkbox input[type="checkbox"],
+#id_responsabili input[type="checkbox"] {
+    width: 1.125rem;
+    height: 1.125rem;
+    border: 2px solid #D6E4E5;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    accent-color: #497174;
+}
+
+#id_responsabili input[type="checkbox"]:checked {
+    background-color: #497174;
+    border-color: #497174;
+}
+
+#id_responsabili label {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+#id_responsabili label:hover {
+    background-color: white;
 }
 </style>
 {% endblock %}

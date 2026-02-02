@@ -1019,3 +1019,111 @@ msgstr "Risultati di Ricerca Completi"
 #: templates/partials/hybrid_search_results.html:89
 msgid "Hide raw data"
 msgstr "Nascondi dati grezzi"
+
+# Todo Section Translations
+#: activities/templates/activities/activity_detail.html
+msgid "Todos"
+msgstr "Attivita da fare"
+
+#: activities/templates/activities/activity_detail.html
+msgid "Name"
+msgstr "Nome"
+
+#: activities/templates/activities/activity_detail.html
+msgid "Enter todo name..."
+msgstr "Inserisci nome attivita..."
+
+#: activities/templates/activities/activity_detail.html
+msgid "Due Date"
+msgstr "Scadenza"
+
+#: activities/templates/activities/activity_detail.html
+msgid "Optional description..."
+msgstr "Descrizione opzionale..."
+
+#: activities/templates/activities/activity_detail.html
+msgid "Add Todo"
+msgstr "Aggiungi Attivita"
+
+#: activities/templates/activities/partials/todo_list.html
+msgid "No todos yet. Add one above."
+msgstr "Nessuna attivita ancora. Aggiungine una sopra."
+
+#: activities/templates/activities/partials/todo_list.html
+msgid "Are you sure you want to remove this todo?"
+msgstr "Sei sicuro di voler rimuovere questa attivita?"
+
+# Navigation - Admin section
+#: templates/base.html
+msgid "Admin"
+msgstr "Amministrazione"
+
+#: templates/base.html
+msgid "All Activities"
+msgstr "Tutte le Attivita"
+
+# Office choices
+#: activities/models.py
+msgid "Both"
+msgstr "Entrambi"
+
+# Responsabili and permissions
+#: activities/templates/activities/activity_form.html
+msgid "Responsabili"
+msgstr "Responsabili"
+
+#: activities/templates/activities/activity_form.html
+msgid "(users who can edit this activity)"
+msgstr "(utenti che possono modificare questa attività)"
+
+#: activities/templates/activities/activity_form.html
+msgid "Select one or more users who will be responsible for this activity. Only responsabili and administrators can edit."
+msgstr "Seleziona uno o più utenti responsabili di questa attività. Solo i responsabili e gli amministratori possono modificarla."
+
+#: activities/templates/activities/activity_form.html
+msgid "No users available"
+msgstr "Nessun utente disponibile"
+
+#: activities/views.py
+msgid "You don't have permission to edit this activity."
+msgstr "Non hai il permesso di modificare questa attività."
+
+#: activities/views.py
+msgid "You don't have permission to delete this activity."
+msgstr "Non hai il permesso di eliminare questa attività."
+
+#: activities/views.py
+msgid "You don't have permission to modify this activity."
+msgstr "Non hai il permesso di modificare questa attività."
+
+#: activities/views.py
+msgid "You don't have permission to edit this activity. Only responsabili or administrators can make changes."
+msgstr "Non hai il permesso di modificare questa attività. Solo i responsabili o gli amministratori possono apportare modifiche."
+
+# Delete confirmation modals
+#: activities/templates/activities/activity_detail.html
+#: activities/templates/activities/partials/todo_list.html
+msgid "Are you sure you want to delete"
+msgstr "Sei sicuro di voler eliminare"
+
+#: activities/templates/activities/activity_detail.html
+#: activities/templates/activities/partials/todo_list.html
+msgid "This action cannot be undone."
+msgstr "Questa azione non può essere annullata."
+
+#: activities/templates/activities/activity_detail.html
+#: activities/templates/activities/partials/todo_list.html
+msgid "Delete"
+msgstr "Elimina"
+
+#: activities/templates/activities/partials/todo_list.html
+msgid "Delete Todo"
+msgstr "Elimina Attività"
+
+#: activities/templates/activities/partials/todo_list.html
+msgid "No todos yet."
+msgstr "Nessuna attività ancora."
+
+#: activities/templates/activities/partials/todo_list.html
+msgid "Add one above."
+msgstr "Aggiungine una sopra."

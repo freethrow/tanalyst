@@ -242,9 +242,15 @@
           <!-- Desktop Navigation -->
           {% if user.is_authenticated %}
           <nav class="hidden md:flex items-center space-x-1">
+            <!-- Vertical Separator -->
+            <div class="h-6 w-px bg-secondary mx-1"></div>
+
             <!-- Articles Dropdown -->
             <div class="relative group">
               <button class="px-3 py-2 rounded-md text-sm font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary transition-colors flex items-center gap-1">
+                <svg class="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/>
+                </svg>
                 {% trans "Articles" %}
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
@@ -267,32 +273,46 @@
                   <a href="{% url 'articles:all' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-secondary hover:text-primary">
                     📋 {% trans "All Articles" %}
                   </a>
+                  <div class="border-t border-secondary my-1"></div>
+                  <a href="{% url 'articles:sectors' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-secondary hover:text-primary">
+                    🏷️ {% trans "Sectors" %}
+                  </a>
+                  <a href="{% url 'articles:hybrid_search' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-secondary hover:text-primary">
+                    🔍 {% trans "Search" %}
+                  </a>
                 </div>
               </div>
             </div>
-            
-            <a href="{% url 'articles:sectors' %}" class="px-3 py-2 rounded-md text-sm font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary transition-colors">
-              {% trans "Sectors" %}
-            </a>
 
-            <a href="{% url 'activities:activity_list' %}" class="px-3 py-2 rounded-md text-sm font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary transition-colors">
+            <!-- Vertical Separator -->
+            <div class="h-6 w-px bg-secondary mx-1"></div>
+
+            <!-- Activities Link with distinct styling -->
+            <a href="{% url 'activities:activity_list' %}" class="px-3 py-2 rounded-md text-sm font-medium font-display text-gray-700 hover:bg-accent/10 hover:text-accent transition-colors flex items-center gap-1">
+              <svg class="w-4 h-4 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+              </svg>
               {% trans "Activities" %}
             </a>
 
-            <!-- Tools Dropdown -->
+            <!-- Vertical Separator -->
+            <div class="h-6 w-px bg-secondary mx-1"></div>
+
+            {% if user.is_staff %}
+            <!-- Admin Tools Dropdown -->
             <div class="relative group">
               <button class="px-3 py-2 rounded-md text-sm font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary transition-colors flex items-center gap-1">
-                {% trans "Tools" %}
+                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                {% trans "Admin" %}
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                 </svg>
               </button>
               <div class="absolute left-0 mt-1 w-48 bg-white rounded-md shadow-lg border border-secondary opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                 <div class="py-1">
-                  <a href="{% url 'articles:hybrid_search' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-secondary hover:text-primary">
-                    🔍 {% trans "Search" %}
-                  </a>
-                  {% if user.is_staff %}
                   <a href="{% url 'articles:embedding_management' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-secondary hover:text-primary">
                     🔧 {% trans "Embeddings" %}
                   </a>
@@ -302,18 +322,16 @@
                   <a href="{% url 'articles:translation_service' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-secondary hover:text-primary">
                     🌐 {% trans "Translation" %}
                   </a>
-                  {% endif %}
+                  <div class="border-t border-secondary my-1"></div>
+                  <a href="{% url 'articles:weekly_summaries' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-secondary hover:text-primary">
+                    📊 {% trans "Summaries" %}
+                  </a>
+                  <a href="{% url 'articles:send_email' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-secondary hover:text-primary">
+                    📧 {% trans "Email" %}
+                  </a>
                 </div>
               </div>
             </div>
-
-            {% if user.is_staff %}
-            <a href="{% url 'articles:weekly_summaries' %}" class="px-3 py-2 rounded-md text-sm font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary transition-colors">
-              📊 {% trans "Summaries" %}
-            </a>
-            <a href="{% url 'articles:send_email' %}" class="px-3 py-2 rounded-md text-sm font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary transition-colors">
-              📧 {% trans "Email" %}
-            </a>
             {% endif %}
           </nav>
           {% endif %}
@@ -410,7 +428,12 @@
           {% if user.is_authenticated %}
           <div class="px-2 pt-2 pb-3 space-y-1">
             <!-- Articles Section in Mobile Menu -->
-            <div class="px-3 py-2 text-xs font-semibold font-display text-gray-500 uppercase">{% trans "Articles" %}</div>
+            <div class="px-3 py-2 text-xs font-semibold font-display text-primary uppercase flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/>
+              </svg>
+              {% trans "Articles" %}
+            </div>
             <a href="/" class="block px-3 py-2 rounded-md text-base font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary">
               📥 {% trans "Inbox" %}
             </a>
@@ -426,20 +449,39 @@
             <a href="{% url 'articles:all' %}" class="block px-3 py-2 rounded-md text-base font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary">
               📋 {% trans "All Articles" %}
             </a>
-            
-            <div class="border-t border-secondary my-2"></div>
             <a href="{% url 'articles:sectors' %}" class="block px-3 py-2 rounded-md text-base font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary">
-              {% trans "Sectors" %}
+              🏷️ {% trans "Sectors" %}
             </a>
-            <a href="{% url 'activities:activity_list' %}" class="block px-3 py-2 rounded-md text-base font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary">
-              {% trans "Activities" %}
+            <a href="{% url 'articles:hybrid_search' %}" class="block px-3 py-2 rounded-md text-base font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary">
+              🔍 {% trans "Search" %}
             </a>
-            <div class="border-t border-secondary my-2 pt-2">
-              <div class="px-3 py-2 text-xs font-semibold font-display text-gray-500 uppercase">{% trans "Tools" %}</div>
-              <a href="{% url 'articles:hybrid_search' %}" class="block px-3 py-2 rounded-md text-base font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary">
-                🔍 {% trans "Search" %}
+
+            <!-- Activities Section - Distinct styling -->
+            <div class="border-t border-secondary my-3 pt-3">
+              <div class="px-3 py-2 text-xs font-semibold font-display text-accent uppercase flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+                {% trans "Activities" %}
+              </div>
+              <a href="{% url 'activities:activity_list' %}" class="block px-3 py-2 rounded-md text-base font-medium font-display text-gray-700 hover:bg-accent/10 hover:text-accent">
+                📅 {% trans "All Activities" %}
               </a>
-              {% if user.is_staff %}
+              <a href="{% url 'activities:activity_create' %}" class="block px-3 py-2 rounded-md text-base font-medium font-display text-gray-700 hover:bg-accent/10 hover:text-accent">
+                ➕ {% trans "New Activity" %}
+              </a>
+            </div>
+
+            {% if user.is_staff %}
+            <!-- Admin Section -->
+            <div class="border-t border-secondary my-3 pt-3">
+              <div class="px-3 py-2 text-xs font-semibold font-display text-gray-500 uppercase flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                {% trans "Admin" %}
+              </div>
               <a href="{% url 'articles:embedding_management' %}" class="block px-3 py-2 rounded-md text-base font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary">
                 🔧 {% trans "Embeddings" %}
               </a>
@@ -449,15 +491,13 @@
               <a href="{% url 'articles:translation_service' %}" class="block px-3 py-2 rounded-md text-base font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary">
                 🌐 {% trans "Translation" %}
               </a>
-              {% endif %}
+              <a href="{% url 'articles:weekly_summaries' %}" class="block px-3 py-2 rounded-md text-base font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary">
+                📊 {% trans "Summaries" %}
+              </a>
+              <a href="{% url 'articles:send_email' %}" class="block px-3 py-2 rounded-md text-base font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary">
+                📧 {% trans "Email" %}
+              </a>
             </div>
-            {% if user.is_staff %}
-            <a href="{% url 'articles:weekly_summaries' %}" class="block px-3 py-2 rounded-md text-base font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary">
-              📊 {% trans "Summaries" %}
-            </a>
-            <a href="{% url 'articles:send_email' %}" class="block px-3 py-2 rounded-md text-base font-medium font-display text-gray-700 hover:bg-secondary hover:text-primary">
-              📧 {% trans "Email" %}
-            </a>
             {% endif %}
           </div>
           {% endif %}
@@ -491,7 +531,7 @@
     <!-- Footer -->
     <footer class="bg-accent text-white border-t border-accent mt-auto">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
             <h3 class="text-sm font-semibold font-display text-white uppercase tracking-wider mb-4">{% trans "Articles" %}</h3>
             <ul class="space-y-2">
@@ -500,13 +540,20 @@
               <li><a href="{% url 'articles:discarded' %}" class="text-white/80 hover:text-white text-sm transition-colors">{% trans "Discarded" %}</a></li>
               <li><a href="{% url 'articles:sent' %}" class="text-white/80 hover:text-white text-sm transition-colors">{% trans "Sent" %}</a></li>
               <li><a href="{% url 'articles:all' %}" class="text-white/80 hover:text-white text-sm transition-colors">{% trans "All Articles" %}</a></li>
+              <li><a href="{% url 'articles:sectors' %}" class="text-white/80 hover:text-white text-sm transition-colors">{% trans "Sectors" %}</a></li>
+            </ul>
+          </div>
+          <div>
+            <h3 class="text-sm font-semibold font-display text-white uppercase tracking-wider mb-4">{% trans "Activities" %}</h3>
+            <ul class="space-y-2">
+              <li><a href="{% url 'activities:activity_list' %}" class="text-white/80 hover:text-white text-sm transition-colors">{% trans "All Activities" %}</a></li>
+              <li><a href="{% url 'activities:activity_create' %}" class="text-white/80 hover:text-white text-sm transition-colors">{% trans "New Activity" %}</a></li>
             </ul>
           </div>
           <div>
             <h3 class="text-sm font-semibold font-display text-white uppercase tracking-wider mb-4">{% trans "Tools" %}</h3>
             <ul class="space-y-2">
               <li><a href="{% url 'articles:hybrid_search' %}" class="text-white/80 hover:text-white text-sm transition-colors">{% trans "Search" %}</a></li>
-              <li><a href="{% url 'articles:sectors' %}" class="text-white/80 hover:text-white text-sm transition-colors">{% trans "Sectors" %}</a></li>
               {% if user.is_staff %}
               <li><a href="{% url 'articles:weekly_summaries' %}" class="text-white/80 hover:text-white text-sm transition-colors">{% trans "Summaries" %}</a></li>
               {% endif %}
@@ -518,9 +565,7 @@
               <li><a href="/about/" class="text-white/80 hover:text-white text-sm transition-colors">{% trans "About us" %}</a></li>
               <li><a href="mailto:info@example.com" class="text-white/80 hover:text-white text-sm transition-colors">{% trans "Contact" %}</a></li>
             </ul>
-          </div>
-          <div>
-            <p class="text-sm text-white/80">© <span id="year"></span> TA. All rights reserved.</p>
+            <p class="text-sm text-white/60 mt-4">© <span id="year"></span> TA</p>
           </div>
         </div>
       </div>

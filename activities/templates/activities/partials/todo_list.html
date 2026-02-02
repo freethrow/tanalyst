@@ -1,0 +1,140 @@
+{% load i18n %}
+
+<div id="todo-list" class="space-y-3">
+    {% if activity.todos %}
+        <ol class="space-y-2">
+            {% for todo in activity.todos %}
+            <li class="flex items-start gap-3 p-3 bg-white rounded-lg border border-secondary {% if todo.done %}opacity-60{% endif %}">
+                {% if can_edit %}
+                <form hx-post="{% url 'activities:toggle_todo' activity.slug forloop.counter0 %}"
+                      hx-target="#todo-list"
+                      hx-swap="innerHTML"
+                      class="flex-shrink-0 mt-0.5">
+                    {% csrf_token %}
+                    <button type="submit"
+                            class="w-5 h-5 rounded border-2 flex items-center justify-center transition-colors
+                                   {% if todo.done %}bg-primary border-primary text-white{% else %}border-gray-300 hover:border-primary{% endif %}">
+                        {% if todo.done %}
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        {% endif %}
+                    </button>
+                </form>
+                {% else %}
+                <div class="flex-shrink-0 mt-0.5 w-5 h-5 rounded border-2 flex items-center justify-center
+                            {% if todo.done %}bg-primary border-primary text-white{% else %}border-gray-300{% endif %}">
+                    {% if todo.done %}
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm font-medium text-gray-800 {% if todo.done %}line-through{% endif %}">
+                            {{ forloop.counter }}. {{ todo.name }}
+                        </span>
+                    </div>
+                    {% if todo.description %}
+                    <p class="text-xs text-gray-500 mt-1 {% if todo.done %}line-through{% endif %}">
+                        {{ todo.description }}
+                    </p>
+                    {% endif %}
+                    {% if todo.datetime %}
+                    <p class="text-xs text-gray-400 mt-1 flex items-center gap-1">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        {{ todo.datetime|date:"d/m/Y H:i" }}
+                    </p>
+                    {% endif %}
+                </div>
+
+                {% if can_edit %}
+                <button type="button"
+                        onclick="showTodoDeleteModal({{ forloop.counter0 }}, '{{ todo.name|escapejs }}')"
+                        class="flex-shrink-0 p-1 text-gray-400 hover:text-red-500 transition-colors rounded hover:bg-red-50">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                </button>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ol>
+    {% else %}
+        <p class="text-sm text-gray-500 italic py-4 text-center">
+            {% trans "No todos yet." %}{% if can_edit %} {% trans "Add one above." %}{% endif %}
+        </p>
+    {% endif %}
+</div>
+
+{% if can_edit %}
+<!-- Todo Delete Confirmation Modal -->
+<div id="todo-delete-modal" class="hidden fixed inset-0 z-50 overflow-y-auto" aria-labelledby="todo-modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <!-- Background overlay -->
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onclick="hideTodoDeleteModal()"></div>
+
+        <!-- Modal panel -->
+        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full">
+            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <div class="sm:flex sm:items-start">
+                    <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+                        <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                        </svg>
+                    </div>
+                    <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900" id="todo-modal-title">
+                            {% trans "Delete Todo" %}
+                        </h3>
+                        <div class="mt-2">
+                            <p class="text-sm text-gray-500">
+                                {% trans "Are you sure you want to delete" %} "<span id="todo-delete-name" class="font-medium"></span>"?
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse gap-3">
+                <form id="todo-delete-form" method="post" hx-post="" hx-target="#todo-list" hx-swap="innerHTML" class="inline">
+                    {% csrf_token %}
+                    <button type="submit"
+                            class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:w-auto sm:text-sm">
+                        {% trans "Delete" %}
+                    </button>
+                </form>
+                <button type="button"
+                        onclick="hideTodoDeleteModal()"
+                        class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:mt-0 sm:w-auto sm:text-sm">
+                    {% trans "Cancel" %}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function showTodoDeleteModal(todoIndex, todoName) {
+    const modal = document.getElementById('todo-delete-modal');
+    const nameSpan = document.getElementById('todo-delete-name');
+    const form = document.getElementById('todo-delete-form');
+
+    nameSpan.textContent = todoName;
+    form.setAttribute('hx-post', '{% url "activities:remove_todo" activity.slug 0 %}'.replace('/0/', '/' + todoIndex + '/'));
+
+    // Re-process HTMX for the updated form
+    htmx.process(form);
+
+    modal.classList.remove('hidden');
+}
+
+function hideTodoDeleteModal() {
+    document.getElementById('todo-delete-modal').classList.add('hidden');
+}
+</script>
+{% endif %}
