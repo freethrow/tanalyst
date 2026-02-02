@@ -395,7 +395,7 @@ def add_todo(request, slug):
     # Check if user has permission to edit
     if not activity.can_user_edit(request.user):
         return HttpResponse(
-            f'<p class="text-red-500 text-sm">{_("You don't have permission to modify this activity.")}</p>',
+            f"<p class=\"text-red-500 text-sm\">{_('You do not have permission to modify this activity.')}</p>",
             status=403,
         )
 
@@ -444,7 +444,7 @@ def remove_todo(request, slug, todo_index):
     # Check if user has permission to edit
     if not activity.can_user_edit(request.user):
         return HttpResponse(
-            f'<p class="text-red-500 text-sm">{_("You don't have permission to modify this activity.")}</p>',
+            f"<p class=\"text-red-500 text-sm\">{_('You do not have permission to modify this activity.')}</p>",
             status=403,
         )
 
@@ -466,7 +466,7 @@ def toggle_todo(request, slug, todo_index):
     # Check if user has permission to edit
     if not activity.can_user_edit(request.user):
         return HttpResponse(
-            f'<p class="text-red-500 text-sm">{_("You don't have permission to modify this activity.")}</p>',
+            f"<p class=\"text-red-500 text-sm\">{_('You do not have permission to modify this activity.')}</p>",
             status=403,
         )
 
