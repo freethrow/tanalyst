@@ -148,11 +148,11 @@ class Command(BaseCommand):
                     for todo_data in activity_data['todos']:
                         todos.append(self.parse_todo(todo_data))
 
-                # Get admin user to add to responsabili
+                # Get admin user to add to responsabili (store as ObjectId string)
                 admin_user = User.objects.filter(is_superuser=True).first()
                 responsabili_list = activity_data.get('responsabili', [])
-                if admin_user and admin_user.username not in responsabili_list:
-                    responsabili_list.append(admin_user.username)
+                if admin_user and str(admin_user.pk) not in responsabili_list:
+                    responsabili_list.append(str(admin_user.pk))
 
                 # Build activity fields
                 activity_fields = {

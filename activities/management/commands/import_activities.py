@@ -114,9 +114,9 @@ class Command(BaseCommand):
                         if mese and len(mese) == 1:
                             mese = mese.zfill(2)
 
-                        # Get admin user to add to responsabili
+                        # Get admin user to add to responsabili (store as ObjectId string)
                         admin_user = User.objects.filter(is_superuser=True).first()
-                        responsabili_list = [admin_user.username] if admin_user else []
+                        responsabili_list = [str(admin_user.pk)] if admin_user else []
 
                         activity_data = {
                             'tipo': row.get('tipo', '').strip(),
