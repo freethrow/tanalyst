@@ -256,6 +256,10 @@ def generate_excel_report(request):
         cell_alignment = Alignment(
             horizontal="center", vertical="center", wrap_text=True
         )
+        bold_cell_alignment = Alignment(
+            horizontal="center", vertical="center", wrap_text=True
+        )
+        bold_font = Font(bold=True)
         border = Border(
             left=Side(style="thin"),
             right=Side(style="thin"),
@@ -263,10 +267,15 @@ def generate_excel_report(request):
             bottom=Side(style="thin"),
         )
 
+        # Calculate total participants
+        total_participants = sum(
+            activity.number_persons or 0 for activity in activities
+        )
+
         # Add title
         ws.merge_cells("A1:H1")
         title_cell = ws["A1"]
-        title_cell.value = f"Attivita' ICE Belgrado Report - Generato iled on {datetime.now().strftime('%d/%m/%Y %H:%M')}"
+        title_cell.value = f"Attivita' ICE Belgrado Report - Generato il {datetime.now().strftime('%d/%m/%Y %H:%M')} - Totale Partecipanti: {total_participants}"
         title_cell.font = Font(bold=True, size=14)
         title_cell.alignment = Alignment(horizontal="center")
         ws.row_dimensions[1].height = 25
@@ -280,6 +289,7 @@ def generate_excel_report(request):
             "Settore",
             "Ufficio",
             "Description",
+            "Partecipanti",
         ]
         ws.append([])  # Empty row 2
         ws.append(headers)
@@ -292,7 +302,7 @@ def generate_excel_report(request):
             cell.border = border
 
         # Set column widths
-        column_widths = [12, 15, 30, 15, 20, 15, 20, 40]
+        column_widths = [12, 15, 30, 15, 20, 15, 40, 12]
         for col_num, width in enumerate(column_widths, 1):
             ws.column_dimensions[get_column_letter(col_num)].width = width
 
@@ -306,6 +316,7 @@ def generate_excel_report(request):
                 activity.settore or "",
                 activity.ufficio or "",
                 activity.descrizione or "",
+                activity.number_persons or "",
             ]
             ws.append(row_data)
 
@@ -315,6 +326,9 @@ def generate_excel_report(request):
                 cell = ws.cell(row=row_num, column=col_num)
                 cell.alignment = cell_alignment
                 cell.border = border
+                # Make column C (Iniziativa) bold
+                if col_num == 3:
+                    cell.font = bold_font
 
         # Freeze header rows
         ws.freeze_panes = "A4"
