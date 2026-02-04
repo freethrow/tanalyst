@@ -107,7 +107,6 @@ class Command(BaseCommand):
                 'descrizione': activity.descrizione,
                 'azione': activity.azione,
                 'number_persons': activity.number_persons,
-                'responsabile_iniziativa': activity.responsabile_iniziativa,
                 'ufficio': activity.ufficio,
                 'slug': activity.slug,
                 'responsabili': activity.responsabili or [],

@@ -58,7 +58,9 @@ def activity_list(request):
         activity_ids = [
             doc["_id"] for doc in db.activities.find(mongo_filter, {"_id": 1})
         ]
-        activities = Activity.objects.filter(id__in=activity_ids).order_by("-anno", "-mese", "-data_inizio")
+        activities = Activity.objects.filter(id__in=activity_ids).order_by(
+            "-anno", "-mese", "-data_inizio"
+        )
     else:
         activities = Activity.objects.all()
 
@@ -124,8 +126,21 @@ def activity_create(request):
     if request.method == "POST":
         form = ActivityForm(request.POST)
         if form.is_valid():
-            # Save the activity (slug will be auto-generated)
-            activity = form.save(commit=False)
+            # Create a fresh Activity instance (not from form.save)
+            activity = Activity(
+                tipo=form.cleaned_data.get("tipo"),
+                mese=form.cleaned_data.get("mese"),
+                anno=form.cleaned_data.get("anno"),
+                nome_iniziativa=form.cleaned_data.get("nome_iniziativa"),
+                citta=form.cleaned_data.get("citta"),
+                data_inizio=form.cleaned_data.get("data_inizio"),
+                data_fine=form.cleaned_data.get("data_fine"),
+                settore=form.cleaned_data.get("settore"),
+                descrizione=form.cleaned_data.get("descrizione"),
+                azione=form.cleaned_data.get("azione"),
+                number_persons=form.cleaned_data.get("number_persons"),
+                ufficio=form.cleaned_data.get("ufficio"),
+            )
 
             # Get responsabili user IDs
             responsabili_users = form.cleaned_data.get("responsabili", [])
@@ -139,6 +154,8 @@ def activity_create(request):
                 responsabili_ids.append(user_id)
 
             activity.responsabili = responsabili_ids
+
+            # Save - MongoDB will auto-generate the ObjectId
             activity.save()
 
             messages.success(
@@ -395,7 +412,7 @@ def add_todo(request, slug):
     # Check if user has permission to edit
     if not activity.can_user_edit(request.user):
         return HttpResponse(
-            f"<p class=\"text-red-500 text-sm\">{_('You do not have permission to modify this activity.')}</p>",
+            f'<p class="text-red-500 text-sm">{_("You do not have permission to modify this activity.")}</p>',
             status=403,
         )
 
@@ -444,7 +461,7 @@ def remove_todo(request, slug, todo_index):
     # Check if user has permission to edit
     if not activity.can_user_edit(request.user):
         return HttpResponse(
-            f"<p class=\"text-red-500 text-sm\">{_('You do not have permission to modify this activity.')}</p>",
+            f'<p class="text-red-500 text-sm">{_("You do not have permission to modify this activity.")}</p>',
             status=403,
         )
 
@@ -466,7 +483,7 @@ def toggle_todo(request, slug, todo_index):
     # Check if user has permission to edit
     if not activity.can_user_edit(request.user):
         return HttpResponse(
-            f"<p class=\"text-red-500 text-sm\">{_('You do not have permission to modify this activity.')}</p>",
+            f'<p class="text-red-500 text-sm">{_("You do not have permission to modify this activity.")}</p>',
             status=403,
         )
 

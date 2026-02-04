@@ -37,7 +37,6 @@ class ActivityAdmin(admin.ModelAdmin):
         'ufficio',
         'descrizione',
         'azione',
-        'responsabile_iniziativa',
     )
 
     # Default ordering (newest first)
@@ -64,7 +63,7 @@ class ActivityAdmin(admin.ModelAdmin):
             'description': 'Business sector and managing office'
         }),
         ('Details', {
-            'fields': ('descrizione', 'azione', 'responsabile_iniziativa'),
+            'fields': ('descrizione', 'azione'),
             'description': 'Detailed description and responsibilities',
             'classes': ('wide',)
         }),

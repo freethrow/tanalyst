@@ -1,7 +1,10 @@
 import csv
 from datetime import datetime
 from django.core.management.base import BaseCommand, CommandError
+from django.contrib.auth import get_user_model
 from activities.models import Activity
+
+User = get_user_model()
 
 
 class Command(BaseCommand):
@@ -75,7 +78,7 @@ class Command(BaseCommand):
                 required_fields = [
                     'tipo', 'mese', 'anno', 'nome_iniziativa', 'citta',
                     'data_inizio', 'data_fine', 'settore', 'descrizione',
-                    'azione', 'responsabile_iniziativa', 'ufficio'
+                    'azione', 'ufficio'
                 ]
                 
                 if reader.fieldnames is None:
@@ -111,6 +114,10 @@ class Command(BaseCommand):
                         if mese and len(mese) == 1:
                             mese = mese.zfill(2)
 
+                        # Get admin user to add to responsabili
+                        admin_user = User.objects.filter(is_superuser=True).first()
+                        responsabili_list = [admin_user.username] if admin_user else []
+
                         activity_data = {
                             'tipo': row.get('tipo', '').strip(),
                             'mese': mese,
@@ -122,8 +129,8 @@ class Command(BaseCommand):
                             'settore': row.get('settore', '').strip(),
                             'descrizione': row.get('descrizione', '').strip(),
                             'azione': row.get('azione', '').strip(),
-                            'responsabile_iniziativa': row.get('responsabile_iniziativa', '').strip(),
                             'ufficio': row.get('ufficio', '').strip(),
+                            'responsabili': responsabili_list,
                         }
 
                         if update_existing:
@@ -145,6 +152,20 @@ class Command(BaseCommand):
                                 )
                                 continue
 
+                        # Generate slug and check for duplicates
+                        temp_activity = Activity(**activity_data)
+                        generated_slug = temp_activity.generate_slug()
+
+                        if Activity.objects.filter(slug=generated_slug).exists():
+                            skipped_count += 1
+                            self.stdout.write(
+                                self.style.WARNING(
+                                    f'Row {row_num}: Skipped "{activity_data["nome_iniziativa"]}" (slug already exists)'
+                                )
+                            )
+                            continue
+
+                        activity_data['slug'] = generated_slug
                         Activity.objects.create(**activity_data)
                         created_count += 1
                         

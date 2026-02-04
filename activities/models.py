@@ -2,7 +2,11 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from django.utils.text import slugify
 from django_mongodb_backend.managers import MongoManager
-from django_mongodb_backend.fields import ObjectIdField, EmbeddedModelArrayField, ArrayField
+from django_mongodb_backend.fields import (
+    ObjectIdAutoField,
+    EmbeddedModelArrayField,
+    ArrayField,
+)
 from django_mongodb_backend.models import EmbeddedModel
 
 
@@ -11,6 +15,7 @@ class Todo(EmbeddedModel):
     Embedded Todo model for Activity tasks.
     Stored as an array of embedded documents within the Activity document.
     """
+
     name = models.CharField(
         max_length=200,
         help_text="Name/title of the todo item",
@@ -42,29 +47,32 @@ class Activity(models.Model):
     """
 
     # Office choices
-    OFFICE_BELGRADO = 'Belgrado'
-    OFFICE_PODGORICA = 'Podgorica'
-    OFFICE_BOTH = 'Both'
+    OFFICE_BELGRADO = "Belgrado"
+    OFFICE_PODGORICA = "Podgorica"
+    OFFICE_BOTH = "Both"
 
     OFFICE_CHOICES = [
-        (OFFICE_BELGRADO, 'Belgrado'),
-        (OFFICE_PODGORICA, 'Podgorica'),
-        (OFFICE_BOTH, 'Both'),
+        (OFFICE_BELGRADO, "Belgrado"),
+        (OFFICE_PODGORICA, "Podgorica"),
+        (OFFICE_BOTH, "Both"),
     ]
 
     # Tipo choices
-    TIPO_PROMOZIONALI_LOCO = 'Iniziative promozionali in loco'
-    TIPO_PROMOZIONALI_ITALIA_ESTERO = 'Iniziative promozionali in Italia e all\'estero'
-    TIPO_PRIVATISTICA = 'Privatistica'
+    TIPO_PROMOZIONALI_LOCO = "Iniziative promozionali in loco"
+    TIPO_PROMOZIONALI_ITALIA_ESTERO = "Iniziative promozionali in Italia e all'estero"
+    TIPO_PRIVATISTICA = "Privatistica"
 
     TIPO_CHOICES = [
-        (TIPO_PROMOZIONALI_LOCO, 'Iniziative promozionali in loco'),
-        (TIPO_PROMOZIONALI_ITALIA_ESTERO, 'Iniziative promozionali in Italia e all\'estero'),
-        (TIPO_PRIVATISTICA, 'Privatistica'),
+        (TIPO_PROMOZIONALI_LOCO, "Iniziative promozionali in loco"),
+        (
+            TIPO_PROMOZIONALI_ITALIA_ESTERO,
+            "Iniziative promozionali in Italia e all'estero",
+        ),
+        (TIPO_PRIVATISTICA, "Privatistica"),
     ]
 
-    # MongoDB ObjectId
-    id = ObjectIdField(primary_key=True, db_column="_id")
+    # MongoDB ObjectId - use ObjectIdAutoField for auto-generation on insert
+    id = ObjectIdAutoField(primary_key=True)
 
     # Tipo (Type of activity)
     tipo = models.CharField(
@@ -160,15 +168,6 @@ class Activity(models.Model):
         null=True,
     )
 
-    # Responsabile iniziativa (Initiative manager)
-    responsabile_iniziativa = models.CharField(
-        max_length=200,
-        db_column="responsabile_iniziativa",
-        help_text="Person responsible for the initiative",
-        blank=True,
-        null=True,
-    )
-
     # Ufficio (Office) - Limited to Belgrado, Podgorica, or Both
     ufficio = models.CharField(
         max_length=200,
@@ -248,17 +247,25 @@ class Activity(models.Model):
         if self.anno:
             parts.append(str(self.anno))
 
-        base_slug = slugify('-'.join(parts))
+        base_slug = slugify("-".join(parts))
 
         if not base_slug:
-            base_slug = 'activity'
+            base_slug = "activity"
 
         # Ensure uniqueness by appending a counter if needed
         slug = base_slug
         counter = 1
-        while Activity.objects.filter(slug=slug).exclude(pk=self.pk).exists():
-            slug = f"{base_slug}-{counter}"
-            counter += 1
+        # For new objects (no pk yet), just check if slug exists
+        # For existing objects, exclude self from the check
+        # Check for both None and empty string since MongoDB ObjectId can be ""
+        if self.pk and self.pk != "":
+            while Activity.objects.filter(slug=slug).exclude(pk=self.pk).exists():
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+        else:
+            while Activity.objects.filter(slug=slug).exists():
+                slug = f"{base_slug}-{counter}"
+                counter += 1
 
         return slug
 
@@ -273,7 +280,7 @@ class Activity(models.Model):
         if self.data_inizio and self.data_fine:
             return f"{self.data_inizio.strftime('%d/%m/%Y')} - {self.data_fine.strftime('%d/%m/%Y')}"
         elif self.data_inizio:
-            return self.data_inizio.strftime('%d/%m/%Y')
+            return self.data_inizio.strftime("%d/%m/%Y")
         return "N/A"
 
     def get_responsabili_users(self):

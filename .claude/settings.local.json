@@ -3,7 +3,10 @@
     "allow": [
       "Bash(python manage.py check:*)",
       "Bash(msgfmt:*)",
-      "Bash(python manage.py compilemessages:*)"
+      "Bash(python manage.py compilemessages:*)",
+      "Bash(python:*)",
+      "Bash(.\\\\venv\\\\Scripts\\\\python.exe:*)",
+      "Bash(C:/Users/DELL/Desktop/TA/venv/Scripts/python.exe manage.py test:*)"
     ]
   }
 }

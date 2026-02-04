@@ -2,7 +2,10 @@ import json
 import os
 from datetime import datetime
 from django.core.management.base import BaseCommand, CommandError
+from django.contrib.auth import get_user_model
 from activities.models import Activity, Todo
+
+User = get_user_model()
 
 
 class Command(BaseCommand):
@@ -145,6 +148,12 @@ class Command(BaseCommand):
                     for todo_data in activity_data['todos']:
                         todos.append(self.parse_todo(todo_data))
 
+                # Get admin user to add to responsabili
+                admin_user = User.objects.filter(is_superuser=True).first()
+                responsabili_list = activity_data.get('responsabili', [])
+                if admin_user and admin_user.username not in responsabili_list:
+                    responsabili_list.append(admin_user.username)
+
                 # Build activity fields
                 activity_fields = {
                     'tipo': activity_data.get('tipo'),
@@ -158,9 +167,8 @@ class Command(BaseCommand):
                     'descrizione': activity_data.get('descrizione'),
                     'azione': activity_data.get('azione'),
                     'number_persons': activity_data.get('number_persons'),
-                    'responsabile_iniziativa': activity_data.get('responsabile_iniziativa'),
                     'ufficio': activity_data.get('ufficio'),
-                    'responsabili': activity_data.get('responsabili', []),
+                    'responsabili': responsabili_list,
                     'todos': todos if todos else None,
                 }
 
