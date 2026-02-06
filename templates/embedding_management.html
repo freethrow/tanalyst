@@ -422,8 +422,8 @@ Management" %} - TA{% endblock %} {% block content %}
       >
         {% trans "Cancel" %}
       </button>
-      <a
-        href="{% url 'articles:remove_all_embeddings' %}"
+      <button
+        onclick="removeAllEmbeddings()"
         class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium font-display text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors duration-200"
       >
         <svg
@@ -440,14 +440,14 @@ Management" %} - TA{% endblock %} {% block content %}
           />
         </svg>
         {% trans "Yes, Remove All" %}
-      </a>
+      </button>
     </div>
   </div>
 </div>
 
 {% endblock %}
 
-{% block extra_js %}
+{% block extra_scripts %}
 <script>
 function confirmRemoveEmbeddings() {
     document.getElementById('remove_embeddings_modal').classList.remove('hidden');
