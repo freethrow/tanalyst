@@ -64,6 +64,9 @@ urlpatterns = [
     path(
         "embedding-management/", views.embedding_management, name="embedding_management"
     ),
+    path(
+        "embedding-stats/", views.embedding_stats_partial, name="embedding_stats_partial"
+    ),
     path("generate-summary/", views.generate_summary, name="generate_summary"),
     path("weekly-summaries/", views.weekly_summaries_list, name="weekly_summaries"),
     path(
@@ -93,6 +96,6 @@ urlpatterns = [
         name="weekly_summary_pdf",
     ),
     # Article Selection Summary
-    path("articles/selection-summary/", views.selection_summary_view, name="selection_summary"),
-    path("articles/generate-selection-summary/", views.generate_selection_summary, name="generate_selection_summary"),
+    path("selection-summary/", views.selection_summary_view, name="selection_summary"),
+    path("generate-selection-summary/", views.generate_selection_summary, name="generate_selection_summary"),
 ]

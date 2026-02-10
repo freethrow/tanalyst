@@ -699,6 +699,62 @@ def embedding_management(request):
         return HttpResponse(error_message, status=500)
 
 
+@staff_required
+def embedding_stats_partial(request):
+    """Return just the embedding statistics partial for htmx polling."""
+    from pymongo import MongoClient
+    import os
+
+    try:
+        mongo_uri = getattr(
+            settings,
+            "MONGODB_URI",
+            os.getenv("MONGODB_URI", "mongodb://localhost:7587/?directConnection=true"),
+        )
+        mongo_db = getattr(settings, "MONGO_DB", os.getenv("MONGO_DB", "analyst"))
+
+        client = MongoClient(mongo_uri)
+        db = client[mongo_db]
+        collection = db["articles"]
+
+        total_articles = collection.count_documents({})
+        with_embeddings = collection.count_documents({"embedding": {"$exists": True}})
+        without_embeddings = total_articles - with_embeddings
+
+        models_pipeline = [
+            {"$match": {"embedding_model": {"$exists": True}}},
+            {"$group": {"_id": "$embedding_model", "count": {"$sum": 1}}},
+            {"$sort": {"count": -1}},
+        ]
+        models_stats = [
+            {"id": doc["_id"], "count": doc["count"]}
+            for doc in collection.aggregate(models_pipeline)
+        ]
+
+        with_errors = collection.count_documents({"embedding_error": {"$exists": True}})
+
+        client.close()
+
+        context = {
+            "total_articles": total_articles,
+            "with_embeddings": with_embeddings,
+            "without_embeddings": without_embeddings,
+            "models_stats": models_stats,
+            "with_errors": with_errors,
+            "embedding_percentage": round((with_embeddings / total_articles * 100), 1)
+            if total_articles > 0
+            else 0,
+        }
+
+        return render(request, "partials/embedding_stats.html", context)
+
+    except Exception as e:
+        return HttpResponse(
+            f'<div class="text-red-600 text-sm p-4">Error loading stats: {str(e)}</div>',
+            status=500,
+        )
+
+
 @login_required
 def hybrid_search(request):
     """
