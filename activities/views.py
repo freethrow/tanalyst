@@ -372,13 +372,27 @@ def generate_pdf_report(request):
             return redirect("activities:activity_list")
 
         # Fetch activities from database
-        activities = Activity.objects.filter(id__in=activity_ids).order_by(
-            "-anno", "-mese"
-        )
+        # Custom ordering: by tipo (Iniziative promozionali in loco first),
+        # then by citta, then by date descending (most recent first)
+        tipo_order = {
+            Activity.TIPO_PROMOZIONALI_LOCO: 0,
+            Activity.TIPO_PROMOZIONALI_ITALIA_ESTERO: 1,
+            Activity.TIPO_PRIVATISTICA: 2,
+        }
+        activities = list(Activity.objects.filter(id__in=activity_ids))
 
-        if not activities.exists():
+        if not activities:
             messages.error(request, "No activities found with the selected IDs.")
             return redirect("activities:activity_list")
+
+        activities.sort(
+            key=lambda a: (
+                tipo_order.get(a.tipo, 99),
+                a.citta or "",
+                -(a.anno or 0),
+                -(int(a.mese) if a.mese else 0),
+            )
+        )
 
         # Get logo path for PDF (use absolute file path for WeasyPrint)
         logo_path = settings.BASE_DIR / "static" / "images" / "ita_logo.png"
@@ -392,7 +406,7 @@ def generate_pdf_report(request):
         context = {
             "activities": activities,
             "generated_date": datetime.now().strftime("%d/%m/%Y %H:%M"),
-            "total_count": activities.count(),
+            "total_count": len(activities),
             "total_persons": total_persons if total_persons > 0 else None,
             "logo_path": logo_path.as_uri() if logo_path.exists() else "",
         }

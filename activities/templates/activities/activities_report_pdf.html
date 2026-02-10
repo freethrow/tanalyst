@@ -116,6 +116,21 @@
             line-height: 1.6;
         }
 
+        .tipo-section-header {
+            background-color: #008265;
+            color: #fff;
+            font-size: 12pt;
+            font-weight: bold;
+            padding: 8px 12px;
+            margin-top: 20px;
+            margin-bottom: 5px;
+            page-break-after: avoid;
+        }
+
+        .tipo-section-header:first-of-type {
+            margin-top: 0;
+        }
+
         .footer {
             margin-top: 30px;
             padding-top: 10px;
@@ -139,6 +154,9 @@
     </div>
 
     {% for activity in activities %}
+    {% ifchanged activity.tipo %}
+    <div class="tipo-section-header">{{ activity.tipo|default:"Altro" }}</div>
+    {% endifchanged %}
     <div class="activity">
         <h2 class="activity-title">{{ activity.nome_iniziativa }}</h2>
 
