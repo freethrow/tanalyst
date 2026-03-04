@@ -43,6 +43,14 @@
             margin-bottom: 1.5cm;  /* Leave space for the footer */
             column-count: 2;
             column-gap: 1cm;
+            column-rule: 1px solid #ddd;
+            column-fill: balance;
+        }
+
+        a {
+            color: #991b1b;
+            text-decoration: none;
+            word-break: break-all;
         }
         
         .header-content {
@@ -164,7 +172,7 @@
         
         <div class="article-meta">
             {% if article.source %}Fonte: {{ article.source }} | {% endif %}
-            {% if article.url %}Originale: {{ article.url }}<br/> {% endif %}
+            {% if article.url %}Originale: <a href="{{ article.url }}">{{ article.url }}</a><br/> {% endif %}
             {% if article.article_date %} Data: <strong>{{ article.article_date|date:"d/m/Y" }}</strong> | {% endif %}
             {% if article.sector %}Settore: <strong>{{ article.sector }}</strong>{% endif %}
         </div>
